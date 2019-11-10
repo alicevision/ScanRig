@@ -13,7 +13,7 @@ bl_info = {
 import os
 import bpy
 import math
-from mathutils import Matrix
+import mathutils
 
 class ScanRigPanel(bpy.types.Panel):
     bl_idname = 'SCANRIG_PT_ScanRig'
@@ -117,7 +117,7 @@ class SetupOperator(bpy.types.Operator):
                     bpy.data.objects.remove(obj, do_unlink=True)
                 bpy.data.collections.remove(c, do_unlink=True)
 
-        # create our collection if needed
+        # create our collections if needed
         if bpy.data.collections.get("ScanRigCollection") is None:
             ScanRigCollection = bpy.data.collections.new("ScanRigCollection")
             context.scene.collection.children.link(ScanRigCollection)
@@ -136,16 +136,20 @@ class SetupOperator(bpy.types.Operator):
         cameras.empty_display_type = 'PLAIN_AXES'
         bpy.data.collections['ScanRigCollection'].objects.link(cameras) # link to our collection
 
-        # Bottom cam
-        camBottom.parent = cameras
-        cameras.rotation_euler[1] = math.radians(30)
-        camBottom.select_set(True)
-        bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
-
         # Top cam
         camTop.parent = cameras
         cameras.rotation_euler[1] = math.radians(-30)
         camTop.select_set(True)
+
+        context.view_layer.objects.active  = camTop # (could be improved)
+        bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
+
+        # Bottom cam
+        camBottom.parent = cameras
+        cameras.rotation_euler[1] = math.radians(30)
+        camBottom.select_set(True)
+
+        context.view_layer.objects.active  = camBottom # (could be improved)
         bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
 
         # Relinking
@@ -259,7 +263,11 @@ class RenderOperator(bpy.types.Operator):
         origin = bpy.context.scene.objects['cameras']
 
         # link bras to origin if exist in ScanRigProtectedCollection
-        bras = bpy.data.collections['ScanRigProtectedCollection'].objects['BRAS'] 
+        if bpy.data.collections['ScanRigProtectedCollection'].objects.get('BRAS') is not None:
+            bras = bpy.data.collections['ScanRigProtectedCollection'].objects['BRAS'] 
+        else:
+            bras = None
+
         brasParent = None
         if bras != None :
             brasParent = bras.parent
