@@ -113,7 +113,7 @@ int main(int argc, char **argv)
                     {
                         /* uvc_error_t resPT = uvc_set_pantilt_abs(devh, i * 20 * 3600, 0); */
                         /* uvc_perror(resPT, "set_pt_abs"); */
-                        uvc_error_t resEXP = uvc_set_exposure_abs(devh, 20 + i * 5);
+                        uvc_error_t resEXP = uvc_set_exposure_abs(devh, 2000);
                         uvc_perror(resEXP, "set_exp_abs");
 
                         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
