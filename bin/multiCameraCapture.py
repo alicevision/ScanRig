@@ -58,10 +58,12 @@ for cameraIndex in args.cameras:
 
     width = cap.set(cv2.CAP_PROP_FRAME_WIDTH, 4208)
     height = cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 3120)
+    autoExpo = cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0)
+    exposure = cap.set(cv2.CAP_PROP_EXPOSURE, 2000)
     fps = cap.get(cv2.CAP_PROP_FPS)
     frameCount = cap.get(cv2.CAP_PROP_FRAME_COUNT)
     uid = cap.get(cv2.CAP_PROP_GUID)
-    logging.info('uid={}, width={}, height={}, fps={}, frame count={}'.format(uid, width, height, fps, frameCount))
+    logging.info('uid={}, width={}, height={}, fps={}, frame count={}, exposure={}'.format(uid, width, height, fps, frameCount, exposure))
 
     captureDevices.append((cameraIndex, cap))
 
