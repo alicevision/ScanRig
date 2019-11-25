@@ -56,14 +56,22 @@ for cameraIndex in args.cameras:
         cap.release()
         continue
 
-    width = cap.set(cv2.CAP_PROP_FRAME_WIDTH, 4208)
-    height = cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 3120)
-    autoExpo = cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0)
-    exposure = cap.set(cv2.CAP_PROP_EXPOSURE, 2000)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 3840)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 2160)
+    cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0) # Disable auto-exposure
+    cap.set(cv2.CAP_PROP_EXPOSURE, 1500) # From 0 to 10 000
+    cap.set(cv2.CAP_PROP_GAIN, 0) # From 0 to 100
+    cap.set(cv2.CAP_PROP_AUTO_WB, 0) # Disable auto-white balance
+    cap.set(cv2.CAP_PROP_WB_TEMPERATURE, 5200) # From 0 to 10 000
+
+    width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+    height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    exposure = cap.get(cv2.CAP_PROP_EXPOSURE)
+    gain = cap.get(cv2.CAP_PROP_GAIN)
     fps = cap.get(cv2.CAP_PROP_FPS)
-    frameCount = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+    wb = cap.get(cv2.CAP_PROP_WB_TEMPERATURE)
     uid = cap.get(cv2.CAP_PROP_GUID)
-    logging.info('uid={}, width={}, height={}, fps={}, frame count={}, exposure={}'.format(uid, width, height, fps, frameCount, exposure))
+    logging.info('uid={}, width={}, height={}, fps={}, exposure={}, gain={}, wb={}'.format(uid, width, height, fps, exposure, gain, wb))
 
     captureDevices.append((cameraIndex, cap))
 
@@ -80,6 +88,10 @@ while(running):
             continue
         frames.append(frame)
         frameIdx.append(idx)
+        if cv2.waitKey(args.sleep) & 0xFF == ord('p'):
+            logging.info("Image captured")
+            cv2.imwrite(filename='saved_img.jpg', img=frame)
+            continue
         # height, width = frame.shape[:2]
         # print('width={}, height={}'.format(width, height))
         # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
