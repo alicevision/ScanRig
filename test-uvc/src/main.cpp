@@ -20,6 +20,7 @@ void cb(uvc_frame_t *frame, void *ptr)
         return;
     }
 
+    // FIXME segfault with this function with 4208x3120 resolution
     ret = uvc_any2bgr(frame, bgr);
     if (ret)
     {
@@ -87,7 +88,7 @@ int main(int argc, char **argv)
             uvc_print_diag(devh, stderr);
 
             res = uvc_get_stream_ctrl_format_size(
-                devh, &ctrl, UVC_FRAME_FORMAT_UYVY, 640, 480, 120);
+                devh, &ctrl, UVC_FRAME_FORMAT_UYVY, 4208, 3120, 9);
 
             uvc_print_stream_ctrl(&ctrl, stderr);
 
