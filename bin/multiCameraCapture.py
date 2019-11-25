@@ -56,8 +56,8 @@ for cameraIndex in args.cameras:
         cap.release()
         continue
 
-    width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-    height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    width = cap.set(cv2.CAP_PROP_FRAME_WIDTH, 4208)
+    height = cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 3120)
     fps = cap.get(cv2.CAP_PROP_FPS)
     frameCount = cap.get(cv2.CAP_PROP_FRAME_COUNT)
     uid = cap.get(cv2.CAP_PROP_GUID)
