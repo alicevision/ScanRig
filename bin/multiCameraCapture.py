@@ -38,7 +38,7 @@ parser.add_argument("-v", "--verbose", dest="verbosity", action="count", default
 args = parser.parse_args()
 logging.basicConfig(level=log_levels[args.verbosity])
 
-print("Press 'q' to exit.")
+print("Press 'esc' to exit.")
 
 if args.output and not os.path.exists(args.output):
     os.mkdir(args.output)
@@ -56,31 +56,44 @@ for cameraIndex in args.cameras:
         cap.release()
         continue
 
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 3840)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 2160)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 4208)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 3120)
     cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0) # Disable auto-exposure
-    cap.set(cv2.CAP_PROP_EXPOSURE, 1500) # From 0 to 10 000
+    cap.set(cv2.CAP_PROP_EXPOSURE, 817) # From 0 to 10 000
     cap.set(cv2.CAP_PROP_GAIN, 0) # From 0 to 100
     cap.set(cv2.CAP_PROP_AUTO_WB, 0) # Disable auto-white balance
-    cap.set(cv2.CAP_PROP_WB_TEMPERATURE, 5200) # From 0 to 10 000
+    cap.set(cv2.CAP_PROP_WB_TEMPERATURE, 5600) # From 0 to 10 000
+    cap.set(cv2.CAP_PROP_SHARPNESS, 0)
+    cap.set(cv2.CAP_PROP_BRIGHTNESS, 0)
+    cap.set(cv2.CAP_PROP_CONTRAST, 0)
+    cap.set(cv2.CAP_PROP_SATURATION, 32)
+    cap.set(cv2.CAP_PROP_GAMMA, 220)
 
     width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
     height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
     exposure = cap.get(cv2.CAP_PROP_EXPOSURE)
     gain = cap.get(cv2.CAP_PROP_GAIN)
+    gamma = cap.get(cv2.CAP_PROP_GAMMA)
+    brightness = cap.get(cv2.CAP_PROP_BRIGHTNESS)
+    contrast = cap.get(cv2.CAP_PROP_CONTRAST)
+    saturation = cap.get(cv2.CAP_PROP_SATURATION)
+    sharpness = cap.get(cv2.CAP_PROP_SHARPNESS)
     fps = cap.get(cv2.CAP_PROP_FPS)
     wb = cap.get(cv2.CAP_PROP_WB_TEMPERATURE)
     uid = cap.get(cv2.CAP_PROP_GUID)
-    logging.info('uid={}, width={}, height={}, fps={}, exposure={}, gain={}, wb={}'.format(uid, width, height, fps, exposure, gain, wb))
+    logging.info(f'uid={uid}, width={width}, height={height}, fps={fps}, exposure={exposure}, gain={gain}, wb={wb}, bright{brightness}, contrast{contrast}, sat{saturation}, sharp{sharpness}')
 
     captureDevices.append((cameraIndex, cap))
 
 frameNumber = 0
 
+capFrame = 0
+
 running = True
 while(running):
     frames = []
     frameIdx = []
+    k = cv2.waitKey(1)
     for idx, cap in captureDevices:
         # Capture frame-by-frame
         ret, frame = cap.read()
@@ -88,10 +101,6 @@ while(running):
             continue
         frames.append(frame)
         frameIdx.append(idx)
-        if cv2.waitKey(args.sleep) & 0xFF == ord('p'):
-            logging.info("Image captured")
-            cv2.imwrite(filename='saved_img.jpg', img=frame)
-            continue
         # height, width = frame.shape[:2]
         # print('width={}, height={}'.format(width, height))
         # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -101,10 +110,17 @@ while(running):
         HORIZONTAL = 1
         vis = np.concatenate(frames, axis=HORIZONTAL)
         # Display the resulting frame
+        vis = cv2.resize(frame, None, fx=0.3, fy=0.3, interpolation=cv2.INTER_AREA)
         cv2.imshow('ScanRig', vis)
-        if cv2.waitKey(args.sleep) & 0xFF == ord('q'):
+        if k == 27: #ECHAP
             running = False
             break
+
+        if k == 32: #ESPACE
+            logging.info("Image captured")
+            filename = f'img_{capFrame}.jpg'
+            capFrame += 1
+            cv2.imwrite(filename=filename, img=frame)
 
     if args.output:
         for idx, img in zip(frameIdx, frames):
@@ -121,4 +137,3 @@ for idx, cap in captureDevices:
 # When everything done, release the window
 if args.display:
     cv2.destroyAllWindows()
-
