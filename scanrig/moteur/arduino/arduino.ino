@@ -10,6 +10,8 @@
 
 # define _debugLED 13 // debug led
 
+int speed = 500;
+
 void setup() {
 	//Sets the pins as Outputs
 	pinMode (_debugLED, OUTPUT); // debug led already on arduino
@@ -46,7 +48,7 @@ void serialEvent() {
 		inChar = (char)Serial.read(); // read incoming char from Serial
 		if (inChar == '\n') { // end-of-line
 			handleReceivedCommand(bufferStr);
-			bufferStr = ""; // reset command incoming buffer
+			bufferStr = ""; // reset command incoming buffer (allow us to break motor during rotation)
 		} else {
 			bufferStr += inChar;
 		}
@@ -54,9 +56,10 @@ void serialEvent() {
 }
 
 void handleReceivedCommand(String str) {
-	// format 
-	// cmd:arg01,arg02, ...
-	Serial.println("recieved cmd : \"" + str + "\"");
+
+	// command format	cmd:arg01,arg02, ...
+
+	// Serial.println("recieved cmd : \"" + str + "\"");
 
 	int id;
 
@@ -65,8 +68,7 @@ void handleReceivedCommand(String str) {
 	// memset(argsBuffer, 0, sizeof(argsBuffer));
 
 	id = str.indexOf(':');
-
-	if(id != -1) {
+	if (id != -1) {
 		cmdName = str.substring(0, id);
 		str = str.substring(id+1);
 		
@@ -86,48 +88,90 @@ void handleReceivedCommand(String str) {
 		
 		Serial.println("cmd : " + cmdName);
 
-		if (cmdName.equals("right")) { // equalsIgnoreCase
-			blinkDebug(); wait(100); blinkDebug();
+		// ============================================================
+		// ======================== commands ==========================
+		// ============================================================
+
+		if (cmdName.equals("debugBlink")) { // equalsIgnoreCase
+			blinkDebug(); delay(500); blinkDebug();
 		} else if (cmdName.equals("left")) {
-			blinkDebug();
+			if (argsNb < 0) {
+				Serial.println("invalid nb of arguments");
+			}else {
+				motorMove(true, args[0]);
+			}
+		} else if (cmdName.equals("right")) {
+			if (argsNb < 0) {
+				Serial.println("invalid nb of arguments");
+			}else {
+				motorMove(false, args[0]);
+			}
+		} else if (cmdName.equals("speed")) {
+			if (argsNb < 0) {
+				Serial.println("invalid nb of arguments");
+			}else {
+				speed = args[0];
+			}
+		} else if (cmdName.equals("test")) {
+			if (argsNb < 1) {
+				Serial.println("invalid nb of arguments");
+			} else {
+				testTimeMotor(args[0], args[1]);
+			}
+		} else if (cmdName.equals("stop") or cmdName.equals(" ")) {
+			// stop motor
 		} else {
-			Serial.println("Cmd received: unknown");
+			Serial.println("Unknown Cmd");
 		}
+	} else {
+		if(!str.equals(" ")) {
+			Serial.println("Parsing error :\"" + str + "\"");
+		}// else {
+		 // 	// motorStop
+		 // }
+	}
+}
 
-		
-
-	}else {
-		Serial.println("cmd not found, parsing error");
-		return;
+void testTimeMotor(unsigned int d, unsigned int pulse) {
+	fastDigitalWrite(_DIR_5v,HIGH);
+	
+	for(int x = 0; x < pulse; x++) {
+		fastDigitalWrite(_STP_5v, HIGH); 
+		delayMicroseconds(d); 
+		fastDigitalWrite(_STP_5v, LOW); 
+		delayMicroseconds(d);
+		if(Serial.available()) {
+			break;
+		}
 	}
 }
 
 void motorMove(bool dir, unsigned int pulse) {
 	// Enables the motor direction to move
-	fastDigitalWrite(_DIR_5v, dir ? HIGH : LOW);
-
-	// Makes 200 Pulses for making one full cycle rotation
+	// LOW : left / HIGH : right
+	fastDigitalWrite(_DIR_5v, dir ? LOW : HIGH);
 	
-	// float pulse = _PULSE_PER_REV/360.0f*float(angle);
-	// Serial.println("pulse : " + pulse);
 	for(int x = 0; x < pulse; x++) {
 		fastDigitalWrite(_STP_5v, HIGH); 
-		delayMicroseconds(500); 
+		delayMicroseconds(speed); 
 		fastDigitalWrite(_STP_5v, LOW); 
-		delayMicroseconds(500); 
+		delayMicroseconds(speed);
+		if(Serial.available()) { // break if incoming data in serial
+			break;
+		}
 	}
 }
 
 void blinkDebug() {
 	digitalWrite(_debugLED, HIGH);
-	delayMicroseconds(100); // 100 ms
+	delay(500); // 100 ms
 	digitalWrite(_debugLED, LOW);
 }
 
 void loop() {
 	// test loop
-	motorMove(true, 400);
-	delay(1000);
-	motorMove(false, 200);
-	delay(500);
+	// motorMove(true, 400);
+	// delay(1000);
+	// motorMove(false, 400);
+	// delay(1000);
 }
