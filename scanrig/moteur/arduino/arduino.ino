@@ -10,7 +10,7 @@
 
 # define _debugLED 13 // debug led
 
-int speed = 500;
+int pulseDelay;
 
 void setup() {
 	//Sets the pins as Outputs
@@ -56,16 +56,11 @@ void serialEvent() {
 }
 
 void handleReceivedCommand(String str) {
-
 	// command format	cmd:arg01,arg02, ...
 
-	// Serial.println("recieved cmd : \"" + str + "\"");
-
 	int id;
-
 	String cmdName;
 	int argsBuffer[_MAX_ARG];
-	// memset(argsBuffer, 0, sizeof(argsBuffer));
 
 	id = str.indexOf(':');
 	if (id != -1) {
@@ -79,14 +74,11 @@ void handleReceivedCommand(String str) {
 			argsNb++;
 		}
 		// read last arg if needed (because of stop condition in while)
-		if (argsNb < _MAX_ARG) {
-			argsBuffer[argsNb] = str.substring(0, id).toInt();
-		}
+		if (argsNb < _MAX_ARG) { argsBuffer[argsNb] = str.substring(0, id).toInt(); }
 
 		int args[argsNb+1];
 		memcpy(args, argsBuffer, sizeof(args)); // copy argsbuffer array to args array
-		
-		Serial.println("cmd : " + cmdName);
+		//Serial.println("cmd : " + cmdName); // debug
 
 		// ============================================================
 		// ======================== commands ==========================
@@ -94,30 +86,23 @@ void handleReceivedCommand(String str) {
 
 		if (cmdName.equals("debugBlink")) { // equalsIgnoreCase
 			blinkDebug(); delay(500); blinkDebug();
-		} else if (cmdName.equals("left")) {
-			if (argsNb < 0) {
-				Serial.println("invalid nb of arguments");
+		} else if (cmdName.equals("left") || cmdName.equals("right")) {
+			if (argsNb < 0) { Serial.println("invalid nb of arguments");
 			}else {
-				motorMove(true, args[0]);
+				if(argsNb < 1) {
+					motorMove(cmdName.equals("left") ? true : false , args[0], pulseDelay);
+				}else {
+					motorMove(cmdName.equals("left") ? true : false , args[0], args[1]);
+				}
+				
 			}
-		} else if (cmdName.equals("right")) {
-			if (argsNb < 0) {
-				Serial.println("invalid nb of arguments");
+		} else if (cmdName.equals("setPulseDelay")) {
+			if (argsNb < 0) { Serial.println("invalid nb of arguments");
 			}else {
-				motorMove(false, args[0]);
-			}
-		} else if (cmdName.equals("speed")) {
-			if (argsNb < 0) {
-				Serial.println("invalid nb of arguments");
-			}else {
-				speed = args[0];
+				pulseDelay = args[0];
 			}
 		} else if (cmdName.equals("test")) {
-			if (argsNb < 1) {
-				Serial.println("invalid nb of arguments");
-			} else {
-				testTimeMotor(args[0], args[1]);
-			}
+			testMotor();
 		} else if (cmdName.equals("stop") or cmdName.equals(" ")) {
 			// stop motor
 		} else {
@@ -126,41 +111,39 @@ void handleReceivedCommand(String str) {
 	} else {
 		if(!str.equals(" ")) {
 			Serial.println("Parsing error :\"" + str + "\"");
-		}// else {
-		 // 	// motorStop
-		 // }
-	}
-}
-
-void testTimeMotor(unsigned int d, unsigned int pulse) {
-	fastDigitalWrite(_DIR_5v,HIGH);
-	
-	for(int x = 0; x < pulse; x++) {
-		fastDigitalWrite(_STP_5v, HIGH); 
-		delayMicroseconds(d); 
-		fastDigitalWrite(_STP_5v, LOW); 
-		delayMicroseconds(d);
-		if(Serial.available()) {
-			break;
 		}
 	}
 }
 
-void motorMove(bool dir, unsigned int pulse) {
+
+void motorMove(bool dir, int pulse, int delay) {
 	// Enables the motor direction to move
 	// LOW : left / HIGH : right
 	fastDigitalWrite(_DIR_5v, dir ? LOW : HIGH);
 	
 	for(int x = 0; x < pulse; x++) {
 		fastDigitalWrite(_STP_5v, HIGH); 
-		delayMicroseconds(speed); 
+		delayMicroseconds(delay); 
 		fastDigitalWrite(_STP_5v, LOW); 
-		delayMicroseconds(speed);
-		if(Serial.available()) { // break if incoming data in serial
-			break;
-		}
+		delayMicroseconds(delay);
+		if(Serial.available()) { break; }// break if incoming data in serial
 	}
 }
+
+void testMotor() {
+	motorMove(true, 40, pulseDelay);
+	delay(500);
+	motorMove(true, 40, pulseDelay);
+	delay(500);
+	motorMove(true, 40, pulseDelay);
+	delay(500);
+	motorMove(true, 40, pulseDelay);
+	delay(500);
+	motorMove(true, 40, pulseDelay);
+	delay(1000);
+	motorMove(false, 200, pulseDelay);
+}
+
 
 void blinkDebug() {
 	digitalWrite(_debugLED, HIGH);
