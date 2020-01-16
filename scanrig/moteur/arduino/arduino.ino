@@ -47,7 +47,7 @@ void serialEvent() {
 	while (Serial.available()) {
 		inChar = (char)Serial.read(); // read incoming char from Serial
 		if (inChar == '\n') { // end-of-line
-			handleReceivedCommand(bufferStr);
+			Serial.print(handleReceivedCommand(bufferStr));// handle cmd & print return string in Serial for python
 			bufferStr = ""; // reset command incoming buffer (allow us to break motor during rotation)
 		} else {
 			bufferStr += inChar;
@@ -55,8 +55,11 @@ void serialEvent() {
 	}
 }
 
-void handleReceivedCommand(String str) {
-	// command format	cmd:arg01,arg02, ...
+String handleReceivedCommand(String str) {
+	// command format	cmd:arg01,arg02,...\n
+	// return string about error or return :
+	// - Success (if cmd success)
+	// - Pulse:nb (number of pulse already done if not finish)
 
 	int id;
 	String cmdName;
@@ -78,7 +81,6 @@ void handleReceivedCommand(String str) {
 
 		int args[argsNb+1];
 		memcpy(args, argsBuffer, sizeof(args)); // copy argsbuffer array to args array
-		//Serial.println("cmd : " + cmdName); // debug
 
 		// ============================================================
 		// ======================== commands ==========================
@@ -87,36 +89,30 @@ void handleReceivedCommand(String str) {
 		if (cmdName.equals("debugBlink")) { // equalsIgnoreCase
 			blinkDebug(); delay(500); blinkDebug();
 		} else if (cmdName.equals("left") || cmdName.equals("right")) {
-			if (argsNb < 0) { Serial.println("invalid nb of arguments");
+			if (argsNb < 1) { return "Invalid number of arguments";
 			}else {
-				if(argsNb < 1) {
-					motorMove(cmdName.equals("left") ? true : false , args[0], pulseDelay);
-				}else {
-					motorMove(cmdName.equals("left") ? true : false , args[0], args[1]);
-				}
-				
+				return motorMove(cmdName.equals("left") ? true : false , args[0], args[1]);
 			}
 		} else if (cmdName.equals("setPulseDelay")) {
-			if (argsNb < 0) { Serial.println("invalid nb of arguments");
+			if (argsNb < 0) { return "Invalid number of arguments";
 			}else {
 				pulseDelay = args[0];
 			}
 		} else if (cmdName.equals("test")) {
-			testMotor();
-		} else if (cmdName.equals("stop") or cmdName.equals(" ")) {
+			return testMotor();
+		} else if (cmdName.equals("stop") or cmdName.equals("s")) {
 			// stop motor
+			return "Success";
 		} else {
-			Serial.println("Unknown Cmd");
+			return "Unknown command";
 		}
 	} else {
-		if(!str.equals(" ")) {
-			Serial.println("Parsing error :\"" + str + "\"");
-		}
+		return "Parsing error";
 	}
 }
 
 
-void motorMove(bool dir, int pulse, int delay) {
+String motorMove(bool dir, int pulse, int delay) {
 	// Enables the motor direction to move
 	// LOW : left / HIGH : right
 	fastDigitalWrite(_DIR_5v, dir ? LOW : HIGH);
@@ -126,35 +122,41 @@ void motorMove(bool dir, int pulse, int delay) {
 		delayMicroseconds(delay); 
 		fastDigitalWrite(_STP_5v, LOW); 
 		delayMicroseconds(delay);
-		if(Serial.available()) { break; }// break if incoming data in serial
+		if(Serial.available()) { return "Pulse:" + (x+1); }// break if incoming data in serial
 	}
+	return "success";
 }
 
-void testMotor() {
-	motorMove(true, 40, pulseDelay);
+String testMotor() {
+	String rtn;
+	rtn = motorMove(true, 320, pulseDelay);
+	if (!rtn.equals("Success")) { return rtn; }; // return error if not success 
 	delay(500);
-	motorMove(true, 40, pulseDelay);
+	motorMove(true, 320, pulseDelay);
+	if (!rtn.equals("Success")) { return rtn; };
 	delay(500);
-	motorMove(true, 40, pulseDelay);
+	motorMove(true, 320, pulseDelay);
+	if (!rtn.equals("Success")) { return rtn; };
 	delay(500);
-	motorMove(true, 40, pulseDelay);
+	motorMove(true, 320, pulseDelay);
+	if (!rtn.equals("Success")) { return rtn; };
 	delay(500);
-	motorMove(true, 40, pulseDelay);
+	motorMove(true, 320, pulseDelay);
+	if (!rtn.equals("Success")) { return rtn; };
 	delay(1000);
-	motorMove(false, 200, pulseDelay);
+	motorMove(false, 800, pulseDelay);
+	if (!rtn.equals("Success")) { return rtn; };
+	return "Success";
 }
 
 
-void blinkDebug() {
+String blinkDebug() {
 	digitalWrite(_debugLED, HIGH);
-	delay(500); // 100 ms
+	delay(500);
 	digitalWrite(_debugLED, LOW);
+	return "Success";
 }
 
 void loop() {
-	// test loop
-	// motorMove(true, 400);
-	// delay(1000);
-	// motorMove(false, 400);
-	// delay(1000);
+	delay(1); // wait until receive Serial data
 }
