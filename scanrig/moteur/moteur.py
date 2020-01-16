@@ -3,8 +3,9 @@ from tkinter import *  # interface
 import sys # check system
 import glob
 import time
+import threading
 
-def serial_ports():
+def availablePorts():
     """ Lists all available serial port names
 
         raises EnvironmentError on unsupported or unknown platforms
@@ -34,17 +35,26 @@ def serialWrite(ser, str):
     str2 = str + "\n"
     ser.write(str2.encode('ascii'))
 
+
+
 if __name__ == '__main__':
-    print("--- choice one of these port COM corresponding to your microcontroller ---")
-    PortsList = serial_ports()
+    print("--- Choice one of these port COM corresponding to your microcontroller ---")
+    PortsList = availablePorts()
     print(PortsList)
     comNb = -1
     while (comNb < 0 or comNb >= len(PortsList)):
         comNb = int(input("->"))
     
     #  init Serial connection to arduino
-    arduinoSer = serial.Serial(PortsList[comNb], 115200)
-    print(arduinoSer.name + " selected") # debug
+    try :
+        arduinoSer = serial.Serial(PortsList[comNb], 115200 ,timeout = 1)
+        # open Serial communication
+        # arduinoSer.open()
+    except:
+        print("Error during serial port initialization")
+        exit(1)
+
+    print(arduinoSer.name + " opened") # debug
 
     # GUI init & loop
     window = Tk()
@@ -68,5 +78,47 @@ if __name__ == '__main__':
     cmdEntry = Entry(window, textvariable=command, width = 40)
     cmdEntry.grid(row = 4, column = 0, columnspan = 3)
     Button(window, text="send", command = lambda : serialWrite(arduinoSer, command.get())).grid(row = 4, column = 3, sticky = N)
+
+    SerialMonitor = Frame(window, borderwidth=2, relief=GROOVE)
+    SerialMonitor.grid(row = 5, column = 0, rowspan = 4, columnspan = 4, padx=10, pady=10)
+
+    scroolBar = Scrollbar(SerialMonitor)
+    scroolBar.pack(side=RIGHT, fill=Y)
+
+    log = Text(SerialMonitor, width=30, height=30, takefocus=0)
+    log.pack()
+
+    # attach text box to scrollbar
+    log.config(yscrollcommand=scroolBar.set)
+    scroolBar.config(command=log.yview)
     
-    window.mainloop() #start loop GUI
+    serialBuffer = ""
+
+    def readSerial():
+
+        # get the buffer from outside of this function
+        global serialBuffer
+        c = arduinoSer.readline()[:-2]
+        c = arduinoSer.read().decode('ascii') # read from Serial
+        while len(c) != 0 :
+            
+            # check if character is a delimeter
+            if c == '\r':
+                c = ''
+                
+            if c == '\n':# add the newline to the buffer & log GUI
+                serialBuffer += "\n" 
+                log.insert('0.0', serialBuffer)
+                serialBuffer = "" # empty the buffer
+            else:
+                serialBuffer += c
+        
+        # window.after(100, readSerial) # check serial again
+
+    while True:
+        window.update() # call tkinter window update by ourselves
+        readSerial()
+       
+    # window.after(1000, readSerial)
+    # window.mainloop() #start loop GUI
+
