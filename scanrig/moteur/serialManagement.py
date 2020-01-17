@@ -33,7 +33,10 @@ def serialWrite(ser, str):
     function used to send data to our serial port in utf-8
     """
     ser.write(str.encode('utf-8'))
-    ser.write(b"\n") # add endOfLine
+    print(str.encode('utf-8'))
+    eol = b"\n"
+    ser.write(eol) # add endOfLine
+
 
 # custom exception for our class
 class EmptyNewLineError(Exception):
@@ -46,22 +49,28 @@ class SerialReader:
         self.serial = serial
 
     def readline(self):
-        # handle bytes already in buffer
+        """
+        handle bytes already in buffer
+        return empty bytes array (b'') if no new line
+        """
         i = self.buffer.find(b"\n") # look for endOfLine
         if i >= 0:
             line = self.buffer[:i+1] #read line
-            self.buffer = self.buffer[i+1:] #keep other in buffer
+            self.buffer = self.buffer[i+1:] #keep other data in buffer
             return line
         
         # handle new incoming data
-        i = max(1, min(2048, self.serial.in_waiting)) #clamp read number
-        data = self.serial.read(i) # read all availible bytes
-        i = data.find(b"\n") #if line was found
-        if i >= 0:
-            line = self.buffer + data[:i+1]
-            self.buffer[0:] = data[i+1:]
-            return line
+        i = min(2048, self.serial.in_waiting) #limit to 2048 read
+        if(i > 0):
+            data = self.serial.read(i) # read all available bytes
+            i = data.find(b"\n")
+            if i >= 0: #if endOfLine was found
+                line = self.buffer + data[:i+1]
+                self.buffer[0:] = data[i+1:]
+                return line 
+            else: # else push in buffer
+                self.buffer.extend(data)
+                return b""
         else:
-            self.buffer.extend(data)
-            raise EmptyNewLineError
+            return b""
 

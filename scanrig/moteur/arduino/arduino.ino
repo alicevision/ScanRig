@@ -24,7 +24,7 @@ void setup() {
 	serialFlush(); // clean Serial buffer
 }
 
-// advenced digitalWrite function
+// advanced digitalWrite function
 void fastDigitalWrite(const unsigned int port, bool val) {
 	if(port >= 0 && port < 8) {
 		val ? PORTD |= (1<<port) : PORTD &= ~(1<<port);
@@ -44,11 +44,8 @@ String bufferStr = "";
 
 void serialEvent() {
 	char inChar;
-	// Serial.println("serialEvent"); // debug
 	while (Serial.available()) {
-		// Serial.println("coucou");
 		inChar = (char)Serial.read(); // read incoming char from Serial
-		// Serial.println(inChar); // debug
 		if (inChar == '\n') { // end-of-line
 			Serial.println(handleReceivedCommand(bufferStr));// handle cmd & print return string in Serial for python
 			bufferStr = ""; // reset command incoming buffer (allow us to break motor during rotation)
@@ -73,17 +70,21 @@ String handleReceivedCommand(String str) {
 		str = str.substring(id+1);
 		
 		int argsNb = 0;
-		while ( (id = str.indexOf(',') ) != -1 && argsNb < _MAX_ARG) { // for each args passed
+		while ( (id = str.indexOf(',') ) != -1 && argsNb < _MAX_ARG) { // for each args passed if found
 			argsBuffer[argsNb] = str.substring(0, id).toInt();
 			str = str.substring(id+1);
 			argsNb++;
 		}
-		// read last arg if needed (because of stop condition in while)
-		if (argsNb < _MAX_ARG) { argsBuffer[argsNb] = str.substring(0, id).toInt(); }
+		// read arg if needed (because of stop condition in while for multiple args)
+		if(str.length() > 0) {
+			argsBuffer[argsNb] = str.toInt();
+			str = str.substring(id+1);
+			argsNb++;
+		}
 
-		int args[argsNb+1];
+		int args[argsNb];
 		memcpy(args, argsBuffer, sizeof(args)); // copy argsbuffer array to args array
-
+		
 		// ============================================================
 		// ======================== commands ==========================
 		// ============================================================
@@ -91,12 +92,15 @@ String handleReceivedCommand(String str) {
 		if (cmdName.equals("debugBlink")) { // equalsIgnoreCase
 			blinkDebug(); delay(500); blinkDebug();
 		} else if (cmdName.equals("left") || cmdName.equals("right")) {
-			if (argsNb < 1) { return "Invalid number of arguments";
-			}else {
+			if(argsNb == 1) {
+				return motorMove(cmdName.equals("left") ? true : false , args[0], pulseDelay);
+			}else if(argsNb == 2) {
 				return motorMove(cmdName.equals("left") ? true : false , args[0], args[1]);
+			}else {
+				return "Invalid number of arguments";
 			}
 		} else if (cmdName.equals("setPulseDelay")) {
-			if (argsNb < 0) { return "Invalid number of arguments";
+			if (argsNb <= 0) { return "Invalid number of arguments";
 			}else {
 				pulseDelay = args[0];
 				return "Success";
@@ -113,6 +117,7 @@ String handleReceivedCommand(String str) {
 		return "Parsing error";
 	}
 }
+
 
 String motorMove(bool dir, int pulse, int delay) {
 	// Enables the motor direction to move
@@ -135,10 +140,11 @@ String motorMove(bool dir, int pulse, int delay) {
 	return r;
 }
 
+
 String testMotor() {
 	String rtn;
 	rtn = motorMove(true, 320, pulseDelay);
-	if (rtn.equals("Success") == false) { return rtn; }; // return error if not success 
+	if (rtn.equals("Success") == false) { return rtn; }; // return error if not success
 	delay(500);
 	rtn = motorMove(true, 320, pulseDelay);
 	if (rtn.equals("Success") == false) { return rtn; };
@@ -156,7 +162,6 @@ String testMotor() {
 	if (rtn.equals("Success") == false) { return rtn; };
 	return "Success";
 }
-
 
 String blinkDebug() {
 	digitalWrite(_debugLED, HIGH);

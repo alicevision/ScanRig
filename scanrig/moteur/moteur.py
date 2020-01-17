@@ -1,10 +1,10 @@
 import time
+import serial #serial connection to Arduino
 from tkinter import *  # interface
 from serialManagement import SerialReader, serialWrite, availablePorts, EmptyNewLineError
 
 def handleCallBack(log, line):
-    log.insert('0.0', line)
-    print("callbackline :" + line)
+    log.insert('0.0', line.decode())
 
 if __name__ == '__main__':
 
@@ -18,27 +18,33 @@ if __name__ == '__main__':
     while (comNb < 0 or comNb >= len(portsList)):
         comNb = int(input("->"))
     
-    #  init Serial connection to arduino
-    try :
+    
+    try :# Init Serial connection to arduino
         arduinoSer = serial.Serial(portsList[comNb], 115200 ,timeout = 1)
-        # arduinoSer.open() # open Serial communication
     except:
         print("Error during serial port initialization")
         exit(1)
+    print(arduinoSer.name + " opened") # info
 
-    print(arduinoSer.name + " opened") # debug
-
-    # init custom Serial reader
+    # init custom Serial reader to handle readLine correctly
     serialReader = SerialReader(arduinoSer)
 
     # GUI init & loop
     window = Tk()
+    
+    running = True
+    def closeWindow(): # Custom callback function to close window & stop loop using running variable
+        global running
+        running = False
+        print ("Window closed")
+    window.protocol("WM_DELETE_WINDOW", closeWindow)
 
+    # Create GUI using tkinter
     Label(window, text="Pulse").grid(row = 0, column = 0, columnspan = 2) 
     Label(window, text="pulseDelay").grid(row = 0, column = 2, columnspan = 2)
     pulse = Scale(window, from_=0, to=4000, orient=HORIZONTAL, width=35)
     pulse.grid(row = 1, column = 0, columnspan = 2)
-    pulseDelay = Scale(window, from_=0, to=1000, orient=HORIZONTAL, width=35)
+    pulseDelay = Scale(window, from_=0, to=2000, orient=HORIZONTAL, width=35)
     pulseDelay.grid(row = 1, column = 2, columnspan = 2)
 
     Button(window, text="Left", command = lambda : serialWrite(arduinoSer, "left:" + str(pulse.get()) )).grid(row = 2, column = 0, padx=5, sticky = N)
@@ -47,7 +53,7 @@ if __name__ == '__main__':
     Button(window, text="test", command = lambda : serialWrite(arduinoSer, "test:")).grid(row = 2, column = 3, padx=5, sticky = N)
     Label(window, text="CustomCmd").grid(row = 3, column = 0, columnspan = 4, sticky = N)
 
-    # vaiables holder
+    # Variables holder fo cmd entry used to send custom cmd to arduino without button
     cmdEntryHolder = StringVar()
     cmdEntryHolder.set("")
 
@@ -61,41 +67,15 @@ if __name__ == '__main__':
     scroolBar = Scrollbar(SerialMonitor)
     scroolBar.pack(side=RIGHT, fill=Y)
 
-    log = Text(SerialMonitor, width=30, height=30, takefocus=0)
+    log = Text(SerialMonitor, width=30, height=20, takefocus=0)
     log.pack()
 
-    # attach text box to scrollbar
+    # Attach scrollbar to log box 
     log.config(yscrollcommand=scroolBar.set)
     scroolBar.config(command=log.yview)
 
-    def readSerial():
-
-        # get the buffer from outside of this function
-        global serialBuffer
-        c = arduinoSer.readline()[:-2]
-        # c = arduinoSer.read().decode('ascii') # read from Serial
-        while len(c) != 0 :
-            
-            # check if character is a delimeter
-            if c == '\r':
-                c = ''
-                
-            if c == '\n':# add the newline to the buffer & log GUI
-                serialBuffer += "\n" 
-                log.insert('0.0', serialBuffer)
-                serialBuffer = "" # empty the buffer
-            else:
-                serialBuffer += c
-        
-        # window.after(100, readSerial) # check serial again
-
-    while True:
-        window.update() # call tkinter window update by ourselves
-        try:
-            line = serialReader.readline()
+    while running:
+        window.update() # Call tkinter window update by ourselves
+        line = serialReader.readline()
+        if line != b"" :
             handleCallBack(log, line)
-        except EmptyNewLineError:
-            pass
-        time.sleep(0.001)
-       
-
