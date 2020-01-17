@@ -44,10 +44,13 @@ String bufferStr = "";
 
 void serialEvent() {
 	char inChar;
+	// Serial.println("serialEvent"); // debug
 	while (Serial.available()) {
+		// Serial.println("coucou");
 		inChar = (char)Serial.read(); // read incoming char from Serial
+		// Serial.println(inChar); // debug
 		if (inChar == '\n') { // end-of-line
-			Serial.print(handleReceivedCommand(bufferStr));// handle cmd & print return string in Serial for python
+			Serial.println(handleReceivedCommand(bufferStr));// handle cmd & print return string in Serial for python
 			bufferStr = ""; // reset command incoming buffer (allow us to break motor during rotation)
 		} else {
 			bufferStr += inChar;
@@ -60,7 +63,6 @@ String handleReceivedCommand(String str) {
 	// return string about error or return :
 	// - Success (if cmd success)
 	// - Pulse:nb (number of pulse already done if not finish)
-
 	int id;
 	String cmdName;
 	int argsBuffer[_MAX_ARG];
@@ -97,6 +99,7 @@ String handleReceivedCommand(String str) {
 			if (argsNb < 0) { return "Invalid number of arguments";
 			}else {
 				pulseDelay = args[0];
+				return "Success";
 			}
 		} else if (cmdName.equals("test")) {
 			return testMotor();
@@ -111,41 +114,46 @@ String handleReceivedCommand(String str) {
 	}
 }
 
-
 String motorMove(bool dir, int pulse, int delay) {
 	// Enables the motor direction to move
 	// LOW : left / HIGH : right
 	fastDigitalWrite(_DIR_5v, dir ? LOW : HIGH);
+	String r = "Success";
 	
 	for(int x = 0; x < pulse; x++) {
 		fastDigitalWrite(_STP_5v, HIGH); 
 		delayMicroseconds(delay); 
 		fastDigitalWrite(_STP_5v, LOW); 
 		delayMicroseconds(delay);
-		if(Serial.available()) { return "Pulse:" + (x+1); }// break if incoming data in serial
+		
+		if(Serial.available()) { // break if incoming data in serial
+			r = "Pulse:";
+			r.concat(x+1);
+			break;
+		}
 	}
-	return "success";
+	return r;
 }
 
 String testMotor() {
 	String rtn;
 	rtn = motorMove(true, 320, pulseDelay);
-	if (!rtn.equals("Success")) { return rtn; }; // return error if not success 
+	if (rtn.equals("Success") == false) { return rtn; }; // return error if not success 
 	delay(500);
-	motorMove(true, 320, pulseDelay);
-	if (!rtn.equals("Success")) { return rtn; };
+	rtn = motorMove(true, 320, pulseDelay);
+	if (rtn.equals("Success") == false) { return rtn; };
 	delay(500);
-	motorMove(true, 320, pulseDelay);
-	if (!rtn.equals("Success")) { return rtn; };
+	rtn = motorMove(true, 320, pulseDelay);
+	if (rtn.equals("Success") == false) { return rtn; };
 	delay(500);
-	motorMove(true, 320, pulseDelay);
-	if (!rtn.equals("Success")) { return rtn; };
+	rtn = motorMove(true, 320, pulseDelay);
+	if (rtn.equals("Success") == false) { return rtn; };
 	delay(500);
-	motorMove(true, 320, pulseDelay);
-	if (!rtn.equals("Success")) { return rtn; };
+	rtn = motorMove(true, 320, pulseDelay);
+	if (rtn.equals("Success") == false) { return rtn; };
 	delay(1000);
-	motorMove(false, 800, pulseDelay);
-	if (!rtn.equals("Success")) { return rtn; };
+	rtn = motorMove(false, 1600, pulseDelay);
+	if (rtn.equals("Success") == false) { return rtn; };
 	return "Success";
 }
 
