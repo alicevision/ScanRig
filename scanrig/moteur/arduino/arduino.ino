@@ -3,14 +3,14 @@
 // PUL-(PUL) motor step control, connected to ground
 
 # define _MAX_ARG 10
-# define _PULSE_PER_REV 200 // number of pulses for making one full cycle rotation
+# define _PULSE_PER_REV 800 // number of pulses for making one full cycle rotation
+# define _REDUCTION_RATIO 6 // 10/60
+
 # define _EN_5v  4 // ENA+(+5V) stepper motor enable     White
 # define _DIR_5v 3 // DIR+(+5v) motor direction control  Brown
 # define _STP_5v 2 // PUL+(+5v) motor step control       Yellow
 
 # define _debugLED 13 // debug led
-
-int pulseDelay;
 
 void setup() {
 	//Sets the pins as Outputs
@@ -19,8 +19,7 @@ void setup() {
 	pinMode (_DIR_5v, OUTPUT); // DIR+(+5v)
 	pinMode (_STP_5v, OUTPUT); // PUL+(+5v)
 	
-	//enable Serial Monitor connection in 115200 baud to control from python
-	Serial.begin(115200);
+	Serial.begin(115200); //enable Serial Monitor connection in 115200 baud to control from python
 	serialFlush(); // clean Serial buffer
 }
 
@@ -81,7 +80,7 @@ String handleReceivedCommand(String str) {
 			str = str.substring(id+1);
 			argsNb++;
 		}
-
+	
 		int args[argsNb];
 		memcpy(args, argsBuffer, sizeof(args)); // copy argsbuffer array to args array
 		
@@ -92,21 +91,15 @@ String handleReceivedCommand(String str) {
 		if (cmdName.equals("debugBlink")) { // equalsIgnoreCase
 			blinkDebug(); delay(500); blinkDebug();
 		} else if (cmdName.equals("left") || cmdName.equals("right")) {
-			if(argsNb == 1) {
-				return motorMove(cmdName.equals("left") ? true : false , args[0], pulseDelay);
-			}else if(argsNb == 2) {
+			if (argsNb < 2) { return "Invalid number of arguments";
+			}else {
 				return motorMove(cmdName.equals("left") ? true : false , args[0], args[1]);
-			}else {
-				return "Invalid number of arguments";
 			}
-		} else if (cmdName.equals("setPulseDelay")) {
-			if (argsNb <= 0) { return "Invalid number of arguments";
+		} else if (cmdName.equals("oldLeft") || cmdName.equals("oldRight")) {
+			if (argsNb < 2) { return "Invalid number of arguments";
 			}else {
-				pulseDelay = args[0];
-				return "Success";
+				return motorMoveOld(cmdName.equals("left") ? true : false , args[0], args[1]);
 			}
-		} else if (cmdName.equals("test")) {
-			return testMotor();
 		} else if (cmdName.equals("stop") or cmdName.equals("s")) {
 			// stop motor
 			return "Success";
@@ -118,8 +111,7 @@ String handleReceivedCommand(String str) {
 	}
 }
 
-
-String motorMove(bool dir, int pulse, int delay) {
+String motorMoveOld(bool dir, int pulse, int d) {
 	// Enables the motor direction to move
 	// LOW : left / HIGH : right
 	fastDigitalWrite(_DIR_5v, dir ? LOW : HIGH);
@@ -127,10 +119,9 @@ String motorMove(bool dir, int pulse, int delay) {
 	
 	for(int x = 0; x < pulse; x++) {
 		fastDigitalWrite(_STP_5v, HIGH); 
-		delayMicroseconds(delay); 
+		delayMicroseconds(d);
 		fastDigitalWrite(_STP_5v, LOW); 
-		delayMicroseconds(delay);
-		
+		delayMicroseconds(d);
 		if(Serial.available()) { // break if incoming data in serial
 			r = "Pulse:";
 			r.concat(x+1);
@@ -140,27 +131,29 @@ String motorMove(bool dir, int pulse, int delay) {
 	return r;
 }
 
-
-String testMotor() {
-	String rtn;
-	rtn = motorMove(true, 320, pulseDelay);
-	if (rtn.equals("Success") == false) { return rtn; }; // return error if not success
-	delay(500);
-	rtn = motorMove(true, 320, pulseDelay);
-	if (rtn.equals("Success") == false) { return rtn; };
-	delay(500);
-	rtn = motorMove(true, 320, pulseDelay);
-	if (rtn.equals("Success") == false) { return rtn; };
-	delay(500);
-	rtn = motorMove(true, 320, pulseDelay);
-	if (rtn.equals("Success") == false) { return rtn; };
-	delay(500);
-	rtn = motorMove(true, 320, pulseDelay);
-	if (rtn.equals("Success") == false) { return rtn; };
-	delay(1000);
-	rtn = motorMove(false, 1600, pulseDelay);
-	if (rtn.equals("Success") == false) { return rtn; };
-	return "Success";
+String motorMove(bool dir, unsigned long degres, unsigned long durationForOneTurn) {
+	// Enables the motor direction to move
+	// LOW : left / HIGH : right
+	// durationForOneTurn in s 
+	// degres in degres
+	fastDigitalWrite(_DIR_5v, dir ? LOW : HIGH); // setup dir
+	String r = "Success"; 
+	// Calculation of the different variables from the speed and rotation angle passed as parameters
+	unsigned long  microSecPerMotorTurn = (unsigned long)(1000000) * durationForOneTurn / _REDUCTION_RATIO;
+	unsigned long demiStepDuration = microSecPerMotorTurn / _PULSE_PER_REV / 2;
+	unsigned long pulseNb = (degres * _REDUCTION_RATIO * _PULSE_PER_REV) / 360;
+	for(unsigned x = 0; x < pulseNb; x++) {
+		fastDigitalWrite(_STP_5v, HIGH); 
+		delayMicroseconds(demiStepDuration);
+		fastDigitalWrite(_STP_5v, LOW); 
+		delayMicroseconds(demiStepDuration);
+		if(Serial.available()) { // break if incoming data in serial
+			r = "Pulse:";
+			r.concat(x+1);
+			break;
+		}
+	}
+	return r;
 }
 
 String blinkDebug() {
