@@ -1,6 +1,7 @@
 #------------------------- IMPORTS
 import numpy as np
 import cv2, time, logging
+import queue
 
 import config
 from Camera import CaptureDevice, GetFrameThread
@@ -13,7 +14,7 @@ import cameraSettings
 def main():
     captureDevices = []
     GLOBAL_RUNNING = [True]
-    savingFrames = []
+    savingFrames = queue.Queue()
 
     frameNumber = 0
 

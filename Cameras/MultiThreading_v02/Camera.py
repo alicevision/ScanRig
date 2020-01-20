@@ -10,6 +10,7 @@ class GetFrameThread(threading.Thread):
 
     def run(self):
         (self.capDevice.status, self.capDevice.frame) = self.capDevice.capture.read()
+        self.capDevice.frame = cv2.cvtColor(self.capDevice.frame, cv2.COLOR_YUV2BGR_UYVY)
         print(f"Reading frame from cam {self.capDevice.indexCam}")
 
 
@@ -32,7 +33,7 @@ class CaptureDevice(object):
             self.stop()
 
     def saveFrame(self):
-        self.framesToSave.append((self.indexCam, self.nbSavedFrame, self.frame))
+        self.framesToSave.put((self.indexCam, self.nbSavedFrame, self.frame))
         self.nbSavedFrame += 1
 
     def stop(self):

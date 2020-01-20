@@ -14,13 +14,13 @@ class SaveWatcher(threading.Thread):
 
     def run(self):
         while(self.running):
-            if len(self.framesToSave) > 0:
+            if not self.framesToSave.empty():
                 directory = config.ARGS.output
-                filename = f'cam_{self.framesToSave[0][0]}_{self.framesToSave[0][1]:04d}.{config.ARGS.extension}'
+                index, number, frame = self.framesToSave.get()
+                filename = f'cam_{index}_{number:04d}.{config.ARGS.extension}'
                 outFilepath = os.path.join(directory, filename)
                 logging.info(f'Writting file={outFilepath}')
-                cv2.imwrite(outFilepath, self.framesToSave[0][2])
-                del self.framesToSave[0]
+                cv2.imwrite(outFilepath, frame)
             
             time.sleep(0.04)
 
@@ -28,5 +28,5 @@ class SaveWatcher(threading.Thread):
                 self.stop()
 
     def stop(self):
-        if len(self.framesToSave) == 0:
+        if self.framesToSave.empty():
             self.running = False
