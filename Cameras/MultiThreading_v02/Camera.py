@@ -10,7 +10,7 @@ class GetFrameThread(threading.Thread):
 
     def run(self):
         (self.capDevice.status, self.capDevice.frame) = self.capDevice.capture.read()
-        self.capDevice.frame = cv2.cvtColor(self.capDevice.frame, cv2.COLOR_YUV2BGR_UYVY)
+        # self.capDevice.frame = cv2.cvtColor(self.capDevice.frame, cv2.COLOR_YUV2BGR_UYVY) # To use only with the FSCAM_CU135
         print(f"Reading frame from cam {self.capDevice.indexCam}")
 
 
@@ -31,6 +31,15 @@ class CaptureDevice(object):
         else:
             logging.warning("Skip invalid stream ID {}".format(self.indexCam))
             self.stop()
+
+    def grabFrame(self):
+        if not self.capture.grab():
+            logging.warning("Image cannot be grabbed")
+
+    def retrieveFrame(self):
+        self.status, self.frame = self.capture.retrieve()
+        if not self.status:
+            logging.warning("Image cannot be retrieved")
 
     def saveFrame(self):
         self.framesToSave.put((self.indexCam, self.nbSavedFrame, self.frame))

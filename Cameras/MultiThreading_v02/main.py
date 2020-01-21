@@ -44,15 +44,20 @@ def main():
         if frameNumber >= 70:
             GLOBAL_RUNNING[0] = False
 
-        # Get frames
-        getFramesThreads = []
-        for cam in captureDevices:
-            thread = GetFrameThread(cam)
-            thread.start()
-            getFramesThreads.append(thread)
-        for thread in getFramesThreads:
-            thread.join()
+        # # Get frames
+        # getFramesThreads = []
+        # for cam in captureDevices:
+        #     thread = GetFrameThread(cam)
+        #     thread.start()
+        #     getFramesThreads.append(thread)
+        # for thread in getFramesThreads:
+        #     thread.join()
 
+        for cam in captureDevices:
+            cam.grabFrame()
+
+        for cam in captureDevices:
+            cam.retrieveFrame()
 
         print("Motor ACTION")
 
