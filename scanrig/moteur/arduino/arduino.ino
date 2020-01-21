@@ -156,6 +156,45 @@ String motorMove(bool dir, unsigned long degres, unsigned long durationForOneTur
 	return r;
 }
 
+
+
+String motorSmoothMove(bool dir, unsigned long degres, unsigned long durationForOneTurn) {
+	// like the previous ones but allow us to move forward more progressively.
+	fastDigitalWrite(_DIR_5v, dir ? LOW : HIGH); // setup dir
+	String r = "Success";
+	unsigned long  microSecPerMotorTurn = (unsigned long)(1000000) * durationForOneTurn / _REDUCTION_RATIO;
+	unsigned long demiStepDuration = microSecPerMotorTurn / _PULSE_PER_REV / 2;
+	unsigned long pulseNb = (degres * _REDUCTION_RATIO * _PULSE_PER_REV) / 360;
+
+	for(unsigned x = 0; x < pulseNb; x++) {
+		// float iterpolatedDuration = interpolation(x, 0, pulseNb-1, demiStepDuration *0.8, demiStepDuration * 1.2);
+		float i = easeInOut(x/(pulseNb));
+		int iterpolatedDuration = demiStepDuration * (1 + (i-0.5)/2);
+		fastDigitalWrite(_STP_5v, HIGH);
+		delayMicroseconds(iterpolatedDuration);
+		fastDigitalWrite(_STP_5v, LOW); 
+		delayMicroseconds(iterpolatedDuration);
+		if(Serial.available()) { // break if incoming data in serial
+			r = "Pulse:";
+			r.concat(x+1);
+			break;
+		}
+	}
+	return r;
+}
+
+float easeInOut(float t) { 
+	// interpolation function using parametrized function f_α(x)=x^α/x^α+(1−x)^α with α = 2
+	// t in [0, 1]
+	return (t*t)/((1-t)(1-t)+t*t);
+}
+
+float interpolation(float t, float a, float b, float c, float d) {
+	// t in [a, b]
+	return c + easeInOut((t-a)/(b-a))(d-c);
+}
+
+
 String blinkDebug() {
 	digitalWrite(_debugLED, HIGH);
 	delay(500);
