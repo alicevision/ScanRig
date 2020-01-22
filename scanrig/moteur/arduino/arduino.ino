@@ -2,6 +2,7 @@
 // DIR-(DIR) motor direction control, connected to ground
 // PUL-(PUL) motor step control, connected to ground
 
+#define PI 3.1415926535897932384626433832795
 # define _MAX_ARG 10
 # define _PULSE_PER_REV 800 // number of pulses for making one full cycle rotation
 # define _REDUCTION_RATIO 6 // 10/60
@@ -90,12 +91,17 @@ String handleReceivedCommand(String str) {
 
 		if (cmdName.equals("debugBlink")) { // equalsIgnoreCase
 			blinkDebug(); delay(500); blinkDebug();
+		} else if (cmdName.equals("leftSmooth") || cmdName.equals("rightSmooth")) {
+			if (argsNb < 2) { return "Invalid number of arguments";
+			}else {
+				return motorSmoothMove(cmdName.equals("left") ? true : false , args[0], args[1]);
+			}
 		} else if (cmdName.equals("left") || cmdName.equals("right")) {
 			if (argsNb < 2) { return "Invalid number of arguments";
 			}else {
 				return motorMove(cmdName.equals("left") ? true : false , args[0], args[1]);
 			}
-		} else if (cmdName.equals("oldLeft") || cmdName.equals("oldRight")) {
+		} else if (cmdName.equals("leftOld") || cmdName.equals("rightOld")) {
 			if (argsNb < 2) { return "Invalid number of arguments";
 			}else {
 				return motorMoveOld(cmdName.equals("left") ? true : false , args[0], args[1]);
@@ -156,8 +162,6 @@ String motorMove(bool dir, unsigned long degres, unsigned long durationForOneTur
 	return r;
 }
 
-
-
 String motorSmoothMove(bool dir, unsigned long degres, unsigned long durationForOneTurn) {
 	// like the previous ones but allow us to move forward more progressively.
 	fastDigitalWrite(_DIR_5v, dir ? LOW : HIGH); // setup dir
@@ -167,13 +171,13 @@ String motorSmoothMove(bool dir, unsigned long degres, unsigned long durationFor
 	unsigned long pulseNb = (degres * _REDUCTION_RATIO * _PULSE_PER_REV) / 360;
 
 	for(unsigned x = 0; x < pulseNb; x++) {
-		// float iterpolatedDuration = interpolation(x, 0, pulseNb-1, demiStepDuration *0.8, demiStepDuration * 1.2);
-		float i = easeInOut(x/(pulseNb));
-		int iterpolatedDuration = demiStepDuration * (1 + (i-0.5)/2);
+		float t = float(x)/float(pulseNb);
+		float i = easeInOut(t);
+		float iterpolatedDuration = float(demiStepDuration) * (1 + i);
 		fastDigitalWrite(_STP_5v, HIGH);
-		delayMicroseconds(iterpolatedDuration);
+		delayMicroseconds((unsigned long)(iterpolatedDuration));
 		fastDigitalWrite(_STP_5v, LOW); 
-		delayMicroseconds(iterpolatedDuration);
+		delayMicroseconds((unsigned long)(iterpolatedDuration));
 		if(Serial.available()) { // break if incoming data in serial
 			r = "Pulse:";
 			r.concat(x+1);
@@ -184,16 +188,13 @@ String motorSmoothMove(bool dir, unsigned long degres, unsigned long durationFor
 }
 
 float easeInOut(float t) { 
-	// interpolation function using parametrized function f_α(x)=x^α/x^α+(1−x)^α with α = 2
-	// t in [0, 1]
-	return (t*t)/((1-t)(1-t)+t*t);
+	return t;
 }
 
 float interpolation(float t, float a, float b, float c, float d) {
 	// t in [a, b]
-	return c + easeInOut((t-a)/(b-a))(d-c);
+	return c + easeInOut((t-a)/(b-a))*(d-c);
 }
-
 
 String blinkDebug() {
 	digitalWrite(_debugLED, HIGH);
