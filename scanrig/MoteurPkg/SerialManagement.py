@@ -37,11 +37,25 @@ def serialWrite(ser, str):
     eol = b"\n"
     ser.write(eol) # add endOfLine
 
-
-# custom exception for our class
-class EmptyNewLineError(Exception):
-   """Raised when the Serial incoming newline is empty"""
-   pass
+def selectPort(baudrate = 115200):
+    
+    print("--- Choice one of these port COM corresponding to your microcontroller ---")
+    portsList = availablePorts()
+    if len(portsList) <= 0:
+        print("error : any port found")
+        exit(1)
+    print(portsList)
+    comNb = -1
+    while (comNb < 0 or comNb >= len(portsList)):
+        comNb = int(input("->"))
+    
+    try :# Init Serial connection to arduino
+        ser = serial.Serial(portsList[comNb], baudrate , timeout = 1)
+    except:
+        print("Error during serial port initialization")
+        exit(1)
+    print(ser.name + " opened") # info
+    return ser
 
 class SerialReader:
     def __init__(self, serial):

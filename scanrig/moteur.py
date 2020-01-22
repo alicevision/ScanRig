@@ -1,30 +1,14 @@
 import time
 import serial #serial connection to Arduino
 from tkinter import *  # interface
-from serialManagement import SerialReader, serialWrite, availablePorts, EmptyNewLineError
+from MoteurPkg.SerialManagement import availablePorts, serialWrite, SerialReader, selectPort
 
 def handleCallBack(log, line):
     log.insert('0.0', line.decode())
 
 if __name__ == '__main__':
 
-    print("--- Choice one of these port COM corresponding to your microcontroller ---")
-    portsList = availablePorts()
-    if len(portsList) <= 0:
-        print("error : any port found")
-        exit(1)
-    print(portsList)
-    comNb = -1
-    while (comNb < 0 or comNb >= len(portsList)):
-        comNb = int(input("->"))
-    
-    
-    try :# Init Serial connection to arduino
-        arduinoSer = serial.Serial(portsList[comNb], 115200 ,timeout = 1)
-    except:
-        print("Error during serial port initialization")
-        exit(1)
-    print(arduinoSer.name + " opened") # info
+    arduinoSer = selectPort()
 
     # init custom Serial reader to handle readLine correctly
     serialReader = SerialReader(arduinoSer)
