@@ -12,6 +12,7 @@
 # define _STP_5v 2 // PUL+(+5v) motor step control       Yellow
 
 # define _debugLED 13 // debug led
+# define _RELAI 7 // debug led
 
 void setup() {
 	//Sets the pins as Outputs
@@ -89,22 +90,39 @@ String handleReceivedCommand(String str) {
 		// ======================== commands ==========================
 		// ============================================================
 
-		if (cmdName.equals("debugBlink")) { // equalsIgnoreCase
-			blinkDebug(); delay(500); blinkDebug();
-		} else if (cmdName.equals("leftSmooth") || cmdName.equals("rightSmooth")) {
-			if (argsNb < 2) { return "Invalid number of arguments";
+		if (cmdName.equals("led")) {
+			if (argsNb < 1) { return "Invalid number of arguments";
 			}else {
-				return motorSmoothMove(cmdName.equals("left") ? true : false , args[0], args[1]);
+				fastDigitalWrite(_RELAI, args[0] ? HIGH : LOW);
+				return "Success";
+			}
+		}else if (cmdName.equals("on")) {
+			fastDigitalWrite(_debugLED, HIGH);
+			digitalWrite(_RELAI, HIGH);
+			return "Success";
+		}else if (cmdName.equals("off")) {
+			fastDigitalWrite(_debugLED, LOW);
+			digitalWrite(_RELAI, LOW);
+			return "Success";
+		}else if (cmdName.equals("leftSmooth") || cmdName.equals("rightSmooth")) {
+			if (argsNb < 4) { return "Invalid number of arguments";
+			}else {
+				return motorSmoothMove(cmdName.equals("leftSmooth") ? true : false, args[0], args[1], args[2], args[3]);
 			}
 		} else if (cmdName.equals("left") || cmdName.equals("right")) {
 			if (argsNb < 2) { return "Invalid number of arguments";
 			}else {
-				return motorMove(cmdName.equals("left") ? true : false , args[0], args[1]);
+				return motorMove(cmdName.equals("left") ? true : false, args[0], args[1]);
 			}
-		} else if (cmdName.equals("leftOld") || cmdName.equals("rightOld")) {
+		} else if (cmdName.equals("leftCapture") || cmdName.equals("rightCapture")) {
+			if (argsNb < 3) { return "Invalid number of arguments";
+			}else {
+				return motorMoveWithCaptureInterval(cmdName.equals("leftCapture") ? true : false, args[0], args[1], args[2]);
+			}
+		} else if (cmdName.equals("leftManual") || cmdName.equals("rightManual")) {
 			if (argsNb < 2) { return "Invalid number of arguments";
 			}else {
-				return motorMoveOld(cmdName.equals("left") ? true : false , args[0], args[1]);
+				return motorMoveManual(cmdName.equals("leftManual") ? true : false, args[0], args[1]);
 			}
 		} else if (cmdName.equals("stop") or cmdName.equals("s")) {
 			// stop motor
@@ -117,7 +135,7 @@ String handleReceivedCommand(String str) {
 	}
 }
 
-String motorMoveOld(bool dir, int pulse, int d) {
+String motorMoveManual(bool dir, int pulse, int d) {
 	// Enables the motor direction to move
 	// LOW : left / HIGH : right
 	fastDigitalWrite(_DIR_5v, dir ? LOW : HIGH);
@@ -142,7 +160,7 @@ String motorMove(bool dir, unsigned long degres, unsigned long durationForOneTur
 	// LOW : left / HIGH : right
 	// durationForOneTurn in s 
 	// degres in degres
-	fastDigitalWrite(_DIR_5v, dir ? LOW : HIGH); // setup dir
+	fastDigitalWrite(_DIR_5v, dir == true ? LOW : HIGH); // setup dir
 	String r = "Success"; 
 	// Calculation of the different variables from the speed and rotation angle passed as parameters
 	unsigned long  microSecPerMotorTurn = (unsigned long)(1000000) * durationForOneTurn / _REDUCTION_RATIO;
@@ -162,18 +180,52 @@ String motorMove(bool dir, unsigned long degres, unsigned long durationForOneTur
 	return r;
 }
 
-String motorSmoothMove(bool dir, unsigned long degres, unsigned long durationForOneTurn) {
+String motorMoveWithCaptureInterval(bool dir, unsigned long degres, unsigned long captureDegres, unsigned long durationForOneTurn) {
+	// Enables the motor direction to move
+	// LOW : left / HIGH : right
+	// durationForOneTurn in s 
+	// degres in degres
+	fastDigitalWrite(_DIR_5v, dir == true ? LOW : HIGH); // setup dir
+	String r = "Success"; 
+	// Calculation of the different variables from the speed and rotation angle passed as parameters
+	unsigned long  microSecPerMotorTurn = (unsigned long)(1000000) * durationForOneTurn / _REDUCTION_RATIO;
+	unsigned long demiStepDuration = microSecPerMotorTurn / _PULSE_PER_REV / 2;
+	unsigned long pulseNb = (degres * _REDUCTION_RATIO * _PULSE_PER_REV) / 360;
+	unsigned long pulseCaptureNb = (captureDegres * _REDUCTION_RATIO * _PULSE_PER_REV) / 360;
+	Serial.print("pulseNb: ");
+	Serial.println(pulseNb);
+	Serial.print("pulseCaptureNb: ");
+	Serial.println(pulseCaptureNb);
+	Serial.println(pulseNb%pulseCaptureNb);
+
+	for(unsigned x = 0; x < pulseNb; x++) {
+		fastDigitalWrite(_STP_5v, HIGH); 
+		delayMicroseconds(demiStepDuration);
+		fastDigitalWrite(_STP_5v, LOW); 
+		delayMicroseconds(demiStepDuration);
+		if(x!= 0 && x%pulseCaptureNb == 0) {
+			Serial.println("Capture");
+		}
+		if(Serial.available()) { // break if incoming data in serial
+			r = "Pulse:";
+			r.concat(x+1);
+			break;
+		}
+	}
+	return r;
+}
+
+String motorSmoothMove(bool dir, unsigned long degres, unsigned long durationForOneTurn, float coeff, int transitionDuration) {
 	// like the previous ones but allow us to move forward more progressively.
-	fastDigitalWrite(_DIR_5v, dir ? LOW : HIGH); // setup dir
+	fastDigitalWrite(_DIR_5v, dir == true ? LOW : HIGH); // setup dir
 	String r = "Success";
 	unsigned long  microSecPerMotorTurn = (unsigned long)(1000000) * durationForOneTurn / _REDUCTION_RATIO;
 	unsigned long demiStepDuration = microSecPerMotorTurn / _PULSE_PER_REV / 2;
 	unsigned long pulseNb = (degres * _REDUCTION_RATIO * _PULSE_PER_REV) / 360;
 
 	for(unsigned x = 0; x < pulseNb; x++) {
-		float t = float(x)/float(pulseNb);
-		float i = easeInOut(t);
-		float iterpolatedDuration = float(demiStepDuration) * (1 + i);
+		float i = easeInOut(float(x)/float(pulseNb), coeff, transitionDuration);
+		float iterpolatedDuration = float(demiStepDuration) * i;
 		fastDigitalWrite(_STP_5v, HIGH);
 		delayMicroseconds((unsigned long)(iterpolatedDuration));
 		fastDigitalWrite(_STP_5v, LOW); 
@@ -187,14 +239,22 @@ String motorSmoothMove(bool dir, unsigned long degres, unsigned long durationFor
 	return r;
 }
 
-float easeInOut(float t) { 
-	return t;
+float easeInOut(float t, float a, int transitionDuration) {
+	// transitionDuration in percentage inverse
+	// t in [0, 1]
+	if (t < 0.2) {// easeIn
+		return 1 + (1 - transitionDuration*t)/a;
+	}else if( t > 0.8) {// easeOut
+		return 1 + (1 - transitionDuration*(1-t))/a;
+	}else {
+		return 1;
+	}
 }
 
-float interpolation(float t, float a, float b, float c, float d) {
-	// t in [a, b]
-	return c + easeInOut((t-a)/(b-a))*(d-c);
-}
+// float interpolation(float t, float a, float b, float c, float d) {
+// 	// t in [a, b]
+// 	return c + easeInOut((t-a)/(b-a))*(d-c);
+// }
 
 String blinkDebug() {
 	digitalWrite(_debugLED, HIGH);
