@@ -11,14 +11,15 @@ cameraSettingsList = {
     "gamma" : 220,
     "gain" : 0, # From 0 to 100
     "sharpness" : 0,
-    "exposure" : 200, # From 0 to 10 000
+    "exposure" : 1000, # From 0 to 10 000
     "autoExposure" : 1
 }
 
 
 def setAttributes(cap):
-    # cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('U','Y','V','Y')) # To use only with the FSCAM_CU135
-    # cap.set(cv2.CAP_PROP_CONVERT_RGB, False) # To use only with the FSCAM_CU135
+    cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('U','Y','V','Y')) # To use only with the FSCAM_CU135
+    cap.set(cv2.CAP_PROP_CONVERT_RGB, False) # To use only with the FSCAM_CU135
+    cap.set(cv2.CAP_PROP_BUFFERSIZE, 5)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, cameraSettingsList.get("width"))
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, cameraSettingsList.get("height"))
     cap.set(cv2.CAP_PROP_BRIGHTNESS, cameraSettingsList.get("brightness"))

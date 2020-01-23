@@ -1,7 +1,7 @@
 import numpy as np
 import threading, logging, cv2
 
-from CameraPKG import settings
+from . import settings
 
 class CaptureDevice(object):
     def __init__(self, indexCam, framesToSave):
@@ -22,6 +22,7 @@ class CaptureDevice(object):
             self.stop()
 
     def grabFrame(self):
+        print("image grabbed")
         if not self.capture.grab():
             logging.warning("Image cannot be grabbed")
 

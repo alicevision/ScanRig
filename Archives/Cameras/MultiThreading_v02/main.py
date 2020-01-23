@@ -62,11 +62,11 @@ def main():
         print("Motor ACTION")
 
         # THIS IS A TEST
-        if frameNumber % 15 == 0:
+        if frameNumber % 5 == 0:
             for cam in captureDevices:
                 cam.saveFrame()
 
-        time.sleep(0.04)
+        time.sleep(0.001)
 
         frameNumber += 1
 

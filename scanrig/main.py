@@ -4,7 +4,8 @@ import cv2, time, logging
 import queue
 
 import config
-import CameraPKG
+import CameraPkg
+from MoteurPkg.SerialManagement import availablePorts, serialWrite, SerialReader, selectPort
 
 
 #------------------------- SCRIPT
@@ -13,49 +14,81 @@ def main():
     captureDevices = []
     GLOBAL_RUNNING = [True]
     savingFrames = queue.Queue()
-
     frameNumber = 0
 
     # Get arguments
     args = config.config()
 
+    # Initialize arduino
+    arduinoSer = selectPort()
+    # Init custom Serial reader to handle readLine correctly
+    serialReader = SerialReader(arduinoSer)
+
     # Setup cameras (a first time is necessary)
     for index in args.cameras:
-        CameraPKG.settings.initCamSettings(index) # Initialize camera settings (open/close cameras once seems to be required)
+        CameraPkg.settings.initCamSettings(index) # Initialize camera settings (open/close cameras once seems to be required)
 
     # Initialize every camera
     for index in args.cameras:
-        cam = CameraPKG.device.CaptureDevice(index, savingFrames)
+        cam = CameraPkg.device.CaptureDevice(index, savingFrames)
         if cam.capture.isOpened():
             captureDevices.append(cam)
 
     # Initialize and start saving thread
-    savingThread = CameraPKG.saving.SaveWatcher(GLOBAL_RUNNING, savingFrames, args)
+    savingThread = CameraPkg.saving.SaveWatcher(GLOBAL_RUNNING, savingFrames, args)
     savingThread.start()
 
     # Check if cameras are running
     if not captureDevices:
         GLOBAL_RUNNING[0] = False
 
+    # Make the motor rotate a first time - direction:angle,time
+    serialWrite(arduinoSer, "left:10,60")
+
     # Main loop
     while(GLOBAL_RUNNING[0]):
-        if frameNumber >= 70:
-            GLOBAL_RUNNING[0] = False
-
+        # Read frame
         for cam in captureDevices:
             cam.grabFrame()
-
         for cam in captureDevices:
             cam.retrieveFrame()
 
-        print("Motor ACTION")
 
-        # THIS IS A TEST
-        if frameNumber % 15 == 0:
+        # While the motor is rotating (before to arrive to a step angle)
+        line = serialReader.readline()
+        while(line == b''):
+            print(line)
+            line = serialReader.readline()
+            # Read frame
+            # print("while")
+            for cam in captureDevices:
+                cam.grabFrame()
+            for cam in captureDevices:
+                cam.retrieveFrame()
+            # time.sleep(0.02)
+
+        # When the motor reaches the step angle    
+        if line == b'Success\r\n' :
+            serialWrite(arduinoSer, "left:10,60")
+
+            # Read frame
+            for cam in captureDevices:
+                cam.grabFrame()
+            for cam in captureDevices:
+                cam.retrieveFrame()
+
+            # Send frames to the saving buffer
             for cam in captureDevices:
                 cam.saveFrame()
+            print(frameNumber)
 
-        time.sleep(0.04)
+        # If there is an error with the motor, we stop the loop
+        elif line != b'':
+            print(line)
+            GLOBAL_RUNNING[0] = False
+
+        if frameNumber >= 10:
+            GLOBAL_RUNNING[0] = False
 
         frameNumber += 1
 
