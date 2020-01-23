@@ -85,8 +85,35 @@ int main(int argc, char **argv) {
         return res;
     }
 
-    res = uvc_start_streaming(devh, &ctrl, cb, (void*) 12345, 0);
-    std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+    //uvc_start_streaming
+
+    uvc_stream_handle_t* strmh;
+    res = uvc_stream_open_ctrl(devh, &strmh, &ctrl);
+    if (res < 0) {
+        uvc_perror(res, "open_stream");
+        return res;
+    }
+
+    res = uvc_stream_start(strmh, nullptr, (void*) 12345, 0);
+    if (res < 0) {
+        uvc_perror(res, "start_stream");
+        return res;
+    }
+
+    std::cout << "Stream started" << std::endl;
+
+    while (true) {
+        uvc_frame_t* frame = nullptr;
+        res = uvc_stream_get_frame(strmh, &frame, 0);
+        if (res < 0) {
+            uvc_perror(res, "get_frame");
+            return res;
+        }
+
+        std::cout << "Got frame : " << frame->sequence << std::endl;
+    }
+
+    uvc_stream_stop(strmh);
     uvc_stop_streaming(devh);
     puts("Done streaming.");
 
