@@ -11,33 +11,20 @@
 # define _DIR_5v 3 // DIR+(+5v) motor direction control  Brown
 # define _STP_5v 2 // PUL+(+5v) motor step control       Yellow
 
-# define _debugLED 13 // debug led
-# define _RELAI 7 // debug led
-
 void setup() {
 	//Sets the pins as Outputs
-	pinMode (_debugLED, OUTPUT); // debug led already on arduino
+	for (int i = 8; i <= 13; i++) { // relai Outputs
+		pinMode (i, OUTPUT);
+	}
+
+	pinMode (13, OUTPUT);
+
 	pinMode (_EN_5v, OUTPUT); // ENA+(+5V)
 	pinMode (_DIR_5v, OUTPUT); // DIR+(+5v)
 	pinMode (_STP_5v, OUTPUT); // PUL+(+5v)
 	
 	Serial.begin(115200); //enable Serial Monitor connection in 115200 baud to control from python
 	serialFlush(); // clean Serial buffer
-}
-
-// advanced digitalWrite function
-void fastDigitalWrite(const unsigned int port, bool val) {
-	if(port >= 0 && port < 8) {
-		val ? PORTD |= (1<<port) : PORTD &= ~(1<<port);
-	} else if(port >= 8 && port < 14) {
-		val ? PORTB |= (1<<port) : PORTB &= ~(1<<port);
-	}
-}
-
-void serialFlush() {
-	while(Serial.available() > 0) {
-		Serial.read();
-	}
 }
 
 // Serial buffer variables
@@ -53,6 +40,23 @@ void serialEvent() {
 		} else {
 			bufferStr += inChar;
 		}
+	}
+}
+
+
+// advanced digitalWrite function
+void fastDigitalWrite(const unsigned int port, bool val) {
+	if(port >= 0 && port < 8) {
+		val ? PORTD |= (1<<port) : PORTD &= ~(1<<port);
+	} else if(port >= 8 && port < 14) {
+		Serial.println(port);
+		val ? PORTB |= (1<<(port-8)) : PORTB &= ~(1<<(port-8));
+	}
+}
+
+void serialFlush() {
+	while(Serial.available() > 0) {
+		Serial.read();
 	}
 }
 
@@ -82,47 +86,70 @@ String handleReceivedCommand(String str) {
 			str = str.substring(id+1);
 			argsNb++;
 		}
-	
-		int args[argsNb];
+
+		int args[argsNb];	
 		memcpy(args, argsBuffer, sizeof(args)); // copy argsbuffer array to args array
-		
+
 		// ============================================================
 		// ======================== commands ==========================
 		// ============================================================
+		
 
 		if (cmdName.equals("led")) {
-			if (argsNb < 1) { return "Invalid number of arguments";
+			if (argsNb != 2) {
+				return "Invalid number of arguments";
 			}else {
-				fastDigitalWrite(_RELAI, args[0] ? HIGH : LOW);
-				return "Success";
+				int ledNb = args[0];
+				if(ledNb < 1 || ledNb > 6) {
+					String msg = "invalid led number (must be in [1, 6])";
+					return msg;
+				}else {
+					if(args[1] != 1 && args[1] != 0) {
+						return "invalid led state (must be on or off)";
+					}else {
+						return setLedState(ledNb, args[1]);
+					}
+				}
 			}
-		}else if (cmdName.equals("on")) {
-			fastDigitalWrite(_debugLED, HIGH);
-			digitalWrite(_RELAI, HIGH);
-			return "Success";
-		}else if (cmdName.equals("off")) {
-			fastDigitalWrite(_debugLED, LOW);
-			digitalWrite(_RELAI, LOW);
-			return "Success";
 		}else if (cmdName.equals("leftSmooth") || cmdName.equals("rightSmooth")) {
-			if (argsNb < 4) { return "Invalid number of arguments";
+			if (argsNb < 4) { 
+				return "Invalid number of arguments";
 			}else {
-				return motorSmoothMove(cmdName.equals("leftSmooth") ? true : false, args[0], args[1], args[2], args[3]);
+				if(args[0] == 0 || args[1] == 0 || args[2] == 0 || args[3] == 0) {
+					return "one of the arguments is invalid";
+				}else {
+					return motorSmoothMove(cmdName.equals("leftSmooth") ? true : false, args[0], args[1], args[2], args[3]);
+				}
 			}
 		} else if (cmdName.equals("left") || cmdName.equals("right")) {
-			if (argsNb < 2) { return "Invalid number of arguments";
+			if (argsNb < 2) { 
+				return "Invalid number of arguments";
 			}else {
-				return motorMove(cmdName.equals("left") ? true : false, args[0], args[1]);
+				if(args[0] == 0 || args[1] == 0) {
+					return "one of the arguments is invalid";
+				}else {
+					return motorMove(cmdName.equals("left") ? true : false, args[0], args[1]);
+				}
 			}
 		} else if (cmdName.equals("leftCapture") || cmdName.equals("rightCapture")) {
-			if (argsNb < 3) { return "Invalid number of arguments";
+			if (argsNb < 3) { 
+				return "Invalid number of arguments";
 			}else {
-				return motorMoveWithCaptureInterval(cmdName.equals("leftCapture") ? true : false, args[0], args[1], args[2]);
+				if(args[0] == 0 || args[1] == 0 || args[2] == 0) {
+					return "one of the arguments is invalid";
+				}else {
+					return motorMoveWithCaptureInterval(cmdName.equals("leftCapture") ? true : false, args[0], args[1], args[2]);
+				}
 			}
 		} else if (cmdName.equals("leftManual") || cmdName.equals("rightManual")) {
-			if (argsNb < 2) { return "Invalid number of arguments";
+			if (argsNb < 2) { 
+				return "Invalid number of arguments";
 			}else {
-				return motorMoveManual(cmdName.equals("leftManual") ? true : false, args[0], args[1]);
+				if(args[0] == 0 || args[1] == 0) {
+					return "one of the arguments is invalid";
+				}else {
+					return motorMoveManual(cmdName.equals("leftManual") ? true : false, args[0], args[1]);
+				}
 			}
 		} else if (cmdName.equals("stop") or cmdName.equals("s")) {
 			// stop motor
@@ -133,6 +160,11 @@ String handleReceivedCommand(String str) {
 	} else {
 		return "Parsing error";
 	}
+}
+
+String setLedState(int ledNb, int state) {
+	fastDigitalWrite(7 + ledNb, (state == 1) ? HIGH : LOW);
+	return "Success";
 }
 
 String motorMoveManual(bool dir, int pulse, int d) {
@@ -192,11 +224,6 @@ String motorMoveWithCaptureInterval(bool dir, unsigned long degres, unsigned lon
 	unsigned long demiStepDuration = microSecPerMotorTurn / _PULSE_PER_REV / 2;
 	unsigned long pulseNb = (degres * _REDUCTION_RATIO * _PULSE_PER_REV) / 360;
 	unsigned long pulseCaptureNb = (captureDegres * _REDUCTION_RATIO * _PULSE_PER_REV) / 360;
-	Serial.print("pulseNb: ");
-	Serial.println(pulseNb);
-	Serial.print("pulseCaptureNb: ");
-	Serial.println(pulseCaptureNb);
-	Serial.println(pulseNb%pulseCaptureNb);
 
 	for(unsigned x = 0; x < pulseNb; x++) {
 		fastDigitalWrite(_STP_5v, HIGH); 
@@ -207,15 +234,16 @@ String motorMoveWithCaptureInterval(bool dir, unsigned long degres, unsigned lon
 			Serial.println("Capture");
 		}
 		if(Serial.available()) { // break if incoming data in serial
-			r = "Pulse:";
-			r.concat(x+1);
+			r = "AngleDone:";
+			 
+			r.concat((x+1) * 360 / (_REDUCTION_RATIO * _PULSE_PER_REV) );
 			break;
 		}
 	}
 	return r;
 }
 
-String motorSmoothMove(bool dir, unsigned long degres, unsigned long durationForOneTurn, float coeff, int transitionDuration) {
+String motorSmoothMove(bool dir, unsigned long degres, unsigned long durationForOneTurn, int coeff, int transitionDuration) {
 	// like the previous ones but allow us to move forward more progressively.
 	fastDigitalWrite(_DIR_5v, dir == true ? LOW : HIGH); // setup dir
 	String r = "Success";
@@ -231,7 +259,7 @@ String motorSmoothMove(bool dir, unsigned long degres, unsigned long durationFor
 		fastDigitalWrite(_STP_5v, LOW); 
 		delayMicroseconds((unsigned long)(iterpolatedDuration));
 		if(Serial.available()) { // break if incoming data in serial
-			r = "Pulse:";
+			r = "PulsesDone:";
 			r.concat(x+1);
 			break;
 		}
@@ -249,18 +277,6 @@ float easeInOut(float t, float a, int transitionDuration) {
 	}else {
 		return 1;
 	}
-}
-
-// float interpolation(float t, float a, float b, float c, float d) {
-// 	// t in [a, b]
-// 	return c + easeInOut((t-a)/(b-a))*(d-c);
-// }
-
-String blinkDebug() {
-	digitalWrite(_debugLED, HIGH);
-	delay(500);
-	digitalWrite(_debugLED, LOW);
-	return "Success";
 }
 
 void loop() {
