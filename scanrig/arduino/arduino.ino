@@ -15,9 +15,8 @@ void setup() {
 	//Sets the pins as Outputs
 	for (int i = 8; i <= 13; i++) { // relai Outputs
 		pinMode (i, OUTPUT);
+		fastDigitalWrite(i, LOW);
 	}
-
-	pinMode (13, OUTPUT);
 
 	pinMode (_EN_5v, OUTPUT); // ENA+(+5V)
 	pinMode (_DIR_5v, OUTPUT); // DIR+(+5v)
@@ -270,12 +269,11 @@ String motorSmoothMove(bool dir, unsigned long degres, unsigned long durationFor
 float easeInOut(float t, float a, int transitionDuration) {
 	// transitionDuration in percentage inverse
 	// t in [0, 1]
-	if (t < 0.2) {// easeIn
-		return 1 + (1 - transitionDuration*t)/a;
-	}else if( t > 0.8) {// easeOut
-		return 1 + (1 - transitionDuration*(1-t))/a;
-	}else {
-		return 1;
+	if (t < 0.5) { // easeIn
+		// return 1 + (1 - transitionDuration*t)/a;
+		return 1 + exp(-100*t*t);
+	}else { // easeOut
+		return 1 + exp(-100*(t-1)*(t-1));
 	}
 }
 
