@@ -120,6 +120,16 @@ String handleReceivedCommand(String str) {
 					return motorSmoothMove(cmdName.equals("leftSmooth") ? true : false, args[0], args[1], args[2], args[3]);
 				}
 			}
+		}else if (cmdName.equals("leftSmoothLoad") || cmdName.equals("rightSmoothLoad")) {
+			if (argsNb < 3) { 
+				return "Invalid number of arguments";
+			}else {
+				if(args[1] == 0 || args[2] == 0 ) {
+					return "one of the arguments is invalid";
+				}else {
+					return SmoothLoad(args[0], cmdName.equals("leftSmoothLoad") ? true : false, args[1], args[2]);
+				}
+			}
 		} else if (cmdName.equals("left") || cmdName.equals("right")) {
 			if (argsNb < 2) { 
 				return "Invalid number of arguments";
@@ -138,6 +148,16 @@ String handleReceivedCommand(String str) {
 					return "one of the arguments is invalid";
 				}else {
 					return motorMoveWithCaptureInterval(cmdName.equals("leftCapture") ? true : false, args[0], args[1], args[2]);
+				}
+			}
+		} else if (cmdName.equals("leftCaptureFull") || cmdName.equals("rightCaptureFull")) {
+			if (argsNb < 3) { 
+				return "Invalid number of arguments";
+			}else {
+				if(args[0] == 0 || args[1] == 0 || args[2] == 0 || args[3] == 0) {
+					return "one of the arguments is invalid";
+				}else {
+					return capture(cmdName.equals("leftCaptureFull") ? true : false, args[0], args[1], args[2], args[3]);
 				}
 			}
 		} else if (cmdName.equals("leftManual") || cmdName.equals("rightManual")) {
@@ -182,6 +202,42 @@ String motorMoveManual(bool dir, int pulse, int d) {
 			r.concat(x+1);
 			break;
 		}
+	}
+	return r;
+}
+
+String capture(bool dir, unsigned long degres, unsigned long captureDegres, unsigned long loadDegres, unsigned long durationForOneTurn) {
+	String r = "Success";
+	r = SmoothLoad(true, dir, loadDegres, durationForOneTurn);
+	if( r != "Success" ) { return r; }
+	r = motorMoveWithCaptureInterval(dir, degres, captureDegres, durationForOneTurn);
+	if( r != "Success" ) { return r; }
+	r = SmoothLoad(false, dir, loadDegres, durationForOneTurn);
+	if( r != "Success" ) { return r; }
+	r = SmoothLoad(true, !dir, loadDegres, durationForOneTurn);
+	if( r != "Success" ) { return r; }
+	r = motorMove(!dir, degres, durationForOneTurn);
+	if( r != "Success" ) { return r; }
+	r = SmoothLoad(false, !dir, loadDegres, durationForOneTurn);
+	// leftCaptureFull:360,45,30,15
+	return r;
+}
+
+String SmoothLoad(bool inOut, bool dir, unsigned long degres, unsigned long durationForOneTurn) {
+	fastDigitalWrite(_DIR_5v, dir == true ? LOW : HIGH); // setup dir
+	String r = "Success";
+	unsigned long  microSecPerMotorTurn = (unsigned long)(1000000) * durationForOneTurn / _REDUCTION_RATIO;
+	unsigned long demiStepDuration = microSecPerMotorTurn / _PULSE_PER_REV / 2;
+	unsigned long pulseNb = (degres * _REDUCTION_RATIO * _PULSE_PER_REV) / 360;
+
+	for(unsigned x = 0; x < pulseNb; x++) {
+		float inOutDirection = inOut ? 1.0 : -1.0;
+		float i = easeSigmoid(inOutDirection * (float(x)/float(pulseNb) - 0.5));
+		float iterpolatedDuration = float(demiStepDuration) * i;
+		fastDigitalWrite(_STP_5v, HIGH);
+		delayMicroseconds((unsigned long)(iterpolatedDuration));
+		fastDigitalWrite(_STP_5v, LOW); 
+		delayMicroseconds((unsigned long)(iterpolatedDuration));
 	}
 	return r;
 }
@@ -239,6 +295,7 @@ String motorMoveWithCaptureInterval(bool dir, unsigned long degres, unsigned lon
 			break;
 		}
 	}
+	Serial.println("Capture");
 	return r;
 }
 
@@ -264,6 +321,10 @@ String motorSmoothMove(bool dir, unsigned long degres, unsigned long durationFor
 		}
 	}
 	return r;
+}
+
+float easeSigmoid(float t) {
+	return 2.0 / (1.0 + exp(10.0 * t )) + 1.0;
 }
 
 float easeInOut(float t, float a, int transitionDuration) {
