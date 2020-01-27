@@ -12,13 +12,15 @@ cameraSettingsList = {
     "gain" : 0, # From 0 to 100
     "sharpness" : 0,
     "exposure" : 200, # From 0 to 10 000
-    "autoExposure" : 1
+    "autoExposure" : 1,
+    "bufferSize" : 1
 }
 
 
-def setAttributes(cap):
+def setDefaultAttributes(cap):
     # cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('U','Y','V','Y')) # To use only with the FSCAM_CU135
     # cap.set(cv2.CAP_PROP_CONVERT_RGB, False) # To use only with the FSCAM_CU135
+    cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, cameraSettingsList.get("width"))
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, cameraSettingsList.get("height"))
     cap.set(cv2.CAP_PROP_BRIGHTNESS, cameraSettingsList.get("brightness"))
@@ -50,21 +52,5 @@ def getAttributes(cap):
     formatting = cap.get(cv2.CAP_PROP_FORMAT)
     logging.info(f'width={width}, height={height}, fps={fps}, exposure={exposure}, gain={gain}, wb={wb}, bright{brightness}, contrast{contrast}, sat{saturation}, sharp{sharpness}, format{formatting}')
     logging.info(f'Backend = {cap.get(cv2.CAP_PROP_BACKEND)}')
-
-    return
-
-
-def initCamSettings(cameraIndex):
-    cap = cv2.VideoCapture()
-    v = cap.open(cameraIndex, apiPreference=cv2.CAP_V4L2)
-    if not v:
-        logging.warning("Skip invalid stream ID {}".format(cameraIndex))
-        cap.release()
-        return
-
-    setAttributes(cap)
-
-    status, frame = cap.read() # Read a frame seems to be required to make it work
-    cap.release()
 
     return

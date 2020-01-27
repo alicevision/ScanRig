@@ -14,7 +14,6 @@ def main():
     captureDevices = []
     GLOBAL_RUNNING = [True]
     savingFrames = queue.Queue()
-    frameNumber = 0
 
     # Get arguments
     args = config.config()
@@ -23,10 +22,6 @@ def main():
     arduinoSer = selectPort()
     # Init custom Serial reader to handle readLine correctly
     serialReader = SerialReader(arduinoSer)
-
-    # Setup cameras (a first time is necessary)
-    for index in args.cameras:
-        CameraPkg.settings.initCamSettings(index) # Initialize camera settings (open/close cameras once seems to be required)
 
     # Initialize every camera
     for index in args.cameras:
@@ -39,11 +34,12 @@ def main():
     savingThread.start()
 
     # Check if cameras are running
-    if not captureDevices:
+    if captureDevices:
+        # Give the motor instructions - direction:totalAngle,stepAngle,transition,time
+        time.sleep(2)
+        serialWrite(arduinoSer, "leftCaptureFull:360,15,10,10")
+    else:    
         GLOBAL_RUNNING[0] = False
-
-    # Make the motor rotate a first time - direction:angle,time
-    serialWrite(arduinoSer, "left:10,60")
 
     # Main loop
     while(GLOBAL_RUNNING[0]):
@@ -53,24 +49,14 @@ def main():
         for cam in captureDevices:
             cam.retrieveFrame()
 
-
-        # While the motor is rotating (before to arrive to a step angle)
         line = serialReader.readline()
+        # While the motor is rotating (before to arrive to a step angle)
         while(line == b''):
-            print(line)
             line = serialReader.readline()
-            # Read frame
-            # print("while")
-            for cam in captureDevices:
-                cam.grabFrame()
-            for cam in captureDevices:
-                cam.retrieveFrame()
-            # time.sleep(0.02)
+            time.sleep(0.01)
 
-        # When the motor reaches the step angle    
-        if line == b'Success\r\n' :
-            serialWrite(arduinoSer, "left:10,60")
-
+        # When the motor reaches the step angle
+        if line == b'Capture\r':
             # Read frame
             for cam in captureDevices:
                 cam.grabFrame()
@@ -80,17 +66,17 @@ def main():
             # Send frames to the saving buffer
             for cam in captureDevices:
                 cam.saveFrame()
-            print(frameNumber)
+
+        # When the motor reaches the end    
+        elif line == b'Success\r' :
+            print("Success!!!!")
+            GLOBAL_RUNNING[0] = False
 
         # If there is an error with the motor, we stop the loop
         elif line != b'':
             print(line)
             GLOBAL_RUNNING[0] = False
 
-        if frameNumber >= 10:
-            GLOBAL_RUNNING[0] = False
-
-        frameNumber += 1
 
     # Wait the end of saving thread
     savingThread.join()
@@ -98,10 +84,6 @@ def main():
     # When everything done, release the capture devices
     for cam in captureDevices:
         cam.stop()
-
-    # When everything done, release the window
-    if args.display:
-        cv2.destroyAllWindows()
 
     logging.info("End of Script")
 

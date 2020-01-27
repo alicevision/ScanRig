@@ -22,16 +22,15 @@ def main():
     config.ARGS = config.config()
 
     # Setup cameras (a first time is necessary)
-    for index in config.ARGS.cameras:
-        cameraSettings.initCamSettings(index) # Initialize camera settings (open/close cameras once seems to be required)
-        pass
+    # for index in config.ARGS.cameras:
+    #     # cameraSettings.initCamSettings(index) # Initialize camera settings (open/close cameras once seems to be required)
+    #     pass
 
     # Initialize every camera
     for index in config.ARGS.cameras:
         cam = CaptureDevice(index, savingFrames)
         if cam.capture.isOpened():
             captureDevices.append(cam)
-
 
     # Initialize and start saving thread
     savingThread = SaveWatcher(GLOBAL_RUNNING, savingFrames)
@@ -46,15 +45,6 @@ def main():
         if frameNumber >= 70:
             GLOBAL_RUNNING[0] = False
 
-        # # Get frames
-        # getFramesThreads = []
-        # for cam in captureDevices:
-        #     thread = GetFrameThread(cam)
-        #     thread.start()
-        #     getFramesThreads.append(thread)
-        # for thread in getFramesThreads:
-        #     thread.join()
-
         for cam in captureDevices:
             cam.grabFrame()
 
@@ -67,6 +57,13 @@ def main():
         if frameNumber % 5 == 0:
             for cam in captureDevices:
                 cam.saveFrame()
+
+        if frameNumber == 50:
+            cameraSettings.changeAttributes(2000, 8000)
+            for cam in captureDevices:
+                for i in range(int(cam.settings["bufferSize"]) + 1):
+                    cam.grabFrame()
+                cameraSettings.setAttributes(cam.capture)
 
         # time.sleep(0.001)
 

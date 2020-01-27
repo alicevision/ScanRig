@@ -20,12 +20,15 @@ class CaptureDevice(object):
         (self.status, self.frame) = (None, None)
         self.nbSavedFrame = 0
         self.framesToSave = framesToSave
+        self.settings = cameraSettings.cameraSettingsList
 
         # Initialize camera
         self.capture = cv2.VideoCapture()
 
         v = self.capture.open(self.indexCam, apiPreference=cv2.CAP_V4L2)
         if v:
+            for i in range(int(self.capture.get(cv2.CAP_PROP_BUFFERSIZE)) + 1):
+                self.grabFrame() # Needed to make it work well
             cameraSettings.setAttributes(self.capture)
             cameraSettings.getAttributes(self.capture)
         else:
@@ -38,7 +41,7 @@ class CaptureDevice(object):
 
     def retrieveFrame(self):
         self.status, self.frame = self.capture.retrieve()
-        self.frame = cv2.cvtColor(self.frame, cv2.COLOR_YUV2BGR_UYVY) # To use only with the FSCAM_CU135
+        # self.frame = cv2.cvtColor(self.frame, cv2.COLOR_YUV2BGR_UYVY) # To use only with the FSCAM_CU135
         if not self.status:
             logging.warning("Image cannot be retrieved")
 

@@ -9,13 +9,16 @@ class CaptureDevice(object):
         (self.status, self.frame) = (None, None)
         self.nbSavedFrame = 0
         self.framesToSave = framesToSave
+        self.settings = settings.cameraSettingsList
 
         # Initialize camera
         self.capture = cv2.VideoCapture()
 
         v = self.capture.open(self.indexCam, apiPreference=cv2.CAP_V4L2)
         if v:
-            settings.setAttributes(self.capture)
+            for i in range(int(self.capture.get(cv2.CAP_PROP_BUFFERSIZE)) + 1): # Very important to grab n+1 frames to avoid problems
+                self.capture.grab() # Needed to make it work well
+            settings.setDefaultAttributes(self.capture)
             settings.getAttributes(self.capture)
         else:
             logging.warning("Skip invalid stream ID {}".format(self.indexCam))
@@ -23,7 +26,9 @@ class CaptureDevice(object):
 
     def grabFrame(self):
         print("image grabbed")
-        if not self.capture.grab():
+        for i in range(self.settings["bufferSize"] + 1):
+            ret = self.capture.grab()
+        if not ret:
             logging.warning("Image cannot be grabbed")
 
     def retrieveFrame(self):
@@ -38,3 +43,5 @@ class CaptureDevice(object):
 
     def stop(self):
         self.capture.release()
+        if not self.capture.isOpened():
+            print(f"Device {self.indexCam} closed")
