@@ -48,3 +48,6 @@ class CaptureDevice(object):
 
     def stop(self):
         self.capture.release()
+        print("Closing capture")
+        if not self.capture.isOpened():
+            print("Capture closed")

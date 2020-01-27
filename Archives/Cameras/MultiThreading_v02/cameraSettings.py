@@ -19,7 +19,7 @@ cameraSettingsList = {
 def setAttributes(cap):
     cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('U','Y','V','Y')) # To use only with the FSCAM_CU135
     cap.set(cv2.CAP_PROP_CONVERT_RGB, False) # To use only with the FSCAM_CU135
-    cap.set(cv2.CAP_PROP_BUFFERSIZE, 5)
+    cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, cameraSettingsList.get("width"))
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, cameraSettingsList.get("height"))
     cap.set(cv2.CAP_PROP_BRIGHTNESS, cameraSettingsList.get("brightness"))
@@ -49,7 +49,8 @@ def getAttributes(cap):
     fps = cap.get(cv2.CAP_PROP_FPS)
     wb = cap.get(cv2.CAP_PROP_WB_TEMPERATURE)
     formatting = cap.get(cv2.CAP_PROP_FORMAT)
-    logging.info(f'width={width}, height={height}, fps={fps}, exposure={exposure}, gain={gain}, wb={wb}, bright{brightness}, contrast{contrast}, sat{saturation}, sharp{sharpness}, format{formatting}')
+    buff = cap.get(cv2.CAP_PROP_BUFFERSIZE)
+    logging.info(f'width={width}, height={height}, fps={fps}, exposure={exposure}, gain={gain}, wb={wb}, bright{brightness}, contrast{contrast}, sat{saturation}, sharp{sharpness}, format{formatting}, buff{buff}')
     logging.info(f'Backend = {cap.get(cv2.CAP_PROP_BACKEND)}')
 
     return
@@ -63,9 +64,9 @@ def initCamSettings(cameraIndex):
         cap.release()
         return
 
-    setAttributes(cap)
+    for i in range(10):
+        status, frame = cap.read() # Read a frame seems to be required to make it work
 
-    status, frame = cap.read() # Read a frame seems to be required to make it work
     cap.release()
 
     return

@@ -24,12 +24,14 @@ def main():
     # Setup cameras (a first time is necessary)
     for index in config.ARGS.cameras:
         cameraSettings.initCamSettings(index) # Initialize camera settings (open/close cameras once seems to be required)
+        pass
 
     # Initialize every camera
     for index in config.ARGS.cameras:
         cam = CaptureDevice(index, savingFrames)
         if cam.capture.isOpened():
             captureDevices.append(cam)
+
 
     # Initialize and start saving thread
     savingThread = SaveWatcher(GLOBAL_RUNNING, savingFrames)
@@ -66,7 +68,7 @@ def main():
             for cam in captureDevices:
                 cam.saveFrame()
 
-        time.sleep(0.001)
+        # time.sleep(0.001)
 
         frameNumber += 1
 
