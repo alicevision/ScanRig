@@ -57,6 +57,10 @@ if __name__ == '__main__':
     # Attach scrollbar to log box 
     log.config(yscrollcommand=scroolBar.set)
     scroolBar.config(command=log.yview)
+    
+    line = serialReader.readline()
+    time.sleep(2)
+    serialWrite(arduinoSer, "leftCaptureFull:180,45,30,15")
 
     while running:
         window.update() # Call tkinter window update by ourselves

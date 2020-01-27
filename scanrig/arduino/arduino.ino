@@ -2,7 +2,6 @@
 // DIR-(DIR) motor direction control, connected to ground
 // PUL-(PUL) motor step control, connected to ground
 
-#define PI 3.1415926535897932384626433832795
 # define _MAX_ARG 10
 # define _PULSE_PER_REV 800 // number of pulses for making one full cycle rotation
 # define _REDUCTION_RATIO 6 // 10/60
@@ -100,75 +99,40 @@ String handleReceivedCommand(String str) {
 			}else {
 				int ledNb = args[0];
 				if(ledNb < 1 || ledNb > 6) {
-					String msg = "invalid led number (must be in [1, 6])";
-					return msg;
+					return "invalid led number (must be in [1, 6])";
 				}else {
-					if(args[1] != 1 && args[1] != 0) {
-						return "invalid led state (must be on or off)";
-					}else {
-						return setLedState(ledNb, args[1]);
-					}
+					return setLedState(ledNb, args[1]);
 				}
 			}
 		}else if (cmdName.equals("leftSmooth") || cmdName.equals("rightSmooth")) {
-			if (argsNb < 4) { 
-				return "Invalid number of arguments";
-			}else {
-				if(args[0] == 0 || args[1] == 0 || args[2] == 0 || args[3] == 0) {
-					return "one of the arguments is invalid";
-				}else {
-					return motorSmoothMove(cmdName.equals("leftSmooth") ? true : false, args[0], args[1], args[2], args[3]);
-				}
-			}
-		}else if (cmdName.equals("leftSmoothLoad") || cmdName.equals("rightSmoothLoad")) {
 			if (argsNb < 3) { 
 				return "Invalid number of arguments";
 			}else {
-				if(args[1] == 0 || args[2] == 0 ) {
-					return "one of the arguments is invalid";
-				}else {
-					return SmoothLoad(args[0], cmdName.equals("leftSmoothLoad") ? true : false, args[1], args[2]);
-				}
+				return SmoothMove(args[0], cmdName.equals("leftSmooth") ? true : false, args[1], args[2]);
 			}
 		} else if (cmdName.equals("left") || cmdName.equals("right")) {
 			if (argsNb < 2) { 
 				return "Invalid number of arguments";
 			}else {
-				if(args[0] == 0 || args[1] == 0) {
-					return "one of the arguments is invalid";
-				}else {
-					return motorMove(cmdName.equals("left") ? true : false, args[0], args[1]);
-				}
+				return motorMove(cmdName.equals("left") ? true : false, args[0], args[1]);
 			}
 		} else if (cmdName.equals("leftCapture") || cmdName.equals("rightCapture")) {
 			if (argsNb < 3) { 
 				return "Invalid number of arguments";
 			}else {
-				if(args[0] == 0 || args[1] == 0 || args[2] == 0) {
-					return "one of the arguments is invalid";
-				}else {
-					return motorMoveWithCaptureInterval(cmdName.equals("leftCapture") ? true : false, args[0], args[1], args[2]);
-				}
+				return motorMoveWithCaptureInterval(cmdName.equals("leftCapture") ? true : false, args[0], args[1], args[2]);
 			}
 		} else if (cmdName.equals("leftCaptureFull") || cmdName.equals("rightCaptureFull")) {
 			if (argsNb < 3) { 
 				return "Invalid number of arguments";
 			}else {
-				if(args[0] == 0 || args[1] == 0 || args[2] == 0 || args[3] == 0) {
-					return "one of the arguments is invalid";
-				}else {
-					return capture(cmdName.equals("leftCaptureFull") ? true : false, args[0], args[1], args[2], args[3]);
-				}
+				return capture(cmdName.equals("leftCaptureFull") ? true : false, args[0], args[1], args[2], args[3]);
 			}
 		} else if (cmdName.equals("leftManual") || cmdName.equals("rightManual")) {
 			if (argsNb < 2) { 
 				return "Invalid number of arguments";
 			}else {
-				if(args[0] == 0 || args[1] == 0) {
-					return "one of the arguments is invalid";
-				}else {
-					return motorMoveManual(cmdName.equals("leftManual") ? true : false, args[0], args[1]);
-				}
+				return motorMoveManual(cmdName.equals("leftManual") ? true : false, args[0], args[1]);
 			}
 		} else if (cmdName.equals("stop") or cmdName.equals("s")) {
 			// stop motor
@@ -206,24 +170,24 @@ String motorMoveManual(bool dir, int pulse, int d) {
 	return r;
 }
 
+// leftCaptureFull:360,45,30,15
 String capture(bool dir, unsigned long degres, unsigned long captureDegres, unsigned long loadDegres, unsigned long durationForOneTurn) {
 	String r = "Success";
-	r = SmoothLoad(true, dir, loadDegres, durationForOneTurn);
+	r = SmoothMove(true, dir, loadDegres, durationForOneTurn);
 	if( r != "Success" ) { return r; }
 	r = motorMoveWithCaptureInterval(dir, degres, captureDegres, durationForOneTurn);
 	if( r != "Success" ) { return r; }
-	r = SmoothLoad(false, dir, loadDegres, durationForOneTurn);
+	r = SmoothMove(false, dir, loadDegres, durationForOneTurn);
 	if( r != "Success" ) { return r; }
-	r = SmoothLoad(true, !dir, loadDegres, durationForOneTurn);
+	r = SmoothMove(true, !dir, loadDegres, durationForOneTurn);
 	if( r != "Success" ) { return r; }
 	r = motorMove(!dir, degres, durationForOneTurn);
 	if( r != "Success" ) { return r; }
-	r = SmoothLoad(false, !dir, loadDegres, durationForOneTurn);
-	// leftCaptureFull:360,45,30,15
+	r = SmoothMove(false, !dir, loadDegres, durationForOneTurn);
 	return r;
 }
 
-String SmoothLoad(bool inOut, bool dir, unsigned long degres, unsigned long durationForOneTurn) {
+String SmoothMove(bool inOut, bool dir, unsigned long degres, unsigned long durationForOneTurn) {
 	fastDigitalWrite(_DIR_5v, dir == true ? LOW : HIGH); // setup dir
 	String r = "Success";
 	unsigned long  microSecPerMotorTurn = (unsigned long)(1000000) * durationForOneTurn / _REDUCTION_RATIO;
@@ -238,6 +202,11 @@ String SmoothLoad(bool inOut, bool dir, unsigned long degres, unsigned long dura
 		delayMicroseconds((unsigned long)(iterpolatedDuration));
 		fastDigitalWrite(_STP_5v, LOW); 
 		delayMicroseconds((unsigned long)(iterpolatedDuration));
+		if(Serial.available()) { // break if incoming data in serial
+			r = "AngleDone:";
+			r.concat((x+1) * 360 / (_REDUCTION_RATIO * _PULSE_PER_REV) );
+			break;
+		}
 	}
 	return r;
 }
@@ -290,7 +259,6 @@ String motorMoveWithCaptureInterval(bool dir, unsigned long degres, unsigned lon
 		}
 		if(Serial.available()) { // break if incoming data in serial
 			r = "AngleDone:";
-			 
 			r.concat((x+1) * 360 / (_REDUCTION_RATIO * _PULSE_PER_REV) );
 			break;
 		}
@@ -299,43 +267,8 @@ String motorMoveWithCaptureInterval(bool dir, unsigned long degres, unsigned lon
 	return r;
 }
 
-String motorSmoothMove(bool dir, unsigned long degres, unsigned long durationForOneTurn, int coeff, int transitionDuration) {
-	// like the previous ones but allow us to move forward more progressively.
-	fastDigitalWrite(_DIR_5v, dir == true ? LOW : HIGH); // setup dir
-	String r = "Success";
-	unsigned long  microSecPerMotorTurn = (unsigned long)(1000000) * durationForOneTurn / _REDUCTION_RATIO;
-	unsigned long demiStepDuration = microSecPerMotorTurn / _PULSE_PER_REV / 2;
-	unsigned long pulseNb = (degres * _REDUCTION_RATIO * _PULSE_PER_REV) / 360;
-
-	for(unsigned x = 0; x < pulseNb; x++) {
-		float i = easeInOut(float(x)/float(pulseNb), coeff, transitionDuration);
-		float iterpolatedDuration = float(demiStepDuration) * i;
-		fastDigitalWrite(_STP_5v, HIGH);
-		delayMicroseconds((unsigned long)(iterpolatedDuration));
-		fastDigitalWrite(_STP_5v, LOW); 
-		delayMicroseconds((unsigned long)(iterpolatedDuration));
-		if(Serial.available()) { // break if incoming data in serial
-			r = "PulsesDone:";
-			r.concat(x+1);
-			break;
-		}
-	}
-	return r;
-}
-
 float easeSigmoid(float t) {
 	return 2.0 / (1.0 + exp(10.0 * t )) + 1.0;
-}
-
-float easeInOut(float t, float a, int transitionDuration) {
-	// transitionDuration in percentage inverse
-	// t in [0, 1]
-	if (t < 0.5) { // easeIn
-		// return 1 + (1 - transitionDuration*t)/a;
-		return 1 + exp(-100*t*t);
-	}else { // easeOut
-		return 1 + exp(-100*(t-1)*(t-1));
-	}
 }
 
 void loop() {
