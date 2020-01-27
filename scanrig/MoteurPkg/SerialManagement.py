@@ -67,9 +67,10 @@ class SerialReader:
         handle bytes already in buffer
         return empty bytes array (b'') if no new line
         """
-        i = self.buffer.find(b"\n") # look for endOfLine
+        
+        i = self.buffer.find(b'\n') # look for endOfLine
         if i >= 0:
-            line = self.buffer[:i+1] #read line
+            line = self.buffer[:i] #read line
             self.buffer = self.buffer[i+1:] #keep other data in buffer
             return line
         
@@ -77,14 +78,16 @@ class SerialReader:
         i = min(2048, self.serial.in_waiting) #limit to 2048 read
         if(i > 0):
             data = self.serial.read(i) # read all available bytes
-            i = data.find(b"\n")
+            # print("tpye:", data, " ", type(data))
+            i = data.find(b'\n')
             if i >= 0: #if endOfLine was found
-                line = self.buffer + data[:i+1]
+                line = self.buffer + data[:i]
                 self.buffer[0:] = data[i+1:]
-                return line 
+                return line
             else: # else push in buffer
                 self.buffer.extend(data)
-                return b""
+                # print("buffer:", self.buffer)
+                return b''
         else:
-            return b""
+            return b''
 

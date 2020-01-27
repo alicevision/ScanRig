@@ -61,9 +61,18 @@ if __name__ == '__main__':
     line = serialReader.readline()
     time.sleep(2)
     serialWrite(arduinoSer, "leftCaptureFull:180,45,30,15")
+    
+    # serialWrite(arduinoSer, "left:15,15")
 
     while running:
-        window.update() # Call tkinter window update by ourselves
-        line = serialReader.readline()
-        if line != b"" :
-            handleCallBack(log, line)
+        while line == b'':
+            time.sleep(0.01)
+            # window.update() # Call tkinter window update by ourselves
+            line = serialReader.readline()
+            # if line != b"" :
+            #     print(line)
+                # handleCallBack(log, line)
+        print(line)
+        if(line == b'Success\r'):
+            running = False
+        line = b''
