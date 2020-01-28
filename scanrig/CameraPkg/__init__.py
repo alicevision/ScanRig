@@ -1,3 +1,3 @@
-from . import settings
-from . import device
+from . import capture_device
+from . import capture_device_list
 from . import saving

@@ -1,15 +1,19 @@
 #------------------------- IMPORTS
 import numpy as np
 import cv2, time, logging
+import queue
 
 import config
 import CameraPkg
 from MoteurPkg.SerialManagement import availablePorts, serialWrite, SerialReader, selectPort
 
+
 #------------------------- SCRIPT
 
 def main():
+    captureDevices = []
     GLOBAL_RUNNING = [True]
+    savingFrames = queue.Queue()
 
     # Get arguments
     args = config.config()
@@ -19,31 +23,38 @@ def main():
     # Init custom Serial reader to handle readLine correctly
     serialReader = SerialReader(arduinoSer)
 
-    # Create devices list
-    captureDevices = CameraPkg.capture_device_list.CaptureDeviceList()
-
     # Initialize every camera
     for index in args.cameras:
-        captureDevices.addDevice(index)
-    captureDevices.setAllAttributesToDevices() # Give to devices the default settings
+        cam = CameraPkg.device.CaptureDevice(index, savingFrames)
+        if cam.capture.isOpened():
+            captureDevices.append(cam)
 
     # Initialize and start saving thread
-    savingThread = CameraPkg.saving.SaveWatcher(GLOBAL_RUNNING, captureDevices.savingFrames, args)
+    savingThread = CameraPkg.saving.SaveWatcher(GLOBAL_RUNNING, savingFrames, args)
     savingThread.start()
 
     # Check if cameras are running
-    if not captureDevices.isEmpty():
+    if captureDevices:
         # Give the motor instructions - direction:totalAngle,stepAngle,transition,time
-        time.sleep(2)
-        serialWrite(arduinoSer, "leftCaptureFull:60,15,45,45")
+        serialReader.clearBuffer()
+        time.sleep(4)
+        serialWrite(arduinoSer, "leftCaptureFull:360,15,45,45")
+        # serialWrite(arduinoSer, "leftCaptureFull:10,5,30,60")
         # Read frame
-        captureDevices.grabFrames()
-        captureDevices.retrieveFrames()
+        for cam in captureDevices:
+            cam.grabFrame()
+        for cam in captureDevices:
+            cam.retrieveFrame()
     else:    
         GLOBAL_RUNNING[0] = False
 
     # Main loop
     while(GLOBAL_RUNNING[0]):
+        # Read frame
+        # for cam in captureDevices:
+        #     cam.grabFrame()
+        # for cam in captureDevices:
+        #     cam.retrieveFrame()
 
         line = serialReader.readline()
         # While the motor is rotating (before to arrive to a step angle)
@@ -54,11 +65,14 @@ def main():
         # When the motor reaches the step angle
         if line == b'Capture\r':
             # Read frame
-            captureDevices.grabFrames()
-            captureDevices.retrieveFrames()
+            for cam in captureDevices:
+                cam.grabFrame()
+            for cam in captureDevices:
+                cam.retrieveFrame()
 
             # Send frames to the saving buffer
-            captureDevices.saveFrames()
+            for cam in captureDevices:
+                cam.saveFrame()
 
         # When the motor reaches the end    
         elif line == b'Success\r' :
@@ -75,7 +89,8 @@ def main():
     savingThread.join()
 
     # When everything done, release the capture devices
-    captureDevices.stopDevices()
+    for cam in captureDevices:
+        cam.stop()
 
     logging.info("End of Script")
 
