@@ -16,6 +16,46 @@ cameraSettingsList = {
     "bufferSize" : 1
 }
 
+def changeBrightness(value):
+    global cameraSettingsList
+    cameraSettingsList["brightness"] = value
+    return
+
+def changeContrast(value):
+    global cameraSettingsList
+    cameraSettingsList["contrast"] = value
+    return
+    
+def changeSaturation(value):
+    global cameraSettingsList
+    cameraSettingsList["saturation"] = value
+    return
+
+def changeTempWB(value):
+    global cameraSettingsList
+    cameraSettingsList["tempWB"] = value
+    return
+
+def changeGamma(value):
+    global cameraSettingsList
+    cameraSettingsList["gamma"] = value
+    return
+
+def changeGain(value):
+    global cameraSettingsList
+    cameraSettingsList["gain"] = value
+    return
+
+def changeSharpness(value):
+    global cameraSettingsList
+    cameraSettingsList["sharpness"] = value
+    return
+
+def changeExposure(value):
+    global cameraSettingsList
+    cameraSettingsList["exposure"] = value
+    return
+
 
 def setDefaultAttributes(cap):
     # cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('U','Y','V','Y')) # To use only with the FSCAM_CU135

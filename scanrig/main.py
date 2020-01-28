@@ -36,18 +36,25 @@ def main():
     # Check if cameras are running
     if captureDevices:
         # Give the motor instructions - direction:totalAngle,stepAngle,transition,time
-        time.sleep(2)
-        serialWrite(arduinoSer, "leftCaptureFull:360,15,10,10")
+        serialReader.clearBuffer()
+        time.sleep(4)
+        serialWrite(arduinoSer, "leftCaptureFull:360,15,45,45")
+        # serialWrite(arduinoSer, "leftCaptureFull:10,5,30,60")
+        # Read frame
+        for cam in captureDevices:
+            cam.grabFrame()
+        for cam in captureDevices:
+            cam.retrieveFrame()
     else:    
         GLOBAL_RUNNING[0] = False
 
     # Main loop
     while(GLOBAL_RUNNING[0]):
         # Read frame
-        for cam in captureDevices:
-            cam.grabFrame()
-        for cam in captureDevices:
-            cam.retrieveFrame()
+        # for cam in captureDevices:
+        #     cam.grabFrame()
+        # for cam in captureDevices:
+        #     cam.retrieveFrame()
 
         line = serialReader.readline()
         # While the motor is rotating (before to arrive to a step angle)

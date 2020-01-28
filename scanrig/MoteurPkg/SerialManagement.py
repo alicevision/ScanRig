@@ -32,10 +32,18 @@ def serialWrite(ser, str):
     """
     function used to send data to our serial port in utf-8
     """
-    ser.write(str.encode('utf-8'))
-    print(str.encode('utf-8'))
-    eol = b"\n"
-    ser.write(eol) # add endOfLine
+    cmd = bytearray()
+    cmd.extend(str.encode('utf-8'))
+    cmd.extend(b'\n')
+    # ser.write(str.encode('utf-8'))
+    print(cmd)
+    # eol = b'\n'
+    try:
+        nb = ser.write(cmd)
+        print(nb)
+    except 	serial.SerialTimeoutException :
+        print("error")
+    # ser.write(eol) # add endOfLine
 
 def selectPort(baudrate = 115200):
     
@@ -70,24 +78,35 @@ class SerialReader:
         
         i = self.buffer.find(b'\n') # look for endOfLine
         if i >= 0:
-            line = self.buffer[:i] #read line
+            # line = self.buffer[:i] #read line
+            line = bytearray(self.buffer[:i])
             self.buffer = self.buffer[i+1:] #keep other data in buffer
             return line
+        
         
         # handle new incoming data
         i = min(2048, self.serial.in_waiting) #limit to 2048 read
         if(i > 0):
             data = self.serial.read(i) # read all available bytes
+            print("new data : ", data)
             # print("tpye:", data, " ", type(data))
             i = data.find(b'\n')
             if i >= 0: #if endOfLine was found
-                line = self.buffer + data[:i]
-                self.buffer[0:] = data[i+1:]
+                line = bytearray(self.buffer)
+                line +=  data[:i]
+                self.buffer = data[i+1:]
                 return line
             else: # else push in buffer
-                self.buffer.extend(data)
+                self.buffer += data
                 # print("buffer:", self.buffer)
                 return b''
         else:
             return b''
+
+    def clearBuffer(self):
+        self.buffer = bytearray()
+        i = self.serial.in_waiting
+        self.serial.read(i) # read all available bytes
+        print("serial clean : ", i, " bytes)")
+
 
