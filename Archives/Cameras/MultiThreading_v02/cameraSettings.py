@@ -11,14 +11,16 @@ cameraSettingsList = {
     "gamma" : 220,
     "gain" : 0, # From 0 to 100
     "sharpness" : 0,
-    "exposure" : 817, # From 0 to 10 000
-    "autoExposure" : 1
+    "exposure" : 200, # From 0 to 10 000
+    "autoExposure" : 1,
+    "bufferSize" : 1
 }
 
 
 def setAttributes(cap):
-    cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('U','Y','V','Y'))
-    cap.set(cv2.CAP_PROP_CONVERT_RGB, False)
+    # cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('U','Y','V','Y')) # To use only with the FSCAM_CU135
+    # cap.set(cv2.CAP_PROP_CONVERT_RGB, False) # To use only with the FSCAM_CU135
+    cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, cameraSettingsList.get("width"))
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, cameraSettingsList.get("height"))
     cap.set(cv2.CAP_PROP_BRIGHTNESS, cameraSettingsList.get("brightness"))
@@ -47,9 +49,18 @@ def getAttributes(cap):
     sharpness = cap.get(cv2.CAP_PROP_SHARPNESS)
     fps = cap.get(cv2.CAP_PROP_FPS)
     wb = cap.get(cv2.CAP_PROP_WB_TEMPERATURE)
-    logging.info(f'width={width}, height={height}, fps={fps}, exposure={exposure}, gain={gain}, wb={wb}, bright{brightness}, contrast{contrast}, sat{saturation}, sharp{sharpness}')
+    formatting = cap.get(cv2.CAP_PROP_FORMAT)
+    buff = cap.get(cv2.CAP_PROP_BUFFERSIZE)
+    logging.info(f'width={width}, height={height}, fps={fps}, exposure={exposure}, gain={gain}, wb={wb}, bright{brightness}, contrast{contrast}, sat{saturation}, sharp{sharpness}, format{formatting}, buff{buff}')
     logging.info(f'Backend = {cap.get(cv2.CAP_PROP_BACKEND)}')
 
+    return
+
+# TEST FUNCTION
+def changeAttributes(exposure, tempWB):
+    global cameraSettingsList
+    cameraSettingsList["exposure"] = exposure
+    cameraSettingsList["tempWB"] = tempWB
     return
 
 
@@ -61,9 +72,9 @@ def initCamSettings(cameraIndex):
         cap.release()
         return
 
-    setAttributes(cap)
+    for i in range(10):
+        status, frame = cap.read() # Read a frame seems to be required to make it work
 
-    status, frame = cap.read() # Read a frame seems to be required to make it work
     cap.release()
 
     return

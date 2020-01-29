@@ -2,17 +2,18 @@
 #include <opencv2/highgui/highgui_c.h>
 #include <chrono>
 #include <thread>
+#include <iostream>
 
 #include "libuvc/libuvc.h"
 
-void cb(uvc_frame_t *frame, void *ptr)
-{
+void cb(uvc_frame_t *frame, void *ptr) {
     uvc_frame_t *bgr;
     uvc_error_t ret;
     IplImage *cvImg;
 
-    // printf("callback! length = %u, ptr = %d\n", frame->data_bytes, (int)ptr);
+    std::cout << "callback! length = " << frame->data_bytes << std::endl;
 
+    /*
     bgr = uvc_allocate_frame(frame->width * frame->height * 3);
     if (!bgr)
     {
@@ -43,95 +44,82 @@ void cb(uvc_frame_t *frame, void *ptr)
     cvReleaseImageHeader(&cvImg);
 
     uvc_free_frame(bgr);
+    */
 }
 
-int main(int argc, char **argv)
-{
-    uvc_context_t *ctx;
+int main(int argc, char **argv) {
+    const int deviceId = 0;
     uvc_error_t res;
-    uvc_device_t *dev;
-    uvc_device_handle_t *devh;
-    uvc_stream_ctrl_t ctrl;
 
+    uvc_context_t *ctx;
     res = uvc_init(&ctx, NULL);
-
-    if (res < 0)
-    {
+    if (res < 0) {
         uvc_perror(res, "uvc_init");
         return res;
     }
 
     puts("UVC initialized");
-
-    res = uvc_find_device(
-        ctx, &dev,
-        0, 0, NULL);
-
-    if (res < 0)
-    {
+    uvc_device_t **devices;
+    res = uvc_find_devices(ctx, &devices, 0, 0, NULL);
+    if (res < 0) {
         uvc_perror(res, "uvc_find_device");
-    }
-    else
-    {
-        puts("Device found");
-
-        res = uvc_open(dev, &devh);
-
-        if (res < 0)
-        {
-            uvc_perror(res, "uvc_open");
-        }
-        else
-        {
-            puts("Device opened");
-
-            uvc_print_diag(devh, stderr);
-
-            res = uvc_get_stream_ctrl_format_size(
-                devh, &ctrl, UVC_FRAME_FORMAT_UYVY, 4208, 3120, 9);
-
-            uvc_print_stream_ctrl(&ctrl, stderr);
-
-            if (res < 0)
-            {
-                uvc_perror(res, "get_mode");
-            }
-            else
-            {
-                res = uvc_start_streaming(devh, &ctrl, cb, (void*) 12345, 0);
-
-                if (res < 0)
-                {
-                    uvc_perror(res, "start_streaming");
-                }
-                else
-                {
-                    puts("Streaming for 10 seconds...");
-                    uvc_error_t resAEMODE = uvc_set_ae_mode(devh, 1);
-                    uvc_perror(resAEMODE, "set_ae_mode");
-                    int i;
-                    for (i = 1; i <= 10; i++)
-                    {
-                        /* uvc_error_t resPT = uvc_set_pantilt_abs(devh, i * 20 * 3600, 0); */
-                        /* uvc_perror(resPT, "set_pt_abs"); */
-                        uvc_error_t resEXP = uvc_set_exposure_abs(devh, 2000);
-                        uvc_perror(resEXP, "set_exp_abs");
-
-                        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-                    }
-                    std::this_thread::sleep_for(std::chrono::milliseconds(10000));
-                    uvc_stop_streaming(devh);
-                    puts("Done streaming.");
-                }
-            }
-
-            uvc_close(devh);
-            puts("Device closed");
-        }
-
-        uvc_unref_device(dev);
+        return res;
     }
 
+    puts("Device found");
+    uvc_device_handle_t *devh;
+    res = uvc_open(devices[deviceId], &devh);
+    if (res < 0) {
+        uvc_perror(res, "uvc_open");
+        return res;
+    }
+
+    puts("Device opened");
+    uvc_print_diag(devh, stderr);
+
+    uvc_stream_ctrl_t ctrl;
+    res = uvc_get_stream_ctrl_format_size( devh, &ctrl, UVC_FRAME_FORMAT_UYVY, 4208, 3120, 9);
+    uvc_print_stream_ctrl(&ctrl, stderr);
+    if (res < 0) {
+        uvc_perror(res, "get_mode");
+        return res;
+    }
+
+    //uvc_start_streaming
+
+    uvc_stream_handle_t* strmh;
+    res = uvc_stream_open_ctrl(devh, &strmh, &ctrl);
+    if (res < 0) {
+        uvc_perror(res, "open_stream");
+        return res;
+    }
+
+    res = uvc_stream_start(strmh, nullptr, (void*) 12345, 0);
+    if (res < 0) {
+        uvc_perror(res, "start_stream");
+        return res;
+    }
+
+    std::cout << "Stream started" << std::endl;
+
+    while (true) {
+        uvc_frame_t* frame = nullptr;
+        res = uvc_stream_get_frame(strmh, &frame, 0);
+        if (res < 0) {
+            uvc_perror(res, "get_frame");
+            return res;
+        }
+
+        std::cout << "Got frame : " << frame->sequence << std::endl;
+    }
+
+    uvc_stream_stop(strmh);
+    uvc_stop_streaming(devh);
+    puts("Done streaming.");
+
+    uvc_close(devh);
+    puts("Device closed");
+    uvc_unref_device(devices[deviceId]);
     uvc_exit(ctx);
     puts("UVC exited");
 
