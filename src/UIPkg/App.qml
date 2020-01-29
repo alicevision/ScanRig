@@ -29,9 +29,9 @@ ApplicationWindow {
         property bool backBuffer: false
 
         source: "image://cameraProvider/top" + backBuffer
-        asynchronous: true
+        asynchronous: false
         fillMode: Image.PreserveAspectFit
-        width: 200
+        width: 600
         y: 100
         x: 200
 
@@ -41,7 +41,7 @@ ApplicationWindow {
         }
 
         Timer {
-            interval: 150; running: true; repeat: true
+            interval: 16; running: true; repeat: true
             onTriggered: img.reload()
         }
     }

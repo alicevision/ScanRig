@@ -15,6 +15,7 @@ class CaptureDevice(object):
         v = self.capture.open(self.indexCam, apiPreference=cv2.CAP_V4L2)
         if v:
             self.grabFrame() # Needed to make it work well
+            self.retrieveFrame()
         else:
             logging.warning("Skip invalid stream ID {}".format(self.indexCam))
             self.stop()

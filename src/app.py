@@ -36,7 +36,7 @@ class App():
         sys.exit(app.exec_())
 
     def updateCameras(self):
-        while(True):
+        while True:
             self.acquisition.captureDevices.grabFrames()
             self.acquisition.captureDevices.retrieveFrames()
 
