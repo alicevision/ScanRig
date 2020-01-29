@@ -4,7 +4,8 @@ import cv2, time, logging
 
 import config
 import CameraPkg
-from MoteurPkg.SerialManagement import availablePorts, serialWrite, SerialReader, selectPort
+from MoteurPkg.serial_management import availablePorts, serialWrite, SerialReader, selectPort
+from UIPkg.app import App
 
 #------------------------- SCRIPT
 
@@ -83,4 +84,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # main()
+    app = App()
