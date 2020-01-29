@@ -12,9 +12,6 @@ class CameraProvider(QQuickImageProvider):
         self.acquisition = acquisition
 
     def requestPixmap(self, id, size, requestedSize):
-        # TODO run grabFrames on another thread
-        self.acquisition.captureDevices.grabFrames()
-        self.acquisition.captureDevices.retrieveFrames()
         frame = self.acquisition.captureDevices.getDevice(0).frame
         qImg = QImage(frame, frame.shape[1], frame.shape[0], QImage.Format_RGB888).rgbSwapped()
         return QPixmap.fromImage(qImg)

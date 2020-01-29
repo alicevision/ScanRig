@@ -1,4 +1,5 @@
 import sys
+import threading
 from UIPkg.camera_provider import CameraProvider
 from UIPkg.backend import Backend
 from acquisition import Acquisition
@@ -21,13 +22,22 @@ class App():
         backend = Backend()
         ctx.setContextProperty("backend", backend)
 
-        acquisition = Acquisition()
-        cameraProvider = CameraProvider(acquisition)
+        self.acquisition = Acquisition()
+        cameraProvider = CameraProvider(self.acquisition)
         engine.addImageProvider("cameraProvider", cameraProvider)
         ctx.setContextProperty("cameraProvider", cameraProvider)
 
+        # Update cameras on another thread
+        t = threading.Thread(target=self.updateCameras)
+        t.start()
+        
         # Run app
         engine.load("UIPkg/App.qml")
         sys.exit(app.exec_())
+
+    def updateCameras(self):
+        while(True):
+            self.acquisition.captureDevices.grabFrames()
+            self.acquisition.captureDevices.retrieveFrames()
 
     

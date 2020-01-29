@@ -29,7 +29,7 @@ ApplicationWindow {
         property bool backBuffer: false
 
         source: "image://cameraProvider/top" + backBuffer
-        asynchronous: false
+        asynchronous: true
         fillMode: Image.PreserveAspectFit
         width: 200
         y: 100
