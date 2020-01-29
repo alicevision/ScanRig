@@ -28,36 +28,60 @@ class CaptureDeviceList(object):
         }
         return settings
 
+    def setResolution(self, w, h):
+        self.settings["width"] = w
+        self.settings["height"] = h
+        for device in self.devices:
+            device.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.settings.get("width"))
+            device.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.settings.get("height"))
+        return
+
     def setBrightness(self, value):
         self.settings["brightness"] = value
+        for device in self.devices:
+            device.capture.set(cv2.CAP_PROP_BRIGHTNESS, self.settings.get("brightness"))
         return
 
     def setContrast(self, value):
         self.settings["contrast"] = value
+        for device in self.devices:
+            device.capture.set(cv2.CAP_PROP_CONTRAST, self.settings.get("contrast"))
         return
     
     def setSaturation(self, value):
         self.settings["saturation"] = value
+        for device in self.devices:
+            device.capture.set(cv2.CAP_PROP_SATURATION, self.settings.get("saturation"))
         return
 
     def setTempWB(self, value):
         self.settings["tempWB"] = value
+        for device in self.devices:
+            device.capture.set(cv2.CAP_PROP_WB_TEMPERATURE, self.settings.get("tempWB"))
         return
 
     def setGamma(self, value):
         self.settings["gamma"] = value
+        for device in self.devices:
+            device.capture.set(cv2.CAP_PROP_GAMMA, self.settings.get("gamma"))
         return
 
     def setGain(self, value):
         self.settings["gain"] = value
+        for device in self.devices:
+            device.capture.set(cv2.CAP_PROP_GAIN, self.settings.get("gain"))
         return
 
     def setSharpness(self, value):
         self.settings["sharpness"] = value
+        for device in self.devices:
+            device.capture.set(cv2.CAP_PROP_SHARPNESS, self.settings.get("sharpness"))
         return
 
     def setExposure(self, value):
         self.settings["exposure"] = value
+        for device in self.devices:
+            device.capture.set(cv2.CAP_PROP_EXPOSURE, self.settings.get("exposure"))
         return
 
     def setAllAttributesToDevices(self):

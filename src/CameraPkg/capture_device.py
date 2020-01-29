@@ -14,15 +14,14 @@ class CaptureDevice(object):
 
         v = self.capture.open(self.indexCam, apiPreference=cv2.CAP_V4L2)
         if v:
-            for i in range(int(self.capture.get(cv2.CAP_PROP_BUFFERSIZE)) + 1): # Very important to grab n+1 frames to avoid problems
-                self.capture.grab() # Needed to make it work well (different of the method grabFrame())
+            self.grabFrame() # Needed to make it work well
         else:
             logging.warning("Skip invalid stream ID {}".format(self.indexCam))
             self.stop()
 
     def grabFrame(self):
         print("image grabbed")
-        for i in range(int(self.capture.get(cv2.CAP_PROP_BUFFERSIZE)) + 1):
+        for i in range(int(self.capture.get(cv2.CAP_PROP_BUFFERSIZE)) + 1): # Very important to grab n+1 frames to avoid problems
             ret = self.capture.grab()
         if not ret:
             logging.warning("Image cannot be grabbed")
