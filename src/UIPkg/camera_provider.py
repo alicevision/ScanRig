@@ -1,22 +1,23 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+import numpy as np
+import cv2
 
 from PySide2 import QtWidgets
 from PySide2.QtCore import QSize
 from PySide2.QtQuick import QQuickImageProvider
-from PySide2.QtGui import QImage, QPixmap, QColor
-import cv2
-import numpy as np
+from PySide2.QtGui import QImage, QPixmap
 
 class CameraProvider(QQuickImageProvider):
-    def __init__(self, parent=None):
+    def __init__(self, acquisition):
         super(CameraProvider, self).__init__(QQuickImageProvider.Pixmap)
-        self.cap = cv2.VideoCapture(0)
+        self.acquisition = acquisition
 
     def requestPixmap(self, id, size, requestedSize):
-        ret, frame = self.cap.read()
+        # TODO run grabFrames on another thread
+        self.acquisition.captureDevices.grabFrames()
+        self.acquisition.captureDevices.retrieveFrames()
+        frame = self.acquisition.captureDevices.getDevice(0).frame
         qImg = QImage(frame, frame.shape[1], frame.shape[0], QImage.Format_RGB888).rgbSwapped()
         return QPixmap.fromImage(qImg)
 
-    def closeCamera(self):
-        self.cap.release()
+    def startAcquisition(self):
+        self.acquisition.start()

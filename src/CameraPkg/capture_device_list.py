@@ -116,6 +116,9 @@ class CaptureDeviceList(object):
             self.devices.append(device)
         return
 
+    def getDevice(self, indexDevice):
+        return self.devices[indexDevice]
+
     def grabFrames(self):
         for device in self.devices:
             device.grabFrame()

@@ -10,7 +10,7 @@ log_levels = {
 }
 
 #------------------------- CONFIG FUNCTION
-def config():
+def parse():
     parser = argparse.ArgumentParser(description='Display video stream')
     parser.add_argument('-o', '--output', metavar='Output folder', type=str,
                         default='',

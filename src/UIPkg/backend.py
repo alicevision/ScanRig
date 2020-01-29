@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 from PySide2 import QtWidgets
 from PySide2.QtCore import QObject, Slot, Property
 

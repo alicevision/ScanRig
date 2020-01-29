@@ -20,7 +20,7 @@ class CaptureDevice(object):
             self.stop()
 
     def grabFrame(self):
-        print("image grabbed")
+        # print("image grabbed")
         for i in range(int(self.capture.get(cv2.CAP_PROP_BUFFERSIZE)) + 1): # Very important to grab n+1 frames to avoid problems
             ret = self.capture.grab()
         if not ret:
