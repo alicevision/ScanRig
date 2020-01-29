@@ -1,5 +1,5 @@
 import cv2, logging
-import queue
+import queue, os
 
 from . import capture_device
 
@@ -118,6 +118,14 @@ class CaptureDeviceList(object):
 
     def getDevice(self, indexDevice):
         return self.devices[indexDevice]
+
+    def listAvailableDevices(self):
+        ids = []
+        for id in range(20):
+            if os.path.exists('/dev/video' + str(id)):
+                ids.append(id)
+
+        return ids
 
     def grabFrames(self):
         for device in self.devices:
