@@ -65,7 +65,7 @@ int manualMove(bool dir, int pulse, int d) {
 	return x+1;
 }
 
-int move(bool dir, long degres, long durationForOneTurn) {
+int motoMove(bool dir, long degres, long durationForOneTurn) {
 	digitalWrite(_DIR_5v, dir == true ? LOW : HIGH); // setup dir
 	long microSecPerMotorTurn = (long)1000000 * (long)durationForOneTurn / _REDUCTION_RATIO;
 	long demiStepDuration = microSecPerMotorTurn / _PULSE_PER_REV / 2;
@@ -135,7 +135,7 @@ int captureFull(bool dir, long degres, long captureDegres, long loadDegres, long
 	if(Serial.available()) { return angleDone; }
 	angleDone += smoothMove(!dir, true, loadDegres, durationForOneTurn);
 	if(Serial.available()) { return angleDone; }
-	angleDone += move(!dir, degres, durationForOneTurn);
+	angleDone += motoMove(!dir, degres, durationForOneTurn);
 	if(Serial.available()) { return angleDone; }
 	angleDone += smoothMove(!dir, false, loadDegres, durationForOneTurn);
 	return angleDone;
@@ -193,7 +193,7 @@ String handleCmd(char* cmdBuffer) {
       if( angleDone == angle) {
         return "Success : motor movement done";
       }else {
-        return "Error: angleDone(" + String(angleDone) + "/" + String(angle) + ")";
+        return "Error: angleDone(" + String(angleDone) + "/" + String(2* angle + 4 * smoothAngle) + ")";
       } 
 
     }else if (strncmp(cmdBuffer, "capture", 7) == 0) {
@@ -234,7 +234,7 @@ String handleCmd(char* cmdBuffer) {
       int angle = atoi(arg1);
       int durationForOneTurn = atoi(arg2);
 
-      int angleDone = move(dir, angle, durationForOneTurn);
+      int angleDone = motoMove(dir, angle, durationForOneTurn);
       if( angleDone == angle) {
         return "Success : motor movement done";
       }else {
