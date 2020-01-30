@@ -19,13 +19,12 @@ class App():
         ctx = engine.rootContext()
 
         # Add qml objects
-        backend = Backend()
+        self.acquisition = Acquisition()
+        backend = Backend(self.acquisition)
         ctx.setContextProperty("backend", backend)
 
-        self.acquisition = Acquisition()
         cameraProvider = CameraProvider(self.acquisition)
         engine.addImageProvider("cameraProvider", cameraProvider)
-        ctx.setContextProperty("cameraProvider", cameraProvider)
 
         # Update cameras on another thread
         t = threading.Thread(target=self.updateCameras)

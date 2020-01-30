@@ -13,15 +13,25 @@ ApplicationWindow {
         source: "Views/Capture.qml"
     }
 
-    AppButton {
+    CButton {
         text: "Capture"
         onClicked: pageLoader.source = "Views/Capture.qml"
         x: 150
     }
 
-    AppButton {
+    CButton {
         text: "Preview"
-        onClicked: pageLoader.source = "Views/Preview.qml"
+        onClicked: {
+            for (var prop in backend.captureDeviceSettings) {
+                console.log("Object item:", prop, "=", backend.captureDeviceSettings[prop])
+            }
+
+            pageLoader.source = "Views/Preview.qml"
+        }
+    }
+
+    CCameraSettings {
+        
     }
 
     Image {

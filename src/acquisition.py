@@ -75,3 +75,4 @@ class Acquisition():
         logging.info("End of Capture")
 
         return
+
