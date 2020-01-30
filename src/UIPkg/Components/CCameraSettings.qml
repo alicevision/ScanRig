@@ -10,6 +10,7 @@ GroupBox {
             from: 0
             value: backend.camExposure
             to: 4000
+            stepSize: 1
             onMoved: backend.setCamExposure(value)
 
             Label {

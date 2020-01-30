@@ -2,6 +2,7 @@ import sys
 import threading
 from UIPkg.camera_provider import CameraProvider
 from UIPkg.backend import Backend
+from UIPkg.palette import Palette
 from acquisition import Acquisition
 
 from PySide2.QtWidgets import QApplication
@@ -11,7 +12,9 @@ from PySide2.QtQml import QQmlApplicationEngine
 class App():
     def __init__(self):
         QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
-        app = QApplication()
+        sys_argv = sys.argv
+        sys_argv += ['--style', 'fusion']
+        app = QApplication(sys_argv)
         QCoreApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
 
         # Set up the application window
@@ -26,6 +29,9 @@ class App():
 
         cameraProvider = CameraProvider(self.acquisition)
         engine.addImageProvider("cameraProvider", cameraProvider)
+
+        # Apply palette
+        darkPalette = Palette(engine)
 
         # Update cameras on another thread
         t = threading.Thread(target=self.updateCameras)
