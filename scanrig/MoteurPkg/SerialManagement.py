@@ -28,25 +28,21 @@ def availablePorts():
             pass
     return result
 
-def serialWrite(ser, str):
+def serialWrite(ser, cmdString):
     """
     function used to send data to our serial port in utf-8
     """
+    s = cmdString + "\n"
     cmd = bytearray()
-    cmd.extend(str.encode('utf-8'))
-    cmd.extend(b'\n')
-    # ser.write(str.encode('utf-8'))
-    print(cmd)
-    # eol = b'\n'
+    cmd.extend(s.encode('ascii'))
+    print("cmdString : '", str(cmd), "'")
     try:
         nb = ser.write(cmd)
-        print(nb)
-    except 	serial.SerialTimeoutException :
-        print("error")
-    # ser.write(eol) # add endOfLine
+        print("bytes written : ", str(nb))
+    except	serial.SerialTimeoutException :
+        print("error timeOut")
 
-def selectPort(baudrate = 115200):
-    
+def selectPort(baudrate = 9600):
     print("--- Choice one of these port COM corresponding to your microcontroller ---")
     portsList = availablePorts()
     if len(portsList) <= 0:
@@ -73,40 +69,25 @@ class SerialReader:
     def readline(self):
         """
         handle bytes already in buffer
-        return empty bytes array (b'') if no new line
+        return space in bytes (b' ') if there is no line to handle
         """
-        
-        i = self.buffer.find(b'\n') # look for endOfLine
+        i = self.buffer.find(b'\n') # look for endOfLine in buffer
         if i >= 0:
-            # line = self.buffer[:i] #read line
-            line = bytearray(self.buffer[:i])
-            self.buffer = self.buffer[i+1:] #keep other data in buffer
+            line = self.buffer[:i] # read line
+            self.buffer = self.buffer[i+1:] # keep other data in buffer
             return line
-        
-        
+
         # handle new incoming data
         i = min(2048, self.serial.in_waiting) #limit to 2048 read
         if(i > 0):
             data = self.serial.read(i) # read all available bytes
-            print("new data : ", data)
-            # print("tpye:", data, " ", type(data))
-            i = data.find(b'\n')
-            if i >= 0: #if endOfLine was found
-                line = bytearray(self.buffer)
-                line +=  data[:i]
-                self.buffer = data[i+1:]
-                return line
-            else: # else push in buffer
-                self.buffer += data
-                # print("buffer:", self.buffer)
-                return b''
-        else:
-            return b''
+            print("new data : '", data, "'")
+            self.buffer += data
+        return b' '
 
     def clearBuffer(self):
-        self.buffer = bytearray()
         i = self.serial.in_waiting
-        self.serial.read(i) # read all available bytes
+        self.serial.flush()
         print("serial clean : ", i, " bytes)")
 
 

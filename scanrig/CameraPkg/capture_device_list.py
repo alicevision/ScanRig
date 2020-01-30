@@ -22,7 +22,7 @@ class CaptureDeviceList(object):
             "gamma" : 220,
             "gain" : 0, # From 0 to 100
             "sharpness" : 0,
-            "exposure" : 2000, # From 0 to 10 000
+            "exposure" : 200, # From 0 to 10 000
             "autoExposure" : 1,
             "bufferSize" : 1
         }
@@ -62,9 +62,10 @@ class CaptureDeviceList(object):
 
     def setAllAttributesToDevices(self):
         for device in self.devices:
+            # device.capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M','J','P','G')) # To use only with the FSCAM_CU135
             # device.capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('U','Y','V','Y')) # To use only with the FSCAM_CU135
             # device.capture.set(cv2.CAP_PROP_CONVERT_RGB, False) # To use only with the FSCAM_CU135
-            device.capture.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+            device.capture.set(cv2.CAP_PROP_BUFFERSIZE, self.settings.get("bufferSize"))
             device.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.settings.get("width"))
             device.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.settings.get("height"))
             device.capture.set(cv2.CAP_PROP_BRIGHTNESS, self.settings.get("brightness"))
@@ -77,6 +78,26 @@ class CaptureDeviceList(object):
             device.capture.set(cv2.CAP_PROP_SHARPNESS, self.settings.get("sharpness"))
             device.capture.set(cv2.CAP_PROP_EXPOSURE, self.settings.get("exposure")) 
             device.capture.set(cv2.CAP_PROP_AUTO_EXPOSURE, self.settings.get("autoExposure"))
+            device.capture.set(cv2.CAP_PROP_FPS, device.capture.get(cv2.CAP_PROP_FPS))
+        return
+
+    def getAllAttributes(self):
+        for device in self.devices:
+            # device.capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('U','Y','V','Y')) # To use only with the FSCAM_CU135
+            # device.capture.set(cv2.CAP_PROP_CONVERT_RGB, False) # To use only with the FSCAM_CU135
+            buff = device.capture.get(cv2.CAP_PROP_BUFFERSIZE)
+            w = device.capture.get(cv2.CAP_PROP_FRAME_WIDTH)
+            h = device.capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
+            bright = device.capture.get(cv2.CAP_PROP_BRIGHTNESS)
+            cont = device.capture.get(cv2.CAP_PROP_CONTRAST)
+            sat = device.capture.get(cv2.CAP_PROP_SATURATION)
+            wb = device.capture.get(cv2.CAP_PROP_WB_TEMPERATURE) 
+            gamma = device.capture.get(cv2.CAP_PROP_GAMMA)
+            gain = device.capture.get(cv2.CAP_PROP_GAIN) 
+            sharp = device.capture.get(cv2.CAP_PROP_SHARPNESS)
+            exp = device.capture.get(cv2.CAP_PROP_EXPOSURE)
+            fps = device.capture.get(cv2.CAP_PROP_FPS)
+            print(f"buff {buff}, size {w}x{h}, bright {bright}, cont {cont}, sat {sat}, wb {wb}, gamma {gamma}, gain {gain}, sharp {sharp}, exp {exp}, fps {fps}")
         return
 
     #----------------------------------------- DEVICES

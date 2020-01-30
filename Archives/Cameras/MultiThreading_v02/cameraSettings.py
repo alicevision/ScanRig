@@ -1,8 +1,8 @@
 import cv2, logging
 
 cameraSettingsList = {
-    "width" : 4208,
-    "height" : 3120,
+    "width" : 3840,
+    "height" : 2160,
     "brightness" : 0,
     "contrast" : 0,
     "saturation" : 32,
@@ -19,8 +19,9 @@ cameraSettingsList = {
 
 def setAttributes(cap):
     # cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('U','Y','V','Y')) # To use only with the FSCAM_CU135
+    # cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M','J','P','G')) # To use only with the FSCAM_CU135
     # cap.set(cv2.CAP_PROP_CONVERT_RGB, False) # To use only with the FSCAM_CU135
-    cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+    cap.set(cv2.CAP_PROP_BUFFERSIZE, cameraSettingsList.get("bufferSize"))
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, cameraSettingsList.get("width"))
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, cameraSettingsList.get("height"))
     cap.set(cv2.CAP_PROP_BRIGHTNESS, cameraSettingsList.get("brightness"))

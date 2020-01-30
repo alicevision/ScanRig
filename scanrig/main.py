@@ -26,6 +26,7 @@ def main():
     for index in args.cameras:
         captureDevices.addDevice(index)
     captureDevices.setAllAttributesToDevices() # Give to devices the default settings
+    captureDevices.getAllAttributes()
 
     # Initialize and start saving thread
     savingThread = CameraPkg.saving.SaveWatcher(GLOBAL_RUNNING, captureDevices.savingFrames, args)
@@ -35,7 +36,8 @@ def main():
     if not captureDevices.isEmpty():
         # Give the motor instructions - direction:totalAngle,stepAngle,transition,time
         time.sleep(2)
-        serialWrite(arduinoSer, "leftCaptureFull:60,15,45,45")
+        serialReader.clearBuffer()
+        serialWrite(arduinoSer, "leftCaptureFull:360,15,45,45")
         # Read frame
         captureDevices.grabFrames()
         captureDevices.retrieveFrames()
@@ -47,9 +49,10 @@ def main():
 
         line = serialReader.readline()
         # While the motor is rotating (before to arrive to a step angle)
-        while(line == b''):
-            line = serialReader.readline()
-            time.sleep(0.01)
+        # while(line == b' '):
+        #     print("inside while", line)
+        #     line = serialReader.readline()
+        #     time.sleep(0.01)
 
         # When the motor reaches the step angle
         if line == b'Capture\r':
@@ -66,9 +69,9 @@ def main():
             GLOBAL_RUNNING[0] = False
 
         # If there is an error with the motor, we stop the loop
-        elif line != b'':
-            print(line)
-            GLOBAL_RUNNING[0] = False
+        elif line != b' ':
+            print('line : ', line)
+
 
 
     # Wait the end of saving thread
@@ -76,6 +79,9 @@ def main():
 
     # When everything done, release the capture devices
     captureDevices.stopDevices()
+
+    # Stop the engine
+    serialWrite(arduinoSer, "s:")
 
     logging.info("End of Script")
 

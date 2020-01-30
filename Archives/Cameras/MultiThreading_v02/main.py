@@ -58,16 +58,18 @@ def main():
             for cam in captureDevices:
                 cam.saveFrame()
 
-        if frameNumber == 50:
-            cameraSettings.changeAttributes(2000, 8000)
-            for cam in captureDevices:
-                for i in range(int(cam.settings["bufferSize"]) + 1):
-                    cam.grabFrame()
-                cameraSettings.setAttributes(cam.capture)
+        # if frameNumber == 50:
+        #     cameraSettings.changeAttributes(2000, 8000)
+        #     for cam in captureDevices:
+        #         for i in range(int(cam.settings["bufferSize"]) + 1):
+        #             cam.grabFrame()
+        #         cameraSettings.setAttributes(cam.capture)
 
         # time.sleep(0.001)
 
         frameNumber += 1
+        print(frameNumber)
+        time.sleep(0.05)
 
     # Wait the end of saving thread
     savingThread.join()
