@@ -38,5 +38,3 @@ class App():
         while True:
             self.acquisition.captureDevices.grabFrames()
             self.acquisition.captureDevices.retrieveFrames()
-
-    

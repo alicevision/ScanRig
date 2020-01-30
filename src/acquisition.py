@@ -8,7 +8,9 @@ from MoteurPkg.serial_management import availablePorts, serialWrite, SerialReade
 class Acquisition():
     def __init__(self):
         self.captureDevices = CameraPkg.capture_device_list.CaptureDeviceList()
-        self.captureDevices.addDevice(0)
+        for id in self.captureDevices.listAvailableDevices():
+            self.captureDevices.addDevice(id)
+
         self.captureDevices.setAllAttributesToDevices() # Give to devices the default settings
 
     def start(self):
