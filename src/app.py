@@ -22,6 +22,7 @@ class App():
         self.acquisition = Acquisition()
         backend = Backend(self.acquisition)
         ctx.setContextProperty("backend", backend)
+        ctx.setContextProperty("camList", self.acquisition.captureDevices.listAvailableDevices())
 
         cameraProvider = CameraProvider(self.acquisition)
         engine.addImageProvider("cameraProvider", cameraProvider)

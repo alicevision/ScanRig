@@ -20,5 +20,8 @@ class Backend(QObject):
     @Signal
     def camExposureChanged(self):
         pass
+
+    def getCamList(self):
+        return self.acquisition.captureDevices.listAvailableDevices()
                                                                                                     
     camExposure = Property(int, getCamExposure, setCamExposure, notify=camExposureChanged)

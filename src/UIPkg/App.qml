@@ -32,10 +32,6 @@ ApplicationWindow {
 
             CCameraSettings {
             }
-
-            CCameraPreview {
-
-            }
         }
     }
 

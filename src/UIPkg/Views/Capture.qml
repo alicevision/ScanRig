@@ -1,9 +1,7 @@
 import QtQuick 2.0
 
-Item {
-    Text {
-        id: name
-        text: qsTr("Capture")
-        y: 150
-    }
+Text {
+    id: name
+    text: "Capture started..."
+    y: 150
 }

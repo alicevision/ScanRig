@@ -1,15 +1,26 @@
 import QtQuick 2.14
 import QtQuick.Controls 2.14
 
-Flow {
-    Slider {
-        from: 0
-        value: backend.camExposure
-        to: 4000
-        onMoved: backend.setCamExposure(value)
-    }
+GroupBox {
+    title: "Camera Settings"
 
-    Label {
-        text: "Exposure"
+    Flow {
+        Slider {
+            id: expo
+            from: 0
+            value: backend.camExposure
+            to: 4000
+            onMoved: backend.setCamExposure(value)
+
+            Label {
+                text: parent.value
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.horizontalCenter: parent.horizontalCenter
+            }
+        }
+
+        Label {
+            text: "Exposure"
+        }
     }
 }
