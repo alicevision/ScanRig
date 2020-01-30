@@ -35,18 +35,14 @@ def serialWrite(ser, cmdString):
     s = cmdString + "\n"
     cmd = bytearray()
     cmd.extend(s.encode('ascii'))
-    # ser.write(str.encode('utf-8'))
-    print("cmdString : '" + str(cmd) + "'")
-    # eol = b'\n'
+    print("cmdString : '", str(cmd), "'")
     try:
         nb = ser.write(cmd)
-        print("bytes written : " + str(nb))
-    except 	serial.SerialTimeoutException :
+        print("bytes written : ", str(nb))
+    except	serial.SerialTimeoutException :
         print("error timeOut")
-    # ser.write(eol) # add endOfLine
 
 def selectPort(baudrate = 9600):
-    
     print("--- Choice one of these port COM corresponding to your microcontroller ---")
     portsList = availablePorts()
     if len(portsList) <= 0:
@@ -73,31 +69,25 @@ class SerialReader:
     def readline(self):
         """
         handle bytes already in buffer
-        return empty bytes array (b'') if no new line
+        return space in bytes (b' ') if there is no line to handle
         """
-        
-        i = self.buffer.find(b'\n') # look for endOfLine
+        i = self.buffer.find(b'\n') # look for endOfLine in buffer
         if i >= 0:
-            # line = self.buffer[:i] #read line
-            line = bytearray(self.buffer[:i])
-            self.buffer = self.buffer[i+1:] #keep other data in buffer
+            line = self.buffer[:i] # read line
+            self.buffer = self.buffer[i+1:] # keep other data in buffer
             return line
 
         # handle new incoming data
         i = min(2048, self.serial.in_waiting) #limit to 2048 read
         if(i > 0):
             data = self.serial.read(i) # read all available bytes
-            print("new data : ", data)
+            print("new data : '", data, "'")
             self.buffer += data
-            # print("buffer:", self.buffer)
-
-        return b''
+        return b' '
 
     def clearBuffer(self):
         i = self.serial.in_waiting
         self.serial.flush()
-        # self.buffer = bytearray()
-        # self.serial.read(i) # read all available bytes
         print("serial clean : ", i, " bytes)")
 
 

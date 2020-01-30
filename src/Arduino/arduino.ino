@@ -10,6 +10,8 @@
 # define _DIR_5v 3 // DIR+(+5v) motor direction control  Brown
 # define _STP_5v 2 // PUL+(+5v) motor step control       Yellow
 
+// # define _CMD_DELIMITER ">"
+
 void setup() {
 	//Sets the pins as Outputs
 	for (int i = 8; i <= 13; i++) { // relai Outputs
@@ -28,18 +30,17 @@ void setup() {
 
 // Serial buffer variables
 String bufferInput = "";
-String bufferStr = "";
-bool stringComplete = false;
+String cmd = "";
+bool cmdCompleted = false;
 
 void serialEvent() {
 	while (Serial.available()) {
 		char inChar = (char)Serial.read(); // read incoming char from Serial
 		if (inChar == '\n') { // end-of-line
-			bufferStr = bufferInput;
-			stringComplete = true;
+			cmd = bufferInput;
+			cmdCompleted = true;
 			bufferInput = "";
 			break;
-			// bufferStr = ""; // reset command incoming buffer (allow us to break motor during rotation)
 		} else {
 			bufferInput += inChar;
 		}
@@ -52,38 +53,37 @@ void fastDigitalWrite(const unsigned int port, bool val) {
 	if(port >= 0 && port < 8) {
 		val ? PORTD |= (1<<port) : PORTD &= ~(1<<port);
 	} else if(port >= 8 && port < 14) {
-		//Serial.println(port);
 		val ? PORTB |= (1<<(port-8)) : PORTB &= ~(1<<(port-8));
 	}
 }
 
-String handleReceivedCommand(String str) {
-	// command format	cmd:arg01,arg02,...\n
+String handleReceivedCommand(String s) {
+	// command format cmd:arg01,arg02,...\n
 	// return string about error or return :
 	// - Success (if cmd success)
 	// - Pulse:nb (number of pulse already done if not finish)
 	int id;
 	String cmdName;
 	int argsBuffer[_MAX_ARG];
-
-	id = str.indexOf(':');
+	
+	id = s.indexOf(':');
 	if (id == -1) {
-		return "Parsing error: \"" + str + "\"";
+		return "Parsing error: \"" + s + "\"";
 	}
 
-	cmdName = str.substring(0, id);
-	str = str.substring(id+1);
+	cmdName = s.substring(0, id);
+	s = s.substring(id+1);
 	
 	int argsNb = 0;
-	while ( (id = str.indexOf(',') ) != -1 && argsNb < _MAX_ARG) { // for each args passed if found
-		argsBuffer[argsNb] = str.substring(0, id).toInt();
-		str = str.substring(id+1);
+	while ( (id = s.indexOf(',') ) != -1 && argsNb < _MAX_ARG) { // for each args passed if found
+		argsBuffer[argsNb] = s.substring(0, id).toInt();
+		s = s.substring(id+1);
 		argsNb++;
 	}
 	// read arg if needed (because of stop condition in while for multiple args)
-	if(str.length() > 0) {
-		argsBuffer[argsNb] = str.toInt();
-		str = str.substring(id+1);
+	if(s.length() > 0) {
+		argsBuffer[argsNb] = s.toInt();
+		s = s.substring(id+1);
 		argsNb++;
 	}
 
@@ -97,7 +97,7 @@ String handleReceivedCommand(String str) {
 
 	if (cmdName.equals("led")) {
 		if (argsNb != 2) {
-			return "Invalid number of arguments";
+			return "Invalid number of arguments (led number[1, 6] & state(0 or 1) needed)";
 		}else {
 			int ledNb = args[0];
 			if(ledNb < 1 || ledNb > 6) {
@@ -108,31 +108,25 @@ String handleReceivedCommand(String str) {
 		}
 	}else if (cmdName.equals("leftSmooth") || cmdName.equals("rightSmooth")) {
 		if (argsNb < 3) { 
-			return "Invalid number of arguments";
+			return "Invalid number of arguments (easing direction(0 or 1), angle(deg) & speed(sec/tr) needed)";
 		}else {
 			return SmoothMove(args[0], cmdName.equals("leftSmooth") ? true : false, args[1], args[2]);
 		}
 	} else if (cmdName.equals("left") || cmdName.equals("right")) {
 		if (argsNb < 2) { 
-			return "Invalid number of arguments";
+			return "Invalid number of arguments (angle(deg) & speed(min/tr) needed)";
 		}else {
 			return motorMove(cmdName.equals("left") ? true : false, args[0], args[1]);
 		}
-	} else if (cmdName.equals("leftCapture") || cmdName.equals("rightCapture")) {
-		if (argsNb < 3) { 
-			return "Invalid number of arguments";
-		}else {
-			return motorMoveWithCaptureInterval(cmdName.equals("leftCapture") ? true : false, args[0], args[1], args[2]);
-		}
 	} else if (cmdName.equals("leftCaptureFull") || cmdName.equals("rightCaptureFull")) {
 		if (argsNb < 3) { 
-			return "Invalid number of arguments";
+			return "Invalid number of arguments (angle(deg), captureAngle(deg), smoothAngle(deg) & speed(sec/tr) needed)";
 		}else {
 			return capture(cmdName.equals("leftCaptureFull") ? true : false, args[0], args[1], args[2], args[3]);
 		}
 	} else if (cmdName.equals("leftManual") || cmdName.equals("rightManual")) {
 		if (argsNb < 2) { 
-			return "Invalid number of arguments";
+			return "Invalid number of arguments (pulseNumber & pulseDelay needed)";
 		}else {
 			return motorMoveManual(cmdName.equals("leftManual") ? true : false, args[0], args[1]);
 		}
@@ -170,7 +164,7 @@ String motorMoveManual(bool dir, int pulse, int d) {
 	return r;
 }
 
-// leftCaptureFull:360,45,30,15
+//TODO count pulse return 
 String capture(bool dir, unsigned long degres, unsigned long captureDegres, unsigned long loadDegres, unsigned long durationForOneTurn) {
 	String r = "Success";
 	r = SmoothMove(true, dir, loadDegres, durationForOneTurn);
@@ -273,10 +267,10 @@ float easeSigmoid(float t) {
 
 void loop() {
 	delay(1); // wait until receive Serial data
-	if (stringComplete) {
-		Serial.println(handleReceivedCommand(bufferStr));// handle cmd & print return string in Serial for python
-		bufferStr = "";
-		stringComplete = false;
+	if (cmdCompleted && cmd != "") {
+		Serial.println(handleReceivedCommand(cmd));// handle cmd & print return string in Serial for python
+		cmd = "";
+		cmdCompleted = false;
 	}
 	
 }
