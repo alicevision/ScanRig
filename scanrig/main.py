@@ -15,7 +15,7 @@ def main():
     args = config.config()
 
     # Initialize arduino
-    arduinoSer = selectPort()
+    arduinoSer = selectPort(115200)
     # Init custom Serial reader to handle readLine correctly
     serialReader = SerialReader(arduinoSer)
 
@@ -34,10 +34,11 @@ def main():
 
     # Check if cameras are running
     if not captureDevices.isEmpty():
-        # Give the motor instructions - direction:totalAngle,stepAngle,transition,time
-        time.sleep(2)
+        # Give the motor instructions - direction,totalAngle,stepAngle,transition,time
+        time.sleep(4)
+        print("is open ? ", arduinoSer.is_open)
         serialReader.clearBuffer()
-        serialWrite(arduinoSer, "leftCaptureFull:360,15,45,45")
+        serialWrite(arduinoSer, "captureFull:1,360,15,45,45")
         # Read frame
         captureDevices.grabFrames()
         captureDevices.retrieveFrames()
@@ -55,7 +56,7 @@ def main():
         #     time.sleep(0.01)
 
         # When the motor reaches the step angle
-        if line == b'Capture\r':
+        if line[:9] == b'Capture\r':
             # Read frame
             captureDevices.grabFrames()
             captureDevices.retrieveFrames()
@@ -64,13 +65,14 @@ def main():
             captureDevices.saveFrames()
 
         # When the motor reaches the end    
-        elif line == b'Success\r' :
-            print("Success!!!!")
+        elif line[:7] == b'Success' :
+            print("When success: ", line)
             GLOBAL_RUNNING[0] = False
 
         # If there is an error with the motor, we stop the loop
         elif line != b' ':
             print('line : ', line)
+            print(line[:3])
 
 
 
@@ -80,8 +82,8 @@ def main():
     # When everything done, release the capture devices
     captureDevices.stopDevices()
 
-    # Stop the engine
-    serialWrite(arduinoSer, "s:")
+    # # Stop the engine
+    # serialWrite(arduinoSer, "stop:")
 
     logging.info("End of Script")
 

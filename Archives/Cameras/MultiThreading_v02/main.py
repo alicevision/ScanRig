@@ -42,11 +42,11 @@ def main():
 
     # Main loop
     while(GLOBAL_RUNNING[0]):
-        if frameNumber >= 70:
+        if frameNumber >= 30:
             GLOBAL_RUNNING[0] = False
 
-        for cam in captureDevices:
-            cam.grabFrame()
+        # for cam in captureDevices:
+        #     cam.grabFrame()
 
         for cam in captureDevices:
             cam.retrieveFrame()
@@ -69,7 +69,7 @@ def main():
 
         frameNumber += 1
         print(frameNumber)
-        time.sleep(0.05)
+        # time.sleep(0.05)
 
     # Wait the end of saving thread
     savingThread.join()

@@ -1,8 +1,8 @@
 import cv2, logging
 
 cameraSettingsList = {
-    "width" : 3840,
-    "height" : 2160,
+    "width" : 4208,
+    "height" : 3120,
     "brightness" : 0,
     "contrast" : 0,
     "saturation" : 32,
@@ -13,7 +13,7 @@ cameraSettingsList = {
     "sharpness" : 0,
     "exposure" : 200, # From 0 to 10 000
     "autoExposure" : 1,
-    "bufferSize" : 1
+    "bufferSize" : 2
 }
 
 
