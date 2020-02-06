@@ -22,9 +22,8 @@ class CaptureDeviceList(object):
             "gamma" : 220,
             "gain" : 0, # From 0 to 100
             "sharpness" : 0,
-            "exposure" : 200, # From 0 to 10 000
-            "autoExposure" : 1,
-            "bufferSize" : 1
+            "exposure" : 100, # From 0 to 10 000
+            "autoExposure" : 1
         }
         return settings
 
@@ -65,7 +64,7 @@ class CaptureDeviceList(object):
             # device.capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M','J','P','G')) # To use only with the FSCAM_CU135
             # device.capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('U','Y','V','Y')) # To use only with the FSCAM_CU135
             # device.capture.set(cv2.CAP_PROP_CONVERT_RGB, False) # To use only with the FSCAM_CU135
-            device.capture.set(cv2.CAP_PROP_BUFFERSIZE, self.settings.get("bufferSize"))
+            # device.capture.set(cv2.CAP_PROP_BUFFERSIZE, self.settings.get("bufferSize"))
             device.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.settings.get("width"))
             device.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.settings.get("height"))
             device.capture.set(cv2.CAP_PROP_BRIGHTNESS, self.settings.get("brightness"))
@@ -116,15 +115,24 @@ class CaptureDeviceList(object):
     def grabFrames(self):
         for device in self.devices:
             device.grabFrame()
+        return
+
+    def fillBuffers(self):
+        for device in self.devices:
+            device.fillBuffer()
+        return
 
     def retrieveFrames(self):
         for device in self.devices:
             device.retrieveFrame()
+        return
 
     def saveFrames(self):
         for device in self.devices:
             device.saveFrame()
+        return
 
     def stopDevices(self):
         for device in self.devices:
             device.stop()
+        return

@@ -28,30 +28,29 @@ class CaptureDevice(object):
 
         v = self.capture.open(self.indexCam, apiPreference=cv2.CAP_V4L2)
         if v:
-            # self.grabFrame() # Needed to make it work well
+            bufSize = int(self.capture.get(cv2.CAP_PROP_BUFFERSIZE))
+            for i in range(bufSize + 1):
+                self.capture.grab() # Needed to make it work well
             cameraSettings.setAttributes(self.capture)
             cameraSettings.getAttributes(self.capture)
-
-            bufSize = int(self.capture.get(cv2.CAP_PROP_BUFFERSIZE))
-            for i in range( bufSize + 1):
-                ret = self.capture.read()
+            for i in range(bufSize + 1):
+                self.capture.grab() # Needed to make it work well
         else:
             logging.warning("Skip invalid stream ID {}".format(self.indexCam))
             self.stop()
-        time.sleep(1.)
+        time.sleep(1)
 
     def grabFrame(self):
-        pass
         # bufSize = int(self.capture.get(cv2.CAP_PROP_BUFFERSIZE))
         # logging.warning("grabFrame CAP_PROP_BUFFERSIZE: {}".format(bufSize))
-        # # for i in range( bufSize + 1):
-        # ret = self.capture.grab()
-        # if not ret:
-        #     logging.warning("Image cannot be grabbed")
+        # for i in range(bufSize + 1):
+        #     ret = self.capture.grab()
+        ret = self.capture.grab()
+        if not ret:
+            logging.warning("Image cannot be grabbed")
 
     def retrieveFrame(self):
-        # self.status, self.frame = self.capture.retrieve()
-        self.status, self.frame = self.capture.read()
+        self.status, self.frame = self.capture.retrieve()
         # self.frame = cv2.cvtColor(self.frame, cv2.COLOR_YUV2BGR_UYVY) # To use only with the FSCAM_CU135
         if not self.status:
             logging.warning("Image cannot be retrieved")

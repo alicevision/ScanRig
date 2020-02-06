@@ -42,20 +42,18 @@ def main():
 
     # Main loop
     while(GLOBAL_RUNNING[0]):
-        if frameNumber >= 30:
+        if frameNumber >= 200:
             GLOBAL_RUNNING[0] = False
 
-        # for cam in captureDevices:
-        #     cam.grabFrame()
-
         for cam in captureDevices:
-            cam.retrieveFrame()
+            cam.grabFrame()
 
         print("Motor ACTION")
 
         # THIS IS A TEST
         if frameNumber % 5 == 0:
             for cam in captureDevices:
+                cam.retrieveFrame()
                 cam.saveFrame()
 
         # if frameNumber == 50:

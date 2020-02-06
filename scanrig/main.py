@@ -10,6 +10,7 @@ from MoteurPkg.SerialManagement import availablePorts, serialWrite, SerialReader
 
 def main():
     GLOBAL_RUNNING = [True]
+    numberWhile = 0
 
     # Get arguments
     args = config.config()
@@ -26,39 +27,38 @@ def main():
     for index in args.cameras:
         captureDevices.addDevice(index)
     captureDevices.setAllAttributesToDevices() # Give to devices the default settings
-    captureDevices.getAllAttributes()
+    captureDevices.getAllAttributes() # Check the settings
+    captureDevices.fillBuffers() # Fill the buffers once, before starting the acquisition
 
     # Initialize and start saving thread
     savingThread = CameraPkg.saving.SaveWatcher(GLOBAL_RUNNING, captureDevices.savingFrames, args)
     savingThread.start()
 
     # Check if cameras are running
-    if not captureDevices.isEmpty():
+    if captureDevices.isEmpty():
+        GLOBAL_RUNNING[0] = False
+    else:    
         # Give the motor instructions - direction,totalAngle,stepAngle,transition,time
-        time.sleep(4)
+        time.sleep(2)
         print("is open ? ", arduinoSer.is_open)
         serialReader.clearBuffer()
-        serialWrite(arduinoSer, "captureFull:1,360,15,45,45")
-        # Read frame
-        captureDevices.grabFrames()
-        captureDevices.retrieveFrames()
-    else:    
-        GLOBAL_RUNNING[0] = False
+        serialWrite(arduinoSer, "captureFull:1,180,15,60,20")
 
     # Main loop
     while(GLOBAL_RUNNING[0]):
+        # Read frames
+        captureDevices.grabFrames()
+        # time.sleep(0.1)
+
+        print(numberWhile)
+        numberWhile += 1
 
         line = serialReader.readline()
-        # While the motor is rotating (before to arrive to a step angle)
-        # while(line == b' '):
-        #     print("inside while", line)
-        #     line = serialReader.readline()
-        #     time.sleep(0.01)
 
         # When the motor reaches the step angle
         if line[:9] == b'Capture\r':
-            # Read frame
-            captureDevices.grabFrames()
+            # Retrieve frames
+            # captureDevices.fillBuffers()
             captureDevices.retrieveFrames()
 
             # Send frames to the saving buffer
@@ -75,15 +75,11 @@ def main():
             print(line[:3])
 
 
-
     # Wait the end of saving thread
     savingThread.join()
 
     # When everything done, release the capture devices
     captureDevices.stopDevices()
-
-    # # Stop the engine
-    # serialWrite(arduinoSer, "stop:")
 
     logging.info("End of Script")
 
