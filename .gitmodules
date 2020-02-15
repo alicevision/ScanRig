@@ -1,3 +1,0 @@
-[submodule "test-uvc/lib/libuvc"]
-	path = test-uvc/lib/libuvc
-	url = https://github.com/ktossell/libuvc
