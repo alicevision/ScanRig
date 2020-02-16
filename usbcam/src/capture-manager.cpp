@@ -16,11 +16,16 @@ namespace USBCam {
             }
         } catch(const std::exception& e) {
             std::cerr << "[CaptureManager] Cannot control camera : " << e.what() << std::endl;
+            for (auto cam : m_cams) {
+                delete cam;
+            }
             throw;
         }
     }
 
     CaptureManager::~CaptureManager() {
-        delete[] m_cams.data();
+        for (auto cam : m_cams) {
+            delete cam;
+        }
     }
 }

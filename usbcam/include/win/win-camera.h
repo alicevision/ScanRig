@@ -45,7 +45,14 @@ namespace USBCam {
         virtual std::vector<ICamera::Capabilities> GetCapabilities() const override;
 
     private:
+        FrameEncoding SubTypeToFrameEncoding(const std::string& subType) const;
+
+        void StartPreview();
+
+    private:
         MediaFrameSourceInfo m_sourceInfo;
+        MediaCapture m_capture;
+        MediaFrameReader m_reader;
     };
 }
 

@@ -55,24 +55,33 @@ namespace USBCam {
         return GetDevicesInfo(GetFilteredSourceGroupList(MediaFrameSourceGroup::FindAllAsync().get()));
     }
 
-    WinCamera::WinCamera(uint32_t portNumber) : m_sourceInfo(nullptr) {
+    WinCamera::WinCamera(uint32_t portNumber) : m_sourceInfo(nullptr), m_reader(nullptr) {
+        // Get camera
         auto sourceGroups = MediaFrameSourceGroup::FindAllAsync().get(); // TODO might need to keep ref to this + See if possible to get by id
         auto filteredGroups = GetFilteredSourceGroupList(sourceGroups);
-        m_sourceInfo = filteredGroups.GetAt(portNumber);
-        
+        m_sourceInfo = filteredGroups.GetAt(portNumber); 
         if (m_sourceInfo == nullptr) {
             throw std::out_of_range(std::string("Camera does not exist at this index : " + portNumber));
         }
 
+        // Set default settings
         auto settings = MediaCaptureInitializationSettings();
         settings.SourceGroup(m_sourceInfo.SourceGroup());
         settings.PhotoCaptureSource(PhotoCaptureSource::Auto);
         settings.StreamingCaptureMode(StreamingCaptureMode::Video);
         
+        // Init camera
+        m_capture.InitializeAsync(settings).get(); // FIXME throws an exeption but cannot be catched
+        StartPreview();
     }
 
     WinCamera::~WinCamera() {
         m_sourceInfo = nullptr;
+        m_reader.StopAsync().get();
+        m_reader.Close();
+        m_reader = nullptr;
+        m_capture.Close();
+        m_capture = nullptr;
     }
 
     std::vector<ICamera::Capabilities> WinCamera::GetCapabilities() const {
@@ -88,7 +97,7 @@ namespace USBCam {
             cap.width = format.Width();
             cap.frameRate = static_cast<uint32_t>(format.FrameRate());
             cap.id = idx;
-            // TODO get encoding
+            cap.encoding = SubTypeToFrameEncoding(to_string(format.Subtype()));
             capabilities.push_back(cap);
 
             idx++;
@@ -96,6 +105,43 @@ namespace USBCam {
         }
 
         return capabilities;
+    }
+
+    FrameEncoding WinCamera::SubTypeToFrameEncoding(const std::string& subType) const {
+        if (subType == "NV12")
+            return FrameEncoding::NV12;
+        if (subType == "MJPG")
+            return FrameEncoding::MJPG;
+
+        return FrameEncoding::_UNKNOWN;
+    }
+
+    void WinCamera::StartPreview() {
+        // start Preview to get the 3A running and wait for convergence.
+        MediaFrameSource previewframeSource(nullptr);
+        MediaStreamType streamTypelookup = MediaStreamType::VideoPreview;
+
+        // Try to find the suitable pin where 3A will be running.
+        // Start by looking for a preview pin , if not found look for record pin 
+        // However exit the loop when preview and record pins are not available as just running the photo pin cannot converge 3A
+        while ((previewframeSource == nullptr) && (streamTypelookup != MediaStreamType::Photo)) {
+            auto frameSourceIter = m_capture.FrameSources().First();
+            // If there is no preview pin, find a record pin
+            while (frameSourceIter.HasCurrent()) {
+                auto frameSource = frameSourceIter.Current().Value();
+                if (frameSource.Info().MediaStreamType() == streamTypelookup)
+                {
+                    previewframeSource = frameSource;
+                    break;
+                }
+                frameSourceIter.MoveNext();
+            }
+            streamTypelookup = (streamTypelookup == MediaStreamType::VideoPreview) ? MediaStreamType::VideoRecord : MediaStreamType::Photo;
+        }
+
+        m_reader = m_capture.CreateFrameReaderAsync(previewframeSource).get();
+        m_reader.AcquisitionMode(MediaFrameReaderAcquisitionMode::Realtime);
+        m_reader.StartAsync().get();
     }
 }
 

@@ -9,8 +9,10 @@ namespace USBCam {
      * @brief Data format supported by the camera
      */
     enum class FrameEncoding {
-        YUYV,
-        MPEG
+        _UNKNOWN,
+        YUY2,
+        MJPG,
+        NV12
     };
 
     /**
@@ -22,11 +24,11 @@ namespace USBCam {
          * @brief Capture settings supported by the camera
          */
         struct Capabilities {
-            uint32_t id;
-            uint32_t frameRate;
-            uint32_t width;
-            uint32_t height;
-            FrameEncoding encoding;
+            uint32_t id = 0;
+            uint32_t frameRate = 0;
+            uint32_t width = 0;
+            uint32_t height = 0;
+            FrameEncoding encoding = FrameEncoding::_UNKNOWN;
         };
 
         virtual ~ICamera() {};
