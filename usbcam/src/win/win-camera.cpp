@@ -74,6 +74,15 @@ namespace USBCam {
         
         // Init camera
         m_capture.InitializeAsync(settings).get(); // FIXME throws an exeption but cannot be catched
+
+        // TEMP get camera capabilities
+        // auto test = GetCapabilities();
+
+        // TEMP Set camera settings
+        const uint32_t formatId = 15; // TEMP
+        auto frameSource = m_capture.FrameSources().Lookup(m_sourceInfo.Id());
+        frameSource.SetFormatAsync(frameSource.SupportedFormats().GetAt(formatId)).get();
+
         StartPreview();
     }
 
