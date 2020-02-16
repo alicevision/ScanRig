@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <string>
 
-#include "camera.h"
+#include "i-camera.h"
 
 namespace USBCam {
     /**
@@ -29,7 +29,9 @@ namespace USBCam {
         CaptureManager(std::vector<uint32_t> portNumbers);
         ~CaptureManager();
 
+        ICamera* GetCam(uint32_t number) { return m_cams.at(number); }
+
     private:
-        std::vector<Camera*> m_cams;
+        std::vector<ICamera*> m_cams;
     };
 }

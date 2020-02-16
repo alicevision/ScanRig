@@ -27,9 +27,8 @@ namespace USBCam {
         return ports;
     }
 
-    std::vector<Port> GetDevicesList() {
+    IVector<MediaFrameSourceInfo> GetFilteredSourceGroupList(const IVectorView<MediaFrameSourceGroup>& sourceGroups) {
         auto filteredSourceInfos = single_threaded_vector<MediaFrameSourceInfo>();
-        const auto sourceGroups = MediaFrameSourceGroup::FindAllAsync().get();
         auto sourceGroupIter = sourceGroups.First();
 
         while (sourceGroupIter.HasCurrent()) {
@@ -49,17 +48,53 @@ namespace USBCam {
             sourceGroupIter.MoveNext();
         }
 
-        return GetDevicesInfo(filteredSourceInfos);
+        return filteredSourceInfos;
     }
 
-    WinCamera::WinCamera(uint32_t portNumber) {
-
+    std::vector<Port> GetDevicesList() {
+        return GetDevicesInfo(GetFilteredSourceGroupList(MediaFrameSourceGroup::FindAllAsync().get()));
     }
 
-    WinCamera::~WinCamera() {}
+    WinCamera::WinCamera(uint32_t portNumber) : m_sourceInfo(nullptr) {
+        auto sourceGroups = MediaFrameSourceGroup::FindAllAsync().get(); // TODO might need to keep ref to this + See if possible to get by id
+        auto filteredGroups = GetFilteredSourceGroupList(sourceGroups);
+        m_sourceInfo = filteredGroups.GetAt(portNumber);
+        
+        if (m_sourceInfo == nullptr) {
+            throw std::out_of_range(std::string("Camera does not exist at this index : " + portNumber));
+        }
 
-    std::vector<Camera::Capabilities> WinCamera::GetCapabilities() const {
-        std::vector<Camera::Capabilities> capabilities;
+        auto settings = MediaCaptureInitializationSettings();
+        settings.SourceGroup(m_sourceInfo.SourceGroup());
+        settings.PhotoCaptureSource(PhotoCaptureSource::Auto);
+        settings.StreamingCaptureMode(StreamingCaptureMode::Video);
+        
+    }
+
+    WinCamera::~WinCamera() {
+        m_sourceInfo = nullptr;
+    }
+
+    std::vector<ICamera::Capabilities> WinCamera::GetCapabilities() const {
+        std::vector<ICamera::Capabilities> capabilities;
+        auto mediaDescriptionIter = m_sourceInfo.VideoProfileMediaDescription().First();
+        
+        int idx = 0;
+        while (mediaDescriptionIter.HasCurrent()) {
+            const auto format = mediaDescriptionIter.Current();
+
+            ICamera::Capabilities cap;
+            cap.height = format.Height();
+            cap.width = format.Width();
+            cap.frameRate = static_cast<uint32_t>(format.FrameRate());
+            cap.id = idx;
+            // TODO get encoding
+            capabilities.push_back(cap);
+
+            idx++;
+            mediaDescriptionIter.MoveNext();
+        }
+
         return capabilities;
     }
 }

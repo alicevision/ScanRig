@@ -16,19 +16,20 @@ namespace USBCam {
     /**
      * @brief Abstract Interface to control a USB Camera under any OS.
      */
-    class Camera {
+    class ICamera {
     public:
         /**
          * @brief Capture settings supported by the camera
          */
         struct Capabilities {
+            uint32_t id;
             uint32_t frameRate;
             uint32_t width;
             uint32_t height;
             FrameEncoding encoding;
         };
 
-        virtual ~Camera() {};
+        virtual ~ICamera() {};
 
         /**
          * @brief Get the record values supported by the camera

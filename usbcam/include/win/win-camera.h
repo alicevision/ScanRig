@@ -2,7 +2,7 @@
 
 #ifdef _WIN32
 
-#include "camera.h"
+#include "i-camera.h"
 
 #include <vector>
 #include <string>
@@ -37,12 +37,15 @@ using namespace Windows::Media::Core;
 
 namespace USBCam {
 
-    class WinCamera : public Camera {
+    class WinCamera : public ICamera {
     public:
         WinCamera(uint32_t portNumber);
         virtual ~WinCamera();
 
-        virtual std::vector<Camera::Capabilities> GetCapabilities() const override;
+        virtual std::vector<ICamera::Capabilities> GetCapabilities() const override;
+
+    private:
+        MediaFrameSourceInfo m_sourceInfo;
     };
 }
 
