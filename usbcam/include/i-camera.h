@@ -38,5 +38,11 @@ namespace USBCam {
          * @return std::vector<Capabilities> 
          */
         virtual std::vector<Capabilities> GetCapabilities() const = 0;
+
+        /**
+         * @brief Take a picture and save it into the specified folder
+         * @param saveFolderPath - Relative path to folder
+         */
+        virtual void TakePicture(std::string saveFolderPath) const = 0;
     };
 }

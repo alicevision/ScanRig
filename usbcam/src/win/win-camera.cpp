@@ -55,10 +55,10 @@ namespace USBCam {
         return GetDevicesInfo(GetFilteredSourceGroupList(MediaFrameSourceGroup::FindAllAsync().get()));
     }
 
-    WinCamera::WinCamera(uint32_t portNumber) : m_sourceInfo(nullptr), m_reader(nullptr) {
+    WinCamera::WinCamera(uint32_t portNumber) : m_sourceGroups(nullptr), m_sourceInfo(nullptr), m_reader(nullptr) {
         // Get camera
-        auto sourceGroups = MediaFrameSourceGroup::FindAllAsync().get(); // TODO might need to keep ref to this + See if possible to get by id
-        auto filteredGroups = GetFilteredSourceGroupList(sourceGroups);
+        m_sourceGroups = MediaFrameSourceGroup::FindAllAsync().get();
+        auto filteredGroups = GetFilteredSourceGroupList(m_sourceGroups);
         m_sourceInfo = filteredGroups.GetAt(portNumber); 
         if (m_sourceInfo == nullptr) {
             throw std::out_of_range(std::string("Camera does not exist at this index : " + portNumber));
@@ -76,6 +76,7 @@ namespace USBCam {
     }
 
     WinCamera::~WinCamera() {
+        m_sourceGroups = nullptr;
         m_sourceInfo = nullptr;
         m_reader.StopAsync().get();
         m_reader.Close();
@@ -142,6 +143,22 @@ namespace USBCam {
         m_reader = m_capture.CreateFrameReaderAsync(previewframeSource).get();
         m_reader.AcquisitionMode(MediaFrameReaderAcquisitionMode::Realtime);
         m_reader.StartAsync().get();
+    }
+
+    void WinCamera::TakePicture(std::string saveFolderPath) const {
+        WCHAR ExePath[MAX_PATH] = { 0 };
+        if (GetModuleFileName(NULL, (LPSTR) ExePath, _countof(ExePath)) == 0) {
+            std::cout << "\nError getting the path to executable, defaulting output folder to C:\\test";
+            wcscpy_s(ExePath, L"C:\\");
+        }
+
+        // FIXME throws an execption
+        auto file = Windows::Storage::StorageFile::GetFileFromPathAsync(ExePath).get();
+        auto folderRoot = file.GetParentAsync().get();
+        auto folder = folderRoot.CreateFolderAsync(L"camera0\\", CreationCollisionOption::OpenIfExists).get();
+        auto saveFile = folder.CreateFileAsync(L"pic.png", CreationCollisionOption::GenerateUniqueName).get();
+
+        m_capture.CapturePhotoToStorageFileAsync(ImageEncodingProperties::CreatePng(), saveFile).get();
     }
 }
 

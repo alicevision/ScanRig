@@ -43,6 +43,7 @@ namespace USBCam {
         virtual ~WinCamera();
 
         virtual std::vector<ICamera::Capabilities> GetCapabilities() const override;
+        virtual void TakePicture(std::string saveFolderPath) const override;
 
     private:
         FrameEncoding SubTypeToFrameEncoding(const std::string& subType) const;
@@ -50,6 +51,7 @@ namespace USBCam {
         void StartPreview();
 
     private:
+        IVectorView<MediaFrameSourceGroup> m_sourceGroups; // The sourceinfos are holding weak references to this.
         MediaFrameSourceInfo m_sourceInfo;
         MediaCapture m_capture;
         MediaFrameReader m_reader;
