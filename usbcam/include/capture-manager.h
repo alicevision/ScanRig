@@ -29,7 +29,18 @@ namespace USBCam {
         CaptureManager(std::vector<uint32_t> portNumbers);
         ~CaptureManager();
 
+        /**
+         * @brief Get a camera
+         * 
+         * @param number - The index in the array of camera
+         * @return ICamera* 
+         */
         ICamera* GetCam(uint32_t number) { return m_cams.at(number); }
+
+        /**
+         * @brief Save a picture from each cameras (not multithreaded yet)
+         */
+        void TakeAndSavePictures() const;
 
     private:
         std::vector<ICamera*> m_cams;

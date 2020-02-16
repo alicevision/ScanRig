@@ -17,7 +17,6 @@ SCENARIO("A Capture Manager can handle multiple camera, change settings, launch 
     GIVEN("A single Camera") {
         USBCam::CaptureManager manager({0});
 
-        /*
         WHEN("I ask for its capabilities") {
             auto caps = manager.GetCam(0)->GetCapabilities();
 
@@ -25,12 +24,23 @@ SCENARIO("A Capture Manager can handle multiple camera, change settings, launch 
                 std::cout << caps.at(0).frameRate;
             }
         }
-        */
 
         WHEN("I take a picture") {
-            manager.GetCam(0)->TakePicture("test");
+            manager.GetCam(0)->TakeAndSavePicture();
 
             THEN("It should save it") {
+                REQUIRE(true);
+            }
+        }
+    }
+
+    GIVEN("3 Cameras") {
+        USBCam::CaptureManager manager({0, 2, 3});
+
+        WHEN("I take a picture with each cameras") {
+            manager.TakeAndSavePictures();
+
+            THEN("It should work") {
                 REQUIRE(true);
             }
         }

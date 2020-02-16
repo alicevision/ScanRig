@@ -30,4 +30,10 @@ namespace USBCam {
             delete cam;
         }
     }
+
+    void CaptureManager::TakeAndSavePictures() const {
+        for (const auto cam : m_cams) {
+            cam->TakeAndSavePicture();
+        }
+    }
 }

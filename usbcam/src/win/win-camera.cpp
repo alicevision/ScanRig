@@ -3,6 +3,7 @@
 #ifdef _WIN32
 
 #include <iostream>
+#include <filesystem>
 
 #include "capture-manager.h"
 
@@ -55,7 +56,8 @@ namespace USBCam {
         return GetDevicesInfo(GetFilteredSourceGroupList(MediaFrameSourceGroup::FindAllAsync().get()));
     }
 
-    WinCamera::WinCamera(uint32_t portNumber) : m_sourceGroups(nullptr), m_sourceInfo(nullptr), m_reader(nullptr) {
+    WinCamera::WinCamera(uint32_t portNumber) 
+    : m_sourceGroups(nullptr), m_sourceInfo(nullptr), m_reader(nullptr), m_portNumber(portNumber) {
         // Get camera
         m_sourceGroups = MediaFrameSourceGroup::FindAllAsync().get();
         auto filteredGroups = GetFilteredSourceGroupList(m_sourceGroups);
@@ -145,18 +147,11 @@ namespace USBCam {
         m_reader.StartAsync().get();
     }
 
-    void WinCamera::TakePicture(std::string saveFolderPath) const {
-        WCHAR ExePath[MAX_PATH] = { 0 };
-        if (GetModuleFileNameW(NULL, ExePath, _countof(ExePath)) == 0)
-        {
-            std::cout << "\nError getting the path to executable, defaulting output folder to C:\\test";
-            wcscpy_s(ExePath, L"C:\\");
-        }
-
-        auto file = Windows::Storage::StorageFile::GetFileFromPathAsync(ExePath).get();
-        auto folderRoot = file.GetParentAsync().get();
-        auto folder = folderRoot.CreateFolderAsync(L"camera0\\", CreationCollisionOption::OpenIfExists).get();
-        auto saveFile = folder.CreateFileAsync(L"pic.png", CreationCollisionOption::GenerateUniqueName).get();
+    void WinCamera::TakeAndSavePicture() const {
+        auto path = std::filesystem::current_path();
+        auto folderRoot = Windows::Storage::StorageFolder::GetFolderFromPathAsync(path.c_str()).get();
+        auto folder = folderRoot.CreateFolderAsync(to_hstring(std::string("cam_") + std::to_string(m_portNumber)), CreationCollisionOption::OpenIfExists).get();
+        auto saveFile = folder.CreateFileAsync(L"01.png", CreationCollisionOption::GenerateUniqueName).get();
 
         m_capture.CapturePhotoToStorageFileAsync(ImageEncodingProperties::CreatePng(), saveFile).get();
     }
