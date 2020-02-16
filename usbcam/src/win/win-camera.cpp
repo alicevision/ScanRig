@@ -13,7 +13,6 @@ namespace USBCam {
         
         unsigned int idx = 0;
         while (source.HasCurrent()) {
-            idx++;
             const auto currSource = source.Current();
 
             Port port;
@@ -21,6 +20,7 @@ namespace USBCam {
             port.name = to_string(currSource.SourceGroup().DisplayName());
             ports.push_back(port);
 
+            idx++;
             source.MoveNext();
         }
         
@@ -147,12 +147,12 @@ namespace USBCam {
 
     void WinCamera::TakePicture(std::string saveFolderPath) const {
         WCHAR ExePath[MAX_PATH] = { 0 };
-        if (GetModuleFileName(NULL, (LPSTR) ExePath, _countof(ExePath)) == 0) {
+        if (GetModuleFileNameW(NULL, ExePath, _countof(ExePath)) == 0)
+        {
             std::cout << "\nError getting the path to executable, defaulting output folder to C:\\test";
             wcscpy_s(ExePath, L"C:\\");
         }
 
-        // FIXME throws an execption
         auto file = Windows::Storage::StorageFile::GetFileFromPathAsync(ExePath).get();
         auto folderRoot = file.GetParentAsync().get();
         auto folder = folderRoot.CreateFolderAsync(L"camera0\\", CreationCollisionOption::OpenIfExists).get();
