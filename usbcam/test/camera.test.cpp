@@ -1,16 +1,13 @@
 #include <catch2/catch.hpp>
 #include "camera.h"
 
-SCENARIO("Casting operation allows to retrieve the same value accross different type", "[camera]") {
-    GIVEN("An unsigned int value") {
-        int myVal = 1;
+#include <iostream>
 
-        WHEN("I cast its bits into a float") {
-            // TODO
+SCENARIO("A Camera can be detected, opened, we can change its settings and grab a frame", "[camera]") {
+    GIVEN("Multiple plugged devices") {
+        WHEN("I ask for the connected cameras") {
 
-            THEN("I should retrieve it when I cast back") {
-                // TODO
-
+            THEN("I should get a list of names and port numbers") {
                 REQUIRE(true);
             }
         }

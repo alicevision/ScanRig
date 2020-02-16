@@ -1,5 +1,5 @@
 # Set standards
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1)
 project(usbcam C CXX)
 set(CMAKE_CXX_STANDARD 17)
 
@@ -16,12 +16,15 @@ file(GLOB_RECURSE MY_SOURCES src/*)
 find_package(PythonInterp REQUIRED)
 find_package(PythonLibs REQUIRED)
 
+set(WIN_LIBS runtimeobject.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib 
+advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib)
+
 # /////////////////////////////////////////////////////////////////////////////
 # ///////////////////////////////// INCLUDES //////////////////////////////////
 # /////////////////////////////////////////////////////////////////////////////
 
 include_directories(
-    src
+    "include"
     lib
     ${PYTHON_INCLUDE_DIRS}
 )
@@ -30,8 +33,8 @@ include_directories(
 # /////////////////////////////////// BUILD ///////////////////////////////////
 # /////////////////////////////////////////////////////////////////////////////
 
-set(EXECUTABLE_OUTPUT_PATH bin/${CMAKE_BUILD_TYPE})
-add_library(${PROJECT_NAME} SHARED ${MY_SOURCES})
+set(LIBRARY_OUTPUT_PATH bin/${CMAKE_BUILD_TYPE})
+add_library(${PROJECT_NAME} ${MY_SOURCES})
 
 # /////////////////////////////////////////////////////////////////////////////
 # ////////////////////////////////// LINKER ///////////////////////////////////
@@ -45,19 +48,7 @@ target_link_libraries(
 if (WIN32)
 target_link_libraries(
     ${PROJECT_NAME}
-    runtimeobject.lib
-    kernel32.lib
-    user32.lib
-    gdi32.lib
-    winspool.lib
-    comdlg32.lib
-    advapi32.lib
-    shell32.lib
-    ole32.lib
-    oleaut32.lib
-    uuid.lib
-    odbc32.lib
-    odbccp32.lib
+    ${WIN_LIBS}
 )
 endif()
 
@@ -65,5 +56,10 @@ endif()
 # /////////////////////////////////// TESTS ///////////////////////////////////
 # /////////////////////////////////////////////////////////////////////////////
 
+set(EXECUTABLE_OUTPUT_PATH bin/${CMAKE_BUILD_TYPE})
 file(GLOB_RECURSE MY_TESTS test/*)
-add_executable(${PROJECT_NAME}-tests ${MY_SOURCES} ${MY_TESTS})
+add_executable(${PROJECT_NAME}-tests ${MY_TESTS})
+target_link_libraries(
+    ${PROJECT_NAME}-tests
+    ${PROJECT_NAME}
+)
