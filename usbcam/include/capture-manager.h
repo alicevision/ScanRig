@@ -3,6 +3,8 @@
 #include <vector>
 #include <stdint.h>
 #include <string>
+#include <Python.h>
+#include <pybind11/pybind11.h>
 
 #include "i-camera.h"
 
