@@ -8,10 +8,10 @@ GroupBox {
         Slider {
             id: expo
             from: 0
-            value: backend.camExposure
+            value: preview.camExposure
             to: 4000
             stepSize: 1
-            onMoved: backend.setCamExposure(value)
+            onMoved: preview.setCamExposure(value)
 
             Label {
                 text: parent.value

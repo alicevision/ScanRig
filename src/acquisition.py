@@ -6,12 +6,14 @@ import CameraPkg
 from MoteurPkg.serial_management import availablePorts, serialWrite, SerialReader, selectPort
 
 class Acquisition():
-    def __init__(self):
-        self.captureDevices = CameraPkg.capture_device_list.CaptureDeviceList()
-        for id in self.captureDevices.listAvailableDevices():
-            self.captureDevices.addDevice(id)
+    def __init__(self, settings):
+        self.captureDevices = CameraPkg.capture_device_list.CaptureDeviceList(settings)
+        # for id in self.captureDevices.listAvailableDevices():
+        #     self.captureDevices.addDevice(id)
+        # self.captureDevices.addDevice(0)
 
-        self.captureDevices.setAllAttributesToDevices() # Give to devices the default settings
+        # self.captureDevices.setAllAttributesToDevices() # Give to devices the default settings
+        # self.start()
 
     def start(self):
         GLOBAL_RUNNING = [True]
@@ -77,4 +79,3 @@ class Acquisition():
         logging.info("End of Capture")
 
         return
-

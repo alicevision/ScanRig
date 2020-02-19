@@ -1,3 +1,2 @@
-from . import backend
-from . import camera_provider
+from . import image_provider
 from . import palette

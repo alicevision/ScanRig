@@ -9,16 +9,18 @@ GroupBox {
         Image {
             id: camera
             property bool backBuffer: false
-            property int camId: camList[0]
+            property int camId: -1
 
-            source: "image://cameraProvider/" + camId + "/" + backBuffer
+            // source: "image://cameraProvider/" + camId + "/" + backBuffer
             asynchronous: false
             fillMode: Image.PreserveAspectFit
             width: 200
 
             function reload() {
-                backBuffer = !backBuffer
-                source = "image://cameraProvider/" + camId + "/" + backBuffer
+                if(camId != -1) {
+                    backBuffer = !backBuffer
+                    source = "image://imageProvider/" + camId + "/" + backBuffer
+                }
             }
 
             Timer {
@@ -28,8 +30,11 @@ GroupBox {
         }
 
         ComboBox {
-            model: camList
-            onActivated: camera.camId = camList[currentIndex]
+            model: availableDevices
+            onActivated: {
+                preview.changePreview(currentIndex-1)
+                camera.camId = currentIndex - 1
+            }
         }
     }
 }

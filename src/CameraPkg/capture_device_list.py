@@ -4,16 +4,20 @@ import queue, os
 from . import capture_device
 
 class CaptureDeviceList(object):
-    def __init__(self):
+    def __init__(self, settings=None):
         self.devices = []
-        self.settings = self.initSettings()
         self.savingFrames = queue.Queue()
+
+        if settings:
+            self.settings = settings
+        else:
+            self.settings = self.initSettings()
 
     #----------------------------------------- GLOBAL SETTINGS
     def initSettings(self):
         settings = {
-            "width" : 4208,
-            "height" : 3120,
+            "width" : 1280,
+            "height" : 720,
             "brightness" : 0,
             "contrast" : 0,
             "saturation" : 32,
@@ -88,7 +92,7 @@ class CaptureDeviceList(object):
         for device in self.devices:
             # device.capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('U','Y','V','Y')) # To use only with the FSCAM_CU135
             # device.capture.set(cv2.CAP_PROP_CONVERT_RGB, False) # To use only with the FSCAM_CU135
-            device.capture.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+            # device.capture.set(cv2.CAP_PROP_BUFFERSIZE, 1)
             device.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.settings.get("width"))
             device.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.settings.get("height"))
             device.capture.set(cv2.CAP_PROP_BRIGHTNESS, self.settings.get("brightness"))
@@ -121,6 +125,7 @@ class CaptureDeviceList(object):
 
     def listAvailableDevices(self):
         ids = []
+        ids.append("No device selected")
         for id in range(20):
             if os.path.exists('/dev/video' + str(id)):
                 ids.append(id)
@@ -142,3 +147,4 @@ class CaptureDeviceList(object):
     def stopDevices(self):
         for device in self.devices:
             device.stop()
+            self.devices.remove(device)
