@@ -41,13 +41,12 @@ void serialEvent() {
 	}
 }
 
-
 // advanced digitalWrite function
 void fastDigitalWrite(const unsigned int port, bool val) {
 	if(port >= 0 && port < 8) {
 		val ? PORTD |= (1<<port) : PORTD &= ~(1<<port);
 	} else if(port >= 8 && port < 14) {
-		Serial.println(port);
+		//Serial.println(port);
 		val ? PORTB |= (1<<(port-8)) : PORTB &= ~(1<<(port-8));
 	}
 }
@@ -104,6 +103,9 @@ String handleReceivedCommand(String str) {
 					return setLedState(ledNb, args[1]);
 				}
 			}
+		}else if (cmdName.equals("testLeds") ) {
+			return testLeds();
+	
 		}else if (cmdName.equals("leftSmooth") || cmdName.equals("rightSmooth")) {
 			if (argsNb < 3) { 
 				return "Invalid number of arguments";
@@ -143,6 +145,20 @@ String handleReceivedCommand(String str) {
 	} else {
 		return "Parsing error";
 	}
+}
+
+String testLeds() {
+	// set off all
+	for (size_t i = 1; i < 7; i++) { setLedState(i, 0); }
+	setLedState(1, 1);
+	for (size_t i = 1; i < 6; i++) {
+		delay(500);
+		setLedState(i, 0);
+		setLedState(i+1, 1);
+	}
+	delay(500);
+	setLedState(6, 0);
+	return "Success";
 }
 
 String setLedState(int ledNb, int state) {
