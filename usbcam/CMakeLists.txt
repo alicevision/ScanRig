@@ -38,7 +38,7 @@ include_directories(
 set(LIBRARY_OUTPUT_PATH bin/${CMAKE_BUILD_TYPE})
 add_library(${PROJECT_NAME} ${MY_SOURCES})
 
-# pybind11_add_module(py-${PROJECT_NAME} ${MY_SOURCES})
+pybind11_add_module(py-${PROJECT_NAME} ${MY_SOURCES})
 
 # /////////////////////////////////////////////////////////////////////////////
 # ////////////////////////////////// LINKER ///////////////////////////////////
@@ -53,6 +53,11 @@ if (WIN32)
 set(PYBIND11_CPP_STANDARD /std:c++17)
 target_link_libraries(
     ${PROJECT_NAME}
+    ${WIN_LIBS}
+)
+target_link_libraries(
+    py-${PROJECT_NAME}
+    PRIVATE
     ${WIN_LIBS}
 )
 endif()
