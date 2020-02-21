@@ -13,6 +13,8 @@ file(GLOB_RECURSE MY_SOURCES src/*)
 # /////////////////////////////// DEPENDENCIES ////////////////////////////////
 # /////////////////////////////////////////////////////////////////////////////
 
+add_subdirectory(lib/pybind11)
+
 find_package(PythonInterp REQUIRED)
 find_package(PythonLibs REQUIRED)
 
@@ -36,6 +38,8 @@ include_directories(
 set(LIBRARY_OUTPUT_PATH bin/${CMAKE_BUILD_TYPE})
 add_library(${PROJECT_NAME} ${MY_SOURCES})
 
+# pybind11_add_module(py-${PROJECT_NAME} ${MY_SOURCES})
+
 # /////////////////////////////////////////////////////////////////////////////
 # ////////////////////////////////// LINKER ///////////////////////////////////
 # /////////////////////////////////////////////////////////////////////////////
@@ -46,6 +50,7 @@ target_link_libraries(
 )
 
 if (WIN32)
+set(PYBIND11_CPP_STANDARD /std:c++17)
 target_link_libraries(
     ${PROJECT_NAME}
     ${WIN_LIBS}
