@@ -29,6 +29,7 @@ include_directories(
     "include"
     lib
     ${PYTHON_INCLUDE_DIRS}
+    lib/pybind11/include
 )
 
 # /////////////////////////////////////////////////////////////////////////////
@@ -36,27 +37,27 @@ include_directories(
 # /////////////////////////////////////////////////////////////////////////////
 
 set(LIBRARY_OUTPUT_PATH bin/${CMAKE_BUILD_TYPE})
-add_library(${PROJECT_NAME} ${MY_SOURCES})
+add_library(${PROJECT_NAME}-cpp ${MY_SOURCES})
 
-pybind11_add_module(py-${PROJECT_NAME} ${MY_SOURCES})
+pybind11_add_module(${PROJECT_NAME} ${MY_SOURCES})
 
 # /////////////////////////////////////////////////////////////////////////////
 # ////////////////////////////////// LINKER ///////////////////////////////////
 # /////////////////////////////////////////////////////////////////////////////
 
 target_link_libraries(
-    ${PROJECT_NAME}
+    ${PROJECT_NAME}-cpp
     ${PYTHON_LIBRARIES}
 )
 
 if (WIN32)
 set(PYBIND11_CPP_STANDARD /std:c++17)
 target_link_libraries(
-    ${PROJECT_NAME}
+    ${PROJECT_NAME}-cpp
     ${WIN_LIBS}
 )
 target_link_libraries(
-    py-${PROJECT_NAME}
+    ${PROJECT_NAME}
     PRIVATE
     ${WIN_LIBS}
 )
@@ -68,8 +69,8 @@ endif()
 
 set(EXECUTABLE_OUTPUT_PATH bin/${CMAKE_BUILD_TYPE})
 file(GLOB_RECURSE MY_TESTS test/*)
-add_executable(${PROJECT_NAME}-tests ${MY_TESTS})
+add_executable(${PROJECT_NAME}-cpp-tests ${MY_TESTS})
 target_link_libraries(
-    ${PROJECT_NAME}-tests
-    ${PROJECT_NAME}
+    ${PROJECT_NAME}-cpp-tests
+    ${PROJECT_NAME}-cpp
 )
