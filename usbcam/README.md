@@ -16,7 +16,7 @@ If you want to use a DSLR, have a look at [GPhoto2](http://www.gphoto.org/) and 
 
 ### Install as python extension
 
-TODO
+`pip install .`
 
 ### Build in C++
 
