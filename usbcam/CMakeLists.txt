@@ -1,5 +1,5 @@
 # Set standards
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.13)
 project(usbcam C CXX)
 set(CMAKE_CXX_STANDARD 17)
 
@@ -13,13 +13,12 @@ file(GLOB_RECURSE MY_SOURCES src/*)
 # /////////////////////////////// DEPENDENCIES ////////////////////////////////
 # /////////////////////////////////////////////////////////////////////////////
 
-add_subdirectory(lib/pybind11)
-
-find_package(PythonInterp REQUIRED)
-find_package(PythonLibs REQUIRED)
+find_package(Python COMPONENTS Interpreter Development)
 
 set(WIN_LIBS runtimeobject.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib 
 advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib)
+
+add_subdirectory(lib/pybind11)
 
 # /////////////////////////////////////////////////////////////////////////////
 # ///////////////////////////////// INCLUDES //////////////////////////////////
