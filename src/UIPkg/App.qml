@@ -4,12 +4,14 @@ import QtQuick.Layouts 1.14
 import "Components"
 
 ApplicationWindow {
-    title: "ScanRig App"
+    title: qsTr("ScanRig App")
     visible: true
     width: 640
     height: 480
 
     ColumnLayout {
+        anchors.fill: parent
+
         Flow {
             spacing: 2
 
@@ -24,14 +26,12 @@ ApplicationWindow {
             }
         }
 
-        Flow {
-            Loader {
-                id: pageLoader
-                source: "Views/Preview.qml"
-            }
+        Loader {
+            Layout.preferredHeight: parent.height*0.9
+            Layout.fillHeight: true
 
-            CCameraSettings {
-            }
+            id: pageLoader
+            source: "Views/Preview.qml"
         }
     }
 

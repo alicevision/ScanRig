@@ -1,27 +1,15 @@
 import QtQuick 2.14
 import QtQuick.Controls 2.14
+import QtQuick.Layouts 1.14
 
 GroupBox {
-    title: "Camera Settings"
+    title: qsTr("Camera Settings")
 
-    Flow {
-        Slider {
-            id: expo
-            from: 0
-            value: preview.camExposure
-            to: 4000
-            stepSize: 1
-            onMoved: preview.setCamExposure(value)
+    ColumnLayout {
+        anchors.fill: parent
 
-            Label {
-                text: parent.value
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.horizontalCenter: parent.horizontalCenter
-            }
-        }
+        CSlider { id: exposure; text: "Exposure"; from: 0; to: 4000; stepSize: 1; value: preview.camExposure; onMoved: preview.setCamExposure(newValue) }
+        CSlider { id: exposure2; text: "Exposure2"; from: 0; to: 2500; stepSize: 1; value: preview.camExposure; onMoved: preview.setCamExposure(newValue) }
 
-        Label {
-            text: "Exposure"
-        }
     }
 }
