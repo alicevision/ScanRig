@@ -1,9 +1,21 @@
 import QtQuick 2.0
+import QtQuick.Layouts 1.14
 import "../Components"
 
 Item {
-    Flow {
-        CCameraPreview {}
-        CCameraSettings {}
+    RowLayout {
+        anchors.fill: parent
+
+        CCameraPreview { 
+            Layout.preferredWidth: parent.width*0.5
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignTop
+        }
+
+        CCameraSettings { 
+            Layout.preferredWidth: parent.width*0.5
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignTop
+        } 
     }
 }

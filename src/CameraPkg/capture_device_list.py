@@ -125,7 +125,6 @@ class CaptureDeviceList(object):
 
     def listAvailableDevices(self):
         ids = []
-        ids.append("No device selected")
         for id in range(20):
             if os.path.exists('/dev/video' + str(id)):
                 ids.append(id)

@@ -4,7 +4,7 @@ import QtQuick.Layouts 1.14
 
 Item {
     id: container
-    property alias text: label.text
+    property alias text: name.text
     property alias from: slider.from
     property alias to: slider.to
     property alias value: slider.value
@@ -15,10 +15,13 @@ Item {
     
     RowLayout {
         anchors.fill: parent
+        spacing: 10
 
         Label {
-            id: label
-            text: "Exposure"
+            id: name
+            Layout.preferredWidth: 80
+            text: ""
+            horizontalAlignment: Text.AlignRight
         }
 
         Slider {
@@ -32,6 +35,7 @@ Item {
 
         Label {
             text: slider.value
+            horizontalAlignment: Text.AlignLeft
         }
     }
 }

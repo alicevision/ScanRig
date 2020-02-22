@@ -6,8 +6,8 @@ import "Components"
 ApplicationWindow {
     title: qsTr("ScanRig App")
     visible: true
-    width: 640
-    height: 480
+    width: 960
+    height: 700
 
     ColumnLayout {
         anchors.fill: parent
@@ -17,21 +17,46 @@ ApplicationWindow {
 
             CButton {
                 text: "Stop"
-                onClicked: pageLoader.source = "Views/Preview.qml"
             }
 
             CButton {
                 text: "Start"
-                onClicked: pageLoader.source = "Views/Capture.qml"
             }
         }
 
-        Loader {
-            Layout.preferredHeight: parent.height*0.9
-            Layout.fillHeight: true
+        TabBar {
+            id: bar
+            width: parent.width
 
-            id: pageLoader
-            source: "Views/Preview.qml"
+            TabButton {
+                text: "Camera Preview"
+                width: implicitWidth
+            }
+
+            TabButton {
+                text: "Engine Configuration"
+                width: implicitWidth
+            }
+
+        }
+
+        StackLayout {
+            width: parent.width
+            currentIndex: bar.currentIndex
+
+            Loader {
+                source: "Views/Preview.qml"
+
+                Layout.preferredHeight: parent.height*0.9
+                Layout.fillHeight: true
+            }
+
+            Loader {
+                source: "Views/Capture.qml"
+
+                Layout.preferredHeight: parent.height*0.9
+                Layout.fillHeight: true
+            }
         }
     }
 
