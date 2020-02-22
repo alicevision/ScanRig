@@ -7,7 +7,8 @@ GroupBox {
     
     ColumnLayout {
         anchors.fill: parent
-
+        
+        /***** PREVIEW *****/
         Image {
             id: image
             property bool backBuffer: false
@@ -17,8 +18,8 @@ GroupBox {
             asynchronous: false
 
             fillMode: Image.PreserveAspectFit
-            sourceSize.width: parent.width
             Layout.preferredWidth: parent.width
+            Layout.preferredHeight: parent.width / (image.sourceSize.width/image.sourceSize.height)
             Layout.alignment: Qt.AlignTop
 
             function reload() {
@@ -29,11 +30,12 @@ GroupBox {
             }
 
             Timer {
-                interval: 16; running: true; repeat: true
+                interval: 40; running: true; repeat: true
                 onTriggered: image.reload()
             }
         }
 
+        /***** SETTINGS *****/
         RowLayout {
             Layout.fillWidth: true
             spacing: 10
@@ -64,15 +66,18 @@ GroupBox {
                 }
 
                 onActivated: {
-                    // If index != 0 because the first element is the string "No Device Selected"
-                    if (currentIndex != 0) {
-                        preview.changePreview(parseInt(currentText))
-                        image.camId = parseInt(currentText)
-                    }
-                    else {
+                    // If index == 0 because the first element is the string "No Device Selected"
+                    if (currentIndex == 0) {
                         preview.changePreview(-1)
                         image.camId = -1
                         image.source = "no_device_selected.png"
+                    }
+                    else if (parseInt(currentText) == image.camId) {
+                        return
+                    }
+                    else {
+                        preview.changePreview(parseInt(currentText))
+                        image.camId = parseInt(currentText)
                     }
                 }
             }

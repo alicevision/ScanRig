@@ -27,8 +27,7 @@ class CaptureDeviceList(object):
             "gain" : 0, # From 0 to 100
             "sharpness" : 0,
             "exposure" : 2000, # From 0 to 10 000
-            "autoExposure" : 1,
-            "bufferSize" : 1
+            "autoExposure" : 1
         }
         return settings
 
@@ -90,9 +89,6 @@ class CaptureDeviceList(object):
 
     def setAllAttributesToDevices(self):
         for device in self.devices:
-            # device.capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('U','Y','V','Y')) # To use only with the FSCAM_CU135
-            # device.capture.set(cv2.CAP_PROP_CONVERT_RGB, False) # To use only with the FSCAM_CU135
-            # device.capture.set(cv2.CAP_PROP_BUFFERSIZE, 1)
             device.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.settings.get("width"))
             device.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.settings.get("height"))
             device.capture.set(cv2.CAP_PROP_BRIGHTNESS, self.settings.get("brightness"))
@@ -105,6 +101,10 @@ class CaptureDeviceList(object):
             device.capture.set(cv2.CAP_PROP_SHARPNESS, self.settings.get("sharpness"))
             device.capture.set(cv2.CAP_PROP_EXPOSURE, self.settings.get("exposure")) 
             device.capture.set(cv2.CAP_PROP_AUTO_EXPOSURE, self.settings.get("autoExposure"))
+
+            device.fillBuffer()
+            device.retrieveFrame()
+
         return
 
     #----------------------------------------- DEVICES

@@ -45,6 +45,7 @@ class App():
 
     def updateCameras(self):
         while True:
-            self.backend.preview.captureDevices.grabFrames()
-            self.backend.preview.captureDevices.retrieveFrames()
+            if self.backend.preview.runningPreview :
+                self.backend.preview.captureDevices.grabFrames()
+                self.backend.preview.captureDevices.retrieveFrames()
             time.sleep(0.04)
