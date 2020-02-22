@@ -6,42 +6,31 @@ import "Components"
 ApplicationWindow {
     title: qsTr("ScanRig App")
     visible: true
-    width: 960
-    height: 700
+    width: 1500
+    height: 900
 
     ColumnLayout {
         anchors.fill: parent
 
-        Flow {
-            spacing: 2
+        RowLayout {
+            Layout.preferredWidth: startBtn.implicitWidth + stopBtn.implicitWidth
+            Layout.topMargin: 10
+            Layout.alignment: Qt.AlignCenter
 
-            CButton {
-                text: "Stop"
-            }
-
-            CButton {
-                text: "Start"
-            }
+            CButton { id: startBtn; text: "Start"; onClicked: backend.startAcquisition() }
+            CButton { id: stopBtn; text: "Stop" }
         }
 
         TabBar {
             id: bar
-            width: parent.width
+            Layout.preferredWidth: parent.width
 
-            TabButton {
-                text: "Camera Preview"
-                width: implicitWidth
-            }
-
-            TabButton {
-                text: "Engine Configuration"
-                width: implicitWidth
-            }
-
+            TabButton { text: "Camera Preview"; width: implicitWidth }
+            TabButton { text: "Engine Configuration"; width: implicitWidth }
         }
 
         StackLayout {
-            width: parent.width
+            Layout.preferredWidth: parent.width
             currentIndex: bar.currentIndex
 
             Loader {

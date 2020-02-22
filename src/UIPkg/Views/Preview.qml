@@ -7,14 +7,13 @@ Item {
         anchors.fill: parent
 
         CCameraPreview { 
-            Layout.preferredWidth: parent.width*0.5
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignTop
         }
 
         CCameraSettings { 
-            Layout.preferredWidth: parent.width*0.5
-            Layout.fillWidth: true
+            Layout.preferredWidth: parent.width*0.2
+            Layout.minimumWidth: 400
             Layout.alignment: Qt.AlignTop
         } 
     }

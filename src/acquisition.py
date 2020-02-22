@@ -1,5 +1,6 @@
 import numpy as np
 import cv2, time, logging
+import os
 
 import args_parser
 import CameraPkg
@@ -8,13 +9,9 @@ from MoteurPkg.serial_management import availablePorts, serialWrite, SerialReade
 class Acquisition():
     def __init__(self, settings):
         self.captureDevices = CameraPkg.capture_device_list.CaptureDeviceList(settings)
-        # for id in self.captureDevices.listAvailableDevices():
-        #     self.captureDevices.addDevice(id)
-        # self.captureDevices.addDevice(0)
+        self.captureDevicesIndexes = [0]
 
-        # self.captureDevices.setAllAttributesToDevices() # Give to devices the default settings
-        # self.start()
-
+    '''
     def start(self):
         GLOBAL_RUNNING = [True]
 
@@ -79,3 +76,33 @@ class Acquisition():
         logging.info("End of Capture")
 
         return
+        '''
+
+    def start(self):
+        i = 0
+
+        # Initialize cameras
+        for index in self.captureDevicesIndexes:
+            self.captureDevices.addDevice(index)
+
+        self.captureDevices.setAllAttributesToDevices()
+
+        while True:
+            if i > 70:
+                break
+
+            self.captureDevices.grabFrames()
+            self.captureDevices.retrieveFrames()
+
+            if i % 10 == 0 :
+                frame = self.captureDevices.devices[0].frame
+                directory = os.path.dirname(__file__)
+                filename = f'cam_0_{i}.jpg'
+                outFilepath = os.path.join(directory, "img", filename)
+                logging.info(f'Writting file={outFilepath}')
+                cv2.imwrite(outFilepath, frame)
+
+            i += 1
+
+        self.captureDevices.stopDevices()
+        logging.info("End of Capture")

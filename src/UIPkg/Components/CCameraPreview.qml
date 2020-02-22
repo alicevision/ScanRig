@@ -95,5 +95,7 @@ GroupBox {
                 }
             }
         }
+
+        CButton { text: "Add this camera to the Acquisition process !"; Layout.alignment: Qt.AlignCenter }
     }
 }
