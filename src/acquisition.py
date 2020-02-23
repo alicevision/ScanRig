@@ -5,14 +5,23 @@ import numpy as np
 import cv2, time, logging
 import os
 
+from enum import Enum, auto
+
 import args_parser
 import CameraPkg
 from MoteurPkg.serial_management import availablePorts, serialWrite, SerialReader, selectPort
+
+
+class AcquisitionState(Enum):
+    ON = auto()
+    OFF = auto()
+    OVER = auto()
 
 class Acquisition(QObject):
     def __init__(self, settings):
         super().__init__()
         self.captureDevices = CameraPkg.capture_device_list.CaptureDeviceList(settings)
+        self.runningAcquisition = AcquisitionState.OFF
         self.captureDevicesIndexes = [0]
         self.savingDirectory = ""
 
@@ -83,7 +92,8 @@ class Acquisition(QObject):
         return
         '''
 
-    def start(self):
+    def start(self, stop):
+        self.runningAcquisition = AcquisitionState.ON
         i = 0
 
         # Initialize cameras
@@ -93,6 +103,9 @@ class Acquisition(QObject):
         self.captureDevices.setAllAttributesToDevices()
 
         while True:
+            if stop():
+                break
+
             if i > 70:
                 break
 
@@ -110,7 +123,8 @@ class Acquisition(QObject):
             i += 1
 
         self.captureDevices.stopDevices()
-        logging.info("End of Capture")
+        print("End of Acquisition")
+        self.runningAcquisition = AcquisitionState.OVER
 
 
     @Slot(str)

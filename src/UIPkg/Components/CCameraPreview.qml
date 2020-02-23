@@ -23,7 +23,7 @@ GroupBox {
             Layout.alignment: Qt.AlignTop
 
             function reload() {
-                if(camId != -1) {
+                if(camId != -1 && preview.getRunningPreview()) {
                     backBuffer = !backBuffer
                     image.source = "image://imageProvider/" + camId + "/" + backBuffer
                 }

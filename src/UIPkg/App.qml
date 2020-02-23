@@ -9,6 +9,11 @@ ApplicationWindow {
     width: 1500
     height: 900
 
+    onClosing: {
+        backend.exitApplication()
+        close.accepted = true
+    }
+
     ColumnLayout {
         anchors.fill: parent
 

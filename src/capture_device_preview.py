@@ -15,6 +15,11 @@ class CaptureDevicePreview(QObject):
         self.currentId = -1
 
 
+    @Slot(result=bool)
+    def getRunningPreview(self):
+        return self.runningPreview
+
+
     @Slot(str)
     def changePreview(self, camId):
         camId = int(camId)
@@ -31,9 +36,11 @@ class CaptureDevicePreview(QObject):
             self.captureDevices.setAllAttributesToDevices()
             self.runningPreview = True
         else:
+            self.runningPreview = False
             self.captureDevices.stopDevices()
             self.captureDevices.addDevice(camId)
             self.captureDevices.setAllAttributesToDevices()
+            self.runningPreview = True
 
 
     def getCamExposure(self):                             

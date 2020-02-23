@@ -32,21 +32,7 @@ class App():
 
         # Apply palette
         darkPalette = Palette(engine)
-
-        # Update cameras on another thread
-        t = threading.Thread(target=self.updateCameras, daemon=True)
-        t.start()
         
         # Run app
         engine.load("UIPkg/App.qml")
         sys.exit(app.exec_())
-
-        t.stop()
-
-
-    def updateCameras(self):
-        while True:
-            if self.backend.preview.runningPreview :
-                self.backend.preview.captureDevices.grabFrames()
-                self.backend.preview.captureDevices.retrieveFrames()
-            time.sleep(0.04)

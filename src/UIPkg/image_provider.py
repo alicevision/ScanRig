@@ -15,6 +15,9 @@ class ImageProvider(QQuickImageProvider):
         camId = int(id.split("/")[0])
         if camId == -1: 
             return
+        if self.captureDevices.isEmpty():
+            return
+
         frame = self.captureDevices.getDevice(camId).frame
         qImg = QImage(frame, frame.shape[1], frame.shape[0], QImage.Format_RGB888).rgbSwapped()
         return QPixmap.fromImage(qImg)
