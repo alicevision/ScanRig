@@ -29,6 +29,9 @@ GroupBox {
             FolderDialog {
                 id: folderDialog
                 folder: StandardPaths.standardLocations(StandardPaths.PicturesLocation)[0]
+                
+                Component.onCompleted: acquisition.changeSavingDirectory(folder)
+                onAccepted: acquisition.changeSavingDirectory(folder)
             }
         }
     }

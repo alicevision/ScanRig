@@ -1,3 +1,6 @@
+from PySide2 import QtWidgets
+from PySide2.QtCore import QObject, Slot, Property, Signal
+
 import numpy as np
 import cv2, time, logging
 import os
@@ -6,10 +9,12 @@ import args_parser
 import CameraPkg
 from MoteurPkg.serial_management import availablePorts, serialWrite, SerialReader, selectPort
 
-class Acquisition():
+class Acquisition(QObject):
     def __init__(self, settings):
+        super().__init__()
         self.captureDevices = CameraPkg.capture_device_list.CaptureDeviceList(settings)
         self.captureDevicesIndexes = [0]
+        self.savingDirectory = ""
 
     '''
     def start(self):
@@ -96,9 +101,9 @@ class Acquisition():
 
             if i % 10 == 0 :
                 frame = self.captureDevices.devices[0].frame
-                directory = os.path.dirname(__file__)
+                directory = self.savingDirectory
                 filename = f'cam_0_{i}.jpg'
-                outFilepath = os.path.join(directory, "img", filename)
+                outFilepath = os.path.join(directory, filename)
                 logging.info(f'Writting file={outFilepath}')
                 cv2.imwrite(outFilepath, frame)
 
@@ -106,3 +111,11 @@ class Acquisition():
 
         self.captureDevices.stopDevices()
         logging.info("End of Capture")
+
+
+    @Slot(str)
+    def changeSavingDirectory(self, path) :
+        directory = path.split("file://")[1]
+        print(directory)
+        self.savingDirectory = directory
+

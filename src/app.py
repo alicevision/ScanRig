@@ -25,6 +25,7 @@ class App():
         self.backend = Backend()
         ctx.setContextProperty("backend", self.backend)
         ctx.setContextProperty("preview", self.backend.preview)
+        ctx.setContextProperty("acquisition", self.backend.acquisition)
         ctx.setContextProperty("availableDevices", self.backend.preview.captureDevices.listAvailableDevices())
 
         engine.addImageProvider("imageProvider", self.backend.preview.imageProvider)
