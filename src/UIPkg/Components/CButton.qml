@@ -3,12 +3,14 @@ import QtQuick.Controls 2.0
 
 Flow {
     id: container
-    property alias text: name.text
+    property alias text: button.text
     signal clicked()
 
     Button {
-        id: name
+        id: button
         text: qsTr("My custom text")
+        contentItem: CCenteredText {}
+
         onClicked: container.clicked()
     }
 }

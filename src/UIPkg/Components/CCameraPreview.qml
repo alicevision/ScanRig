@@ -1,6 +1,7 @@
 import QtQuick 2.14
 import QtQuick.Layouts 1.14
 import QtQuick.Controls 2.14
+import QtQuick.Controls.Styles 1.4
 
 GroupBox {
     title: qsTr("Camera Preview")
@@ -47,6 +48,7 @@ GroupBox {
             ComboBox {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 25
+                contentItem: CCenteredText { text: parent.displayText }
 
                 // Creating the list with the string "No device selected"
                 model: ListModel {
@@ -88,7 +90,8 @@ GroupBox {
 
             ComboBox {
                 Layout.preferredHeight: 25
-                Layout.preferredWidth: 50
+                Layout.preferredWidth: 75
+                contentItem: CCenteredText { text: parent.displayText }
 
                 model: ["Full", "1/2", "1/4"]
                 onActivated: {

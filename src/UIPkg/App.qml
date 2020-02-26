@@ -22,21 +22,35 @@ ApplicationWindow {
             Layout.topMargin: 10
             Layout.alignment: Qt.AlignCenter
 
-            CButton { id: startBtn; text: "Start"; onClicked: backend.startAcquisition() }
-            CButton { id: stopBtn; text: "Stop" }
+            CButton { id: startBtn; text: "Start"; onClicked: { backend.startAcquisition(); mainLayout.disableMainLayout() } }
+            CButton { id: stopBtn; text: "Stop"; onClicked: { mainLayout.enableMainLayout() } }
         }
 
         TabBar {
             id: bar
             Layout.preferredWidth: parent.width
 
-            TabButton { text: "Camera Preview"; width: implicitWidth }
-            TabButton { text: "Engine Configuration"; width: implicitWidth }
+            TabButton { text: "Camera Preview"; width: implicitWidth; contentItem: CCenteredText {} }
+            TabButton { text: "Engine Configuration"; width: implicitWidth; contentItem: CCenteredText {} }
         }
 
         StackLayout {
+            id: mainLayout
             Layout.preferredWidth: parent.width
             currentIndex: bar.currentIndex
+
+            enabled: true
+            opacity: 1
+
+            function enableMainLayout() {
+                mainLayout.enabled = true
+                mainLayout.opacity = 1
+            }
+
+            function disableMainLayout() {
+                mainLayout.enabled = false
+                mainLayout.opacity = 0.3
+            }
 
             Loader {
                 source: "Views/Preview.qml"
