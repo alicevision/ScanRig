@@ -39,17 +39,15 @@ ApplicationWindow {
             Layout.preferredWidth: parent.width
             currentIndex: bar.currentIndex
 
-            enabled: true
-            opacity: 1
+            enabled: backend.mainLayoutEnabled
+            opacity: enabled ? 1 : 0.3
 
             function enableMainLayout() {
-                mainLayout.enabled = true
-                mainLayout.opacity = 1
+                backend.setMainLayout(true)
             }
 
             function disableMainLayout() {
-                mainLayout.enabled = false
-                mainLayout.opacity = 0.3
+                backend.setMainLayout(false)
             }
 
             Loader {

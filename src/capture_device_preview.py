@@ -42,21 +42,111 @@ class CaptureDevicePreview(QObject):
             self.captureDevices.setAllAttributesToDevices()
             self.runningPreview = True
 
+    @Slot()
+    def getCamList(self):
+        return self.captureDevices.listAvailableDevices()
 
-    def getCamExposure(self):                             
+
+    #----------- GETTERS & SETTERS FOR SETTINGS
+    @Slot()
+    def getCamExposure(self):                            
         return self.captureDevices.settings["exposure"]                                                  
     
     @Slot(int)
     def setCamExposure(self, val):
         self.captureDevices.setExposure(val)
+        self.camExposureChanged.emit()
 
-    @Signal
-    def camExposureChanged(self):
-        pass
-
-    def getCamList(self):
-        return self.captureDevices.listAvailableDevices()
-
-
-    # PROPERTIES
+    camExposureChanged = Signal()
     camExposure = Property(int, getCamExposure, setCamExposure, notify=camExposureChanged)
+
+
+    @Slot()
+    def getCamBrightness(self):                             
+        return self.captureDevices.settings["brightness"]                                                  
+    
+    @Slot(int)
+    def setCamBrightness(self, val):
+        self.captureDevices.setBrightness(val)
+        self.camBrightnessChanged.emit()
+
+    camBrightnessChanged = Signal()
+    camBrightness = Property(int, getCamBrightness, setCamBrightness, notify=camBrightnessChanged)
+
+
+    @Slot()
+    def getCamContrast(self):                             
+        return self.captureDevices.settings["contrast"]                                                  
+    
+    @Slot(int)
+    def setCamContrast(self, val):
+        self.captureDevices.setContrast(val)
+        self.camContrastChanged.emit()
+
+    camContrastChanged = Signal()
+    camContrast = Property(int, getCamContrast, setCamContrast, notify=camContrastChanged)
+
+
+    @Slot()
+    def getCamSaturation(self):                             
+        return self.captureDevices.settings["saturation"]                                                  
+    
+    @Slot(int)
+    def setCamSaturation(self, val):
+        self.captureDevices.setSaturation(val)
+        self.camSaturationChanged.emit()
+
+    camSaturationChanged = Signal()
+    camSaturation = Property(int, getCamSaturation, setCamSaturation, notify=camSaturationChanged)
+
+
+    @Slot()
+    def getCamWhiteBalance(self):                             
+        return self.captureDevices.settings["tempWB"]                                                  
+    
+    @Slot(int)
+    def setCamWhiteBalance(self, val):
+        self.captureDevices.setTempWB(val)
+        self.camWhiteBalanceChanged.emit()
+
+    camWhiteBalanceChanged = Signal()
+    camWhiteBalance = Property(int, getCamWhiteBalance, setCamWhiteBalance, notify=camWhiteBalanceChanged)
+
+
+    @Slot()
+    def getCamGamma(self):                             
+        return self.captureDevices.settings["gamma"]                                                  
+    
+    @Slot(int)
+    def setCamGamma(self, val):
+        self.captureDevices.setGamma(val)
+        self.camGammaChanged.emit()
+
+    camGammaChanged = Signal()
+    camGamma = Property(int, getCamGamma, setCamGamma, notify=camGammaChanged)
+
+
+    @Slot()
+    def getCamGain(self):                             
+        return self.captureDevices.settings["gain"]                                                  
+    
+    @Slot(int)
+    def setCamGain(self, val):
+        self.captureDevices.setGain(val)
+        self.camGainChanged.emit()
+
+    camGainChanged = Signal()
+    camGain = Property(int, getCamGain, setCamGain, notify=camGainChanged)
+
+
+    @Slot()
+    def getCamSharpness(self):                             
+        return self.captureDevices.settings["sharpness"]                                                  
+    
+    @Slot(int)
+    def setCamSharpness(self, val):
+        self.captureDevices.setSharpness(val)
+        self.camSharpnessChanged.emit()
+
+    camSharpnessChanged = Signal()
+    camSharpness = Property(int, getCamSharpness, setCamSharpness, notify=camSharpnessChanged)

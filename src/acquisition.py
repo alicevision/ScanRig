@@ -106,7 +106,7 @@ class Acquisition(QObject):
             if stop():
                 break
 
-            if i > 70:
+            if i > 20:
                 break
 
             self.captureDevices.grabFrames()

@@ -14,6 +14,7 @@ class Backend(QObject):
         super().__init__()
         self.preview = CaptureDevicePreview()
         self.acquisition = Acquisition(self.preview.captureDevices.settings)
+        self.mainLayout = True
 
         # THREAD: Main Thread which works continuously
         self.stopMainThread = False
@@ -24,6 +25,18 @@ class Backend(QObject):
         self.stopAcquisitionThread = False
         self.acquisitionThread = threading.Thread(target=self.acquisition.start, args=(lambda: self.stopAcquisitionThread,))
 
+
+    @Slot()
+    def getMainLayout(self):                         
+        return self.mainLayout                                              
+    
+    @Slot(bool)
+    def setMainLayout(self, boolean):
+        self.mainLayout = boolean
+        self.mainLayoutChanged.emit()
+
+    mainLayoutChanged = Signal()
+    mainLayoutEnabled = Property(bool, getMainLayout, setMainLayout, notify=mainLayoutChanged)
 
     @Slot()
     def exitApplication(self):
@@ -48,6 +61,8 @@ class Backend(QObject):
                 self.acquisition.runningAcquisition = AcquisitionState.OFF # STOP Acquisition
                 self.acquisitionThread.join()
                 self.preview.changePreview(self.preview.currentId) # RELAUNCH Preview with the active camera
+                self.setMainLayout(True) # ENABLE back the layout
+
 
             time.sleep(0.04)
         print("End of Main Thread")
