@@ -23,7 +23,7 @@ ApplicationWindow {
             Layout.alignment: Qt.AlignCenter
 
             CButton { id: startBtn; text: "Start"; onClicked: { backend.startAcquisition(); mainLayout.disableMainLayout() } }
-            CButton { id: stopBtn; text: "Stop"; onClicked: { mainLayout.enableMainLayout() } }
+            CButton { id: stopBtn; text: "Stop"; onClicked: { backend.stopAcquisition(); mainLayout.enableMainLayout() } }
         }
 
         TabBar {

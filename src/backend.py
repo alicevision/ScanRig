@@ -22,10 +22,34 @@ class Backend(QObject):
         self.mainThread.start()
 
         # THREAD: Acquisition
-        self.stopAcquisitionThread = False
-        self.acquisitionThread = threading.Thread(target=self.acquisition.start, args=(lambda: self.stopAcquisitionThread,))
+        self.createAcquisitionThread()
 
 
+    #---------- MAIN THREAD
+    def runMainThread(self, stop):
+        while True:
+            if stop():
+                break
+
+            if self.preview.runningPreview:
+                self.preview.captureDevices.grabFrames()
+                self.preview.captureDevices.retrieveFrames()
+
+            if self.acquisition.runningAcquisition == AcquisitionState.OVER:
+                self.acquisition.runningAcquisition = AcquisitionState.OFF # STOP Acquisition
+                self.acquisitionThread.join() # Wait the end of the thread
+
+                self.createAcquisitionThread() # Create a new acquisition thread
+
+                self.preview.changePreview(self.preview.currentId) # RELAUNCH Preview with the active camera
+                self.setMainLayout(True) # ENABLE back the layout
+
+
+            time.sleep(0.04)
+        print("End of Main Thread")
+
+
+    #---------- LAYOUT
     @Slot()
     def getMainLayout(self):                         
         return self.mainLayout                                              
@@ -38,6 +62,8 @@ class Backend(QObject):
     mainLayoutChanged = Signal()
     mainLayoutEnabled = Property(bool, getMainLayout, setMainLayout, notify=mainLayoutChanged)
 
+
+    #---------- APPLICATION
     @Slot()
     def exitApplication(self):
         # Stop the Main Thread
@@ -48,24 +74,10 @@ class Backend(QObject):
         print("EXIT APPLICATION")
 
 
-    def runMainThread(self, stop):
-        while True:
-            if stop():
-                break
-
-            if self.preview.runningPreview:
-                self.preview.captureDevices.grabFrames()
-                self.preview.captureDevices.retrieveFrames()
-
-            if self.acquisition.runningAcquisition == AcquisitionState.OVER:
-                self.acquisition.runningAcquisition = AcquisitionState.OFF # STOP Acquisition
-                self.acquisitionThread.join()
-                self.preview.changePreview(self.preview.currentId) # RELAUNCH Preview with the active camera
-                self.setMainLayout(True) # ENABLE back the layout
-
-
-            time.sleep(0.04)
-        print("End of Main Thread")
+    #---------- ACQUISITION
+    def createAcquisitionThread(self):
+        self.stopAcquisitionThread = False
+        self.acquisitionThread = threading.Thread(target=self.acquisition.start, args=(lambda: self.stopAcquisitionThread,))
 
 
     @Slot()
@@ -77,3 +89,7 @@ class Backend(QObject):
 
         # Start acquisition
         self.acquisitionThread.start()
+
+    @Slot()
+    def stopAcquisition(self):
+        self.stopAcquisitionThread = True

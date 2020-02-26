@@ -106,7 +106,7 @@ class Acquisition(QObject):
             if stop():
                 break
 
-            if i > 20:
+            if i > 50:
                 break
 
             self.captureDevices.grabFrames()
@@ -132,4 +132,3 @@ class Acquisition(QObject):
         directory = path.split("file://")[1]
         print(directory)
         self.savingDirectory = directory
-
