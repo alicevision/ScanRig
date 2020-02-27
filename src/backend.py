@@ -12,8 +12,8 @@ import time
 class Backend(QObject):
     def __init__(self):
         super().__init__()
-        self.preview = CaptureDevicePreview()
-        self.acquisition = Acquisition(self.preview.captureDevices.settings)
+        self.acquisition = Acquisition()
+        self.preview = CaptureDevicePreview(self.acquisition.captureDevices)
         self.mainLayout = True
 
         # THREAD: Main Thread which works continuously
@@ -32,8 +32,8 @@ class Backend(QObject):
                 break
 
             if self.preview.runningPreview:
-                self.preview.captureDevices.grabFrames()
-                self.preview.captureDevices.retrieveFrames()
+                self.preview.previewDevices.grabFrames()
+                self.preview.previewDevices.retrieveFrames()
 
             if self.acquisition.runningAcquisition == AcquisitionState.OVER:
                 self.acquisition.runningAcquisition = AcquisitionState.OFF # STOP Acquisition
@@ -46,6 +46,9 @@ class Backend(QObject):
 
 
             time.sleep(0.04)
+        
+        self.preview.runningPreview = False
+        time.sleep(0.1)
         print("End of Main Thread")
 
 
@@ -64,14 +67,19 @@ class Backend(QObject):
 
 
     #---------- APPLICATION
-    @Slot()
+    @Slot(result=bool)
     def exitApplication(self):
+        # Reject exit if the acquisition process is not over
+        if self.acquisition.runningAcquisition == AcquisitionState.ON:
+            return False
+
         # Stop the Main Thread
         self.stopMainThread = True
         self.mainThread.join() # Make appear some QML Warnings but it does not really matter (seems like a bug)
-        self.preview.captureDevices.stopDevices()
+        self.preview.previewDevices.stopDevices()
 
         print("EXIT APPLICATION")
+        return True
 
 
     #---------- ACQUISITION
@@ -80,16 +88,25 @@ class Backend(QObject):
         self.acquisitionThread = threading.Thread(target=self.acquisition.start, args=(lambda: self.stopAcquisitionThread,))
 
 
-    @Slot()
+    @Slot(result=bool)
     def startAcquisition(self):
-        # STOP THE PREVIEW AND ALL THE DEVICES
+        if self.acquisition.captureDevices.isEmpty():
+            return False
+
+        # STOP THE PREVIEW AND ALL THE DEVICES + EMPTY THE PREVIEW LIST
         self.preview.runningPreview = False
         time.sleep(0.04)
-        self.preview.captureDevices.stopDevices()
+        self.preview.previewDevices.stopDevices()
+        self.preview.previewDevices.emptyDevices()
 
         # Start acquisition
         self.acquisitionThread.start()
+        return True
 
-    @Slot()
+    @Slot(result=bool)
     def stopAcquisition(self):
-        self.stopAcquisitionThread = True
+        if self.acquisition.runningAcquisition == AcquisitionState.ON:
+            self.stopAcquisitionThread = True
+            return True
+        else:
+            return False

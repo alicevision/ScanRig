@@ -10,8 +10,7 @@ ApplicationWindow {
     height: 900
 
     onClosing: {
-        backend.exitApplication()
-        close.accepted = true
+        close.accepted = backend.exitApplication()
     }
 
     ColumnLayout {
@@ -22,8 +21,8 @@ ApplicationWindow {
             Layout.topMargin: 10
             Layout.alignment: Qt.AlignCenter
 
-            CButton { id: startBtn; text: "Start"; onClicked: { backend.startAcquisition(); mainLayout.disableMainLayout() } }
-            CButton { id: stopBtn; text: "Stop"; onClicked: { backend.stopAcquisition(); mainLayout.enableMainLayout() } }
+            CButton { id: startBtn; text: "Start"; onClicked: { mainLayout.disableMainLayout(backend.startAcquisition()) } }
+            CButton { id: stopBtn; text: "Stop"; onClicked: { mainLayout.enableMainLayout(backend.stopAcquisition()) } }
         }
 
         TabBar {
@@ -42,12 +41,12 @@ ApplicationWindow {
             enabled: backend.mainLayoutEnabled
             opacity: enabled ? 1 : 0.3
 
-            function enableMainLayout() {
-                backend.setMainLayout(true)
+            function enableMainLayout(b) {
+                if(b) { backend.setMainLayout(true) }
             }
 
-            function disableMainLayout() {
-                backend.setMainLayout(false)
+            function disableMainLayout(b) {
+                if(b) { backend.setMainLayout(false) }
             }
 
             Loader {

@@ -62,7 +62,7 @@ GroupBox {
                 // Using JS to add the AvailableDevices to the list
                 Component.onCompleted: {
                     // availableDevices is a list which comes from Python
-                    for(let camIndex in availableDevices) {
+                    for(let camIndex in availableUvcCameras) {
                         availableDevicesList.append({text: camIndex.toString()})
                     }
                 }
@@ -81,6 +81,7 @@ GroupBox {
                         preview.changePreview(parseInt(currentText))
                         image.camId = parseInt(currentText)
                     }
+                    acquisitionListBtn.refreshText()
                 }
             }
 
@@ -99,6 +100,28 @@ GroupBox {
             }
         }
 
-        CButton { text: "Add this camera to the Acquisition process !"; Layout.alignment: Qt.AlignCenter }
+        CButton { 
+            id: acquisitionListBtn
+            text: ""
+            Layout.alignment: Qt.AlignCenter
+
+            Component.onCompleted: refreshText()
+
+            onClicked: {
+                preview.addRemoveDeviceToAcquisition()
+                acquisitionListBtn.refreshText()
+            }
+
+            function refreshText() {
+                if(image.camId == -1) {
+                    acquisitionListBtn.enabled = false
+                    acquisitionListBtn.text = ""
+                }
+                else {
+                    acquisitionListBtn.enabled = true
+                    acquisitionListBtn.text = preview.isCurrentDeviceInAcquisition() ? "Remove this camera from the Acquisition process !" : "Add this camera to the Acquisition process !"
+                }
+            }
+        }
     }
 }

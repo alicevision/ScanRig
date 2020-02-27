@@ -7,17 +7,17 @@ from PySide2.QtQuick import QQuickImageProvider
 from PySide2.QtGui import QImage, QPixmap
 
 class ImageProvider(QQuickImageProvider):
-    def __init__(self, captureDevices):
+    def __init__(self, devices):
         super(ImageProvider, self).__init__(QQuickImageProvider.Pixmap)
-        self.captureDevices = captureDevices
+        self.previewDevices = devices
 
     def requestPixmap(self, id, size, requestedSize):
         camId = int(id.split("/")[0])
         if camId == -1: 
             return
-        if self.captureDevices.isEmpty():
+        if self.previewDevices.isEmpty():
             return
 
-        frame = self.captureDevices.getDevice(camId).frame
+        frame = self.previewDevices.getDevice(0).frame # Because we only have one device
         qImg = QImage(frame, frame.shape[1], frame.shape[0], QImage.Format_RGB888).rgbSwapped()
         return QPixmap.fromImage(qImg)

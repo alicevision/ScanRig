@@ -9,6 +9,8 @@ from enum import Enum, auto
 
 import args_parser
 import CameraPkg
+from CameraPkg.capture_device_list import CaptureDeviceList
+from CameraPkg.uvc_camera import UvcCamera
 from MoteurPkg.serial_management import availablePorts, serialWrite, SerialReader, selectPort
 
 
@@ -18,11 +20,10 @@ class AcquisitionState(Enum):
     OVER = auto()
 
 class Acquisition(QObject):
-    def __init__(self, settings):
+    def __init__(self):
         super().__init__()
-        self.captureDevices = CameraPkg.capture_device_list.CaptureDeviceList(settings)
+        self.captureDevices = CaptureDeviceList()
         self.runningAcquisition = AcquisitionState.OFF
-        self.captureDevicesIndexes = [0]
         self.savingDirectory = ""
 
     '''
@@ -96,11 +97,10 @@ class Acquisition(QObject):
         self.runningAcquisition = AcquisitionState.ON
         i = 0
 
-        # Initialize cameras
-        for index in self.captureDevicesIndexes:
-            self.captureDevices.addDevice(index)
-
-        self.captureDevices.setAllAttributesToDevices()
+        # Start UVC Cameras
+        for device in self.captureDevices.devices:
+            if isinstance(device, UvcCamera):
+                device.start()
 
         while True:
             if stop():

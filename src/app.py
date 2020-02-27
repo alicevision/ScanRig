@@ -26,7 +26,7 @@ class App():
         ctx.setContextProperty("backend", self.backend)
         ctx.setContextProperty("preview", self.backend.preview)
         ctx.setContextProperty("acquisition", self.backend.acquisition)
-        ctx.setContextProperty("availableDevices", self.backend.preview.captureDevices.listAvailableDevices())
+        ctx.setContextProperty("availableUvcCameras", self.backend.preview.previewDevices.availableUvcCameras())
 
         engine.addImageProvider("imageProvider", self.backend.preview.imageProvider)
 

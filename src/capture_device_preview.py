@@ -2,17 +2,22 @@ from PySide2 import QtWidgets
 from PySide2.QtCore import QObject, Slot, Property, Signal
 
 from CameraPkg.capture_device_list import CaptureDeviceList
+from CameraPkg.uvc_camera import UvcCamera
 from UIPkg.image_provider import ImageProvider
 
 import time
 
+
+# ONLY ONE CAMERA IN PREVIEW AT A TIME
 class CaptureDevicePreview(QObject):
-    def __init__(self):
+    def __init__(self, acquisitionDevices):
         super().__init__()
-        self.captureDevices = CaptureDeviceList() # Empty list for now which accepts only one camera at a time (we use a list because of the common settings)
-        self.imageProvider = ImageProvider(self.captureDevices)
+        self.previewDevices = CaptureDeviceList() # We have to use a list for the imageProvider even if we only have one camera
         self.runningPreview = False
         self.currentId = -1
+        self.imageProvider = ImageProvider(self.previewDevices)
+        self.acquisitionDevices = acquisitionDevices
+        self.signals = self.initSignals()
 
 
     @Slot(result=bool)
@@ -25,128 +30,257 @@ class CaptureDevicePreview(QObject):
         camId = int(camId)
         self.currentId = camId
 
-        if camId == -1 :
+        # If "No Selected Device" is chosen
+        if self.currentId == -1 :
             self.runningPreview = False
             time.sleep(0.04)
-            self.captureDevices.stopDevices()
+            self.previewDevices.stopDevices()
+            self.previewDevices.emptyDevices()
+
+            for sig in self.signals:
+                sig.emit()
             return
 
-        if self.captureDevices.isEmpty() :
-            self.captureDevices.addDevice(camId)
-            self.captureDevices.setAllAttributesToDevices()
-            self.runningPreview = True
+        # Check if the device is already in the acquisition list
+        existingDevice = self.acquisitionDevices.getDeviceByCamId(self.currentId)
+
+        # Stop the preview for a moment
+        self.runningPreview = False
+        self.previewDevices.stopDevices()
+
+        if self.previewDevices.isEmpty() :
+            if existingDevice:
+                print("existing device")
+                existingDevice.start()
+                self.previewDevices.devices.append(existingDevice)
+            else:
+                self.previewDevices.addUvcCamera(self.currentId)
+
+        for sig in self.signals:
+            sig.emit()
+        self.runningPreview = True
+        
+
+    @Slot()
+    def getAvailableUvcCameras(self):
+        return self.previewDevices.availableUvcCameras()
+
+    @Slot()
+    def addRemoveDeviceToAcquisition(self):
+        if self.currentId == -1:
+            return
+            
+        device = self.previewDevices.getDevice(0)
+
+        if device in self.acquisitionDevices.devices:
+            self.acquisitionDevices.devices.remove(device)
+            print("Device removed from the Acquisition Process")
         else:
-            self.runningPreview = False
-            self.captureDevices.stopDevices()
-            self.captureDevices.addDevice(camId)
-            self.captureDevices.setAllAttributesToDevices()
-            self.runningPreview = True
+            self.acquisitionDevices.devices.append(device)
+            print("Device added to Acquisition Process")
+
+    @Slot(result=bool)
+    def isCurrentDeviceInAcquisition(self):
+        if self.currentId == -1:
+            return False
+        else:
+            return self.acquisitionDevices.isDeviceIn(self.currentId)
+
+
+    #----------- GETTERS & SETTERS FOR UVC CAMERAS SETTINGS
+    def initSignals(self):
+        signals = []
+        signals.append(self.cameraExposureChanged)
+        signals.append(self.cameraBrightnessChanged)
+        signals.append(self.cameraContrastChanged)
+        signals.append(self.cameraSaturationChanged)
+        signals.append(self.cameraWhiteBalanceChanged)
+        signals.append(self.cameraGammaChanged)
+        signals.append(self.cameraGainChanged)
+        signals.append(self.cameraSharpnessChanged)
+
+        return signals
+
 
     @Slot()
-    def getCamList(self):
-        return self.captureDevices.listAvailableDevices()
-
-
-    #----------- GETTERS & SETTERS FOR SETTINGS
-    @Slot()
-    def getCamExposure(self):                            
-        return self.captureDevices.settings["exposure"]                                                  
+    def getCameraExposure(self):
+        if not self.previewDevices.isEmpty():   
+            device = self.previewDevices.getDevice(0)
+            if isinstance(device, UvcCamera):                     
+                return device.settings["exposure"]
+            else:
+                return 0
+        else:
+            return 0                                              
     
     @Slot(int)
-    def setCamExposure(self, val):
-        self.captureDevices.setExposure(val)
-        self.camExposureChanged.emit()
+    def setCameraExposure(self, val):
+        if not self.previewDevices.isEmpty(): 
+            device = self.previewDevices.getDevice(0)
+            if isinstance(device, UvcCamera): 
+                device.setExposure(val)
+                self.cameraExposureChanged.emit()
 
-    camExposureChanged = Signal()
-    camExposure = Property(int, getCamExposure, setCamExposure, notify=camExposureChanged)
+    cameraExposureChanged = Signal()
+    cameraExposure = Property(int, getCameraExposure, setCameraExposure, notify=cameraExposureChanged)
+    
+
+    @Slot()
+    def getCameraBrightness(self):   
+        if not self.previewDevices.isEmpty():   
+            device = self.previewDevices.getDevice(0)
+            if isinstance(device, UvcCamera):                     
+                return device.settings["brightness"]
+            else:
+                return 0
+        else:
+            return 0                                                
+    
+    @Slot(int)
+    def setCameraBrightness(self, val):
+        if not self.previewDevices.isEmpty(): 
+            device = self.previewDevices.getDevice(0)
+            if isinstance(device, UvcCamera): 
+                device.setBrightness(val)
+                self.cameraBrightnessChanged.emit()
+
+    cameraBrightnessChanged = Signal()
+    cameraBrightness = Property(int, getCameraBrightness, setCameraBrightness, notify=cameraBrightnessChanged)
 
 
     @Slot()
-    def getCamBrightness(self):                             
-        return self.captureDevices.settings["brightness"]                                                  
+    def getCameraContrast(self):  
+        if not self.previewDevices.isEmpty():   
+            device = self.previewDevices.getDevice(0)
+            if isinstance(device, UvcCamera):                     
+                return device.settings["contrast"]
+            else:
+                return 0
+        else:
+            return 0                                            
     
     @Slot(int)
-    def setCamBrightness(self, val):
-        self.captureDevices.setBrightness(val)
-        self.camBrightnessChanged.emit()
+    def setCameraContrast(self, val):
+        if not self.previewDevices.isEmpty(): 
+            device = self.previewDevices.getDevice(0)
+            if isinstance(device, UvcCamera): 
+                device.setContrast(val)
+                self.cameraContrastChanged.emit()
 
-    camBrightnessChanged = Signal()
-    camBrightness = Property(int, getCamBrightness, setCamBrightness, notify=camBrightnessChanged)
+    cameraContrastChanged = Signal()
+    cameraContrast = Property(int, getCameraContrast, setCameraContrast, notify=cameraContrastChanged)
 
 
     @Slot()
-    def getCamContrast(self):                             
-        return self.captureDevices.settings["contrast"]                                                  
+    def getCameraSaturation(self):   
+        if not self.previewDevices.isEmpty():   
+            device = self.previewDevices.getDevice(0)
+            if isinstance(device, UvcCamera):                     
+                return device.settings["saturation"]
+            else:
+                return 0
+        else:
+            return 0                                            
     
     @Slot(int)
-    def setCamContrast(self, val):
-        self.captureDevices.setContrast(val)
-        self.camContrastChanged.emit()
+    def setCameraSaturation(self, val):
+        if not self.previewDevices.isEmpty(): 
+            device = self.previewDevices.getDevice(0)
+            if isinstance(device, UvcCamera): 
+                device.setSaturation(val)
+                self.cameraSaturationChanged.emit()
 
-    camContrastChanged = Signal()
-    camContrast = Property(int, getCamContrast, setCamContrast, notify=camContrastChanged)
+    cameraSaturationChanged = Signal()
+    cameraSaturation = Property(int, getCameraSaturation, setCameraSaturation, notify=cameraSaturationChanged)
 
 
     @Slot()
-    def getCamSaturation(self):                             
-        return self.captureDevices.settings["saturation"]                                                  
+    def getCameraWhiteBalance(self):  
+        if not self.previewDevices.isEmpty():   
+            device = self.previewDevices.getDevice(0)
+            if isinstance(device, UvcCamera):                     
+                return device.settings["tempWB"]
+            else:
+                return 0
+        else:
+            return 0                                           
     
     @Slot(int)
-    def setCamSaturation(self, val):
-        self.captureDevices.setSaturation(val)
-        self.camSaturationChanged.emit()
+    def setCameraWhiteBalance(self, val):
+        if not self.previewDevices.isEmpty(): 
+            device = self.previewDevices.getDevice(0)
+            if isinstance(device, UvcCamera): 
+                device.setTempWB(val)
+                self.cameraWhiteBalanceChanged.emit()
 
-    camSaturationChanged = Signal()
-    camSaturation = Property(int, getCamSaturation, setCamSaturation, notify=camSaturationChanged)
+    cameraWhiteBalanceChanged = Signal()
+    cameraWhiteBalance = Property(int, getCameraWhiteBalance, setCameraWhiteBalance, notify=cameraWhiteBalanceChanged)
 
 
     @Slot()
-    def getCamWhiteBalance(self):                             
-        return self.captureDevices.settings["tempWB"]                                                  
+    def getCameraGamma(self):  
+        if not self.previewDevices.isEmpty():   
+            device = self.previewDevices.getDevice(0)
+            if isinstance(device, UvcCamera):                     
+                return device.settings["gamma"]
+            else:
+                return 0
+        else:
+            return 0                                              
     
     @Slot(int)
-    def setCamWhiteBalance(self, val):
-        self.captureDevices.setTempWB(val)
-        self.camWhiteBalanceChanged.emit()
+    def setCameraGamma(self, val):
+        if not self.previewDevices.isEmpty(): 
+            device = self.previewDevices.getDevice(0)
+            if isinstance(device, UvcCamera): 
+                device.setGamma(val)
+                self.cameraGammaChanged.emit()
 
-    camWhiteBalanceChanged = Signal()
-    camWhiteBalance = Property(int, getCamWhiteBalance, setCamWhiteBalance, notify=camWhiteBalanceChanged)
+    cameraGammaChanged = Signal()
+    cameraGamma = Property(int, getCameraGamma, setCameraGamma, notify=cameraGammaChanged)
 
 
     @Slot()
-    def getCamGamma(self):                             
-        return self.captureDevices.settings["gamma"]                                                  
+    def getCameraGain(self):    
+        if not self.previewDevices.isEmpty():   
+            device = self.previewDevices.getDevice(0)
+            if isinstance(device, UvcCamera):                     
+                return device.settings["gain"]
+            else:
+                return 0
+        else:
+            return 0                                            
     
     @Slot(int)
-    def setCamGamma(self, val):
-        self.captureDevices.setGamma(val)
-        self.camGammaChanged.emit()
+    def setCameraGain(self, val):
+        if not self.previewDevices.isEmpty(): 
+            device = self.previewDevices.getDevice(0)
+            if isinstance(device, UvcCamera): 
+                device.setGain(val)
+                self.cameraGainChanged.emit()
 
-    camGammaChanged = Signal()
-    camGamma = Property(int, getCamGamma, setCamGamma, notify=camGammaChanged)
+    cameraGainChanged = Signal()
+    cameraGain = Property(int, getCameraGain, setCameraGain, notify=cameraGainChanged)
 
 
     @Slot()
-    def getCamGain(self):                             
-        return self.captureDevices.settings["gain"]                                                  
+    def getCameraSharpness(self):   
+        if not self.previewDevices.isEmpty():   
+            device = self.previewDevices.getDevice(0)
+            if isinstance(device, UvcCamera):                     
+                return device.settings["sharpness"]
+            else:
+                return 0
+        else:
+            return 0                                                  
     
     @Slot(int)
-    def setCamGain(self, val):
-        self.captureDevices.setGain(val)
-        self.camGainChanged.emit()
+    def setCameraSharpness(self, val):
+        if not self.previewDevices.isEmpty(): 
+            device = self.previewDevices.getDevice(0)
+            if isinstance(device, UvcCamera): 
+                device.setSharpness(val)
+                self.cameraSharpnessChanged.emit()
 
-    camGainChanged = Signal()
-    camGain = Property(int, getCamGain, setCamGain, notify=camGainChanged)
-
-
-    @Slot()
-    def getCamSharpness(self):                             
-        return self.captureDevices.settings["sharpness"]                                                  
-    
-    @Slot(int)
-    def setCamSharpness(self, val):
-        self.captureDevices.setSharpness(val)
-        self.camSharpnessChanged.emit()
-
-    camSharpnessChanged = Signal()
-    camSharpness = Property(int, getCamSharpness, setCamSharpness, notify=camSharpnessChanged)
+    cameraSharpnessChanged = Signal()
+    cameraSharpness = Property(int, getCameraSharpness, setCameraSharpness, notify=cameraSharpnessChanged)
