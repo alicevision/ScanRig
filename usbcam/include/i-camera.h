@@ -6,20 +6,20 @@
 
 namespace USBCam {
     /**
-     * @brief Data format supported by the camera
-     */
-    enum class FrameEncoding {
-        _UNKNOWN,
-        YUY2,
-        MJPG,
-        NV12
-    };
-
-    /**
      * @brief Abstract Interface to control a USB Camera under any OS.
      */
     class ICamera {
     public:
+        /**
+         * @brief Data format supported by the camera
+         */
+        enum class FrameEncoding {
+            _UNKNOWN,
+            YUY2,
+            MJPG,
+            NV12
+        };
+
         /**
          * @brief Capture settings supported by the camera
          */
