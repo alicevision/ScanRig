@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "win/win-camera.h"
+#include "linux/linux-camera.h"
 
 namespace USBCam {
     CaptureManager::CaptureManager(std::vector<uint32_t> portNumbers) {
@@ -11,7 +12,7 @@ namespace USBCam {
             #ifdef _WIN32
                 m_cams.push_back(new WinCamera(port));
             #elif __linux__
-                // TODO
+                m_cams.push_back(new LinuxCamera(port));
             #endif
             }
         } catch(const std::exception& e) {

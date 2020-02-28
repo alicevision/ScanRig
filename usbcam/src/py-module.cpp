@@ -23,7 +23,8 @@ namespace USBCam {
             .def_readonly("encoding", &ICamera::Capabilities::encoding);
 
         py::class_<ICamera>(m, "ICamera")
-            .def("GetCapabilities", &ICamera::GetCapabilities);
+            .def("GetCapabilities", &ICamera::GetCapabilities)
+            .def("SetFormat", &ICamera::SetFormat);
 
         py::class_<CaptureManager>(m, "CaptureManager")
             .def(py::init<std::vector<uint32_t>>())
