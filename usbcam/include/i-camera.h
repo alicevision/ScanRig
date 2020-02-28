@@ -40,6 +40,13 @@ namespace USBCam {
         virtual std::vector<Capabilities> GetCapabilities() const = 0;
 
         /**
+         * @brief Set the capture setting of the camera
+         * 
+         * @param id - Capabilities id
+         */
+        virtual void SetFormat(uint32_t id) = 0;
+
+        /**
          * @brief Take a picture and save it in current working directory
          */
         virtual void TakeAndSavePicture() const = 0;
