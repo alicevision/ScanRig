@@ -5,7 +5,9 @@ import QtQuick.Controls.Styles 1.4
 
 GroupBox {
     title: qsTr("Camera Preview")
-    
+    id: root
+    signal changedAcquisition()
+
     ColumnLayout {
         anchors.fill: parent
         
@@ -39,6 +41,7 @@ GroupBox {
         /***** SETTINGS *****/
         RowLayout {
             Layout.fillWidth: true
+            Layout.fillHeight: true
             spacing: 10
 
             Label {
@@ -62,24 +65,31 @@ GroupBox {
                 // Using JS to add the AvailableDevices to the list
                 Component.onCompleted: {
                     // availableDevices is a list which comes from Python
-                    for(let camIndex in availableUvcCameras) {
-                        availableDevicesList.append({text: camIndex.toString()})
+                    for(let uvcCamIndex in availableUvcCameras) {
+                        const txt = "UVC: " + uvcCamIndex.toString()
+                        availableDevicesList.append({text: txt})
                     }
                 }
 
                 onActivated: {
-                    // If index == 0 because the first element is the string "No Device Selected"
-                    if (currentIndex == 0) {
+                    const txt = currentText
+                    let camera;
+                    if(txt.startsWith("UVC:")) {
+                        camera = parseInt(txt.split("UVC: ")[1])
+                    }
+
+
+                    if (txt === "No Device Selected") {
                         preview.changePreview(-1)
                         image.camId = -1
                         image.source = "no_device_selected.png"
                     }
-                    else if (parseInt(currentText) == image.camId) {
+                    else if (camera === image.camId) {
                         return
                     }
                     else {
-                        preview.changePreview(parseInt(currentText))
-                        image.camId = parseInt(currentText)
+                        preview.changePreview(camera)
+                        image.camId = camera
                     }
                     acquisitionListBtn.refreshText()
                 }
@@ -110,6 +120,7 @@ GroupBox {
             onClicked: {
                 preview.addRemoveDeviceToAcquisition()
                 acquisitionListBtn.refreshText()
+                root.changedAcquisition()
             }
 
             function refreshText() {

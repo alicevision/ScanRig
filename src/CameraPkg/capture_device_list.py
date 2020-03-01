@@ -22,6 +22,14 @@ class CaptureDeviceList(object):
         else:
             return False
 
+    def getDevicesNames(self):
+        names = []
+        for device in self.devices:
+            if isinstance(device, UvcCamera):
+                name = "UVC : " + str(device.indexCam)
+                names.append(name)
+        return names
+
 
     def availableUvcCameras(self):
         ids = []

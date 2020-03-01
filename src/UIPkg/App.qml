@@ -6,8 +6,14 @@ import "Components"
 ApplicationWindow {
     title: qsTr("ScanRig App")
     visible: true
-    width: 1500
     height: 900
+    width: 900 * 1.7
+
+    minimumHeight: 700
+    minimumWidth: minimumHeight * 1.7
+
+    maximumHeight: 900
+    maximumWidth: maximumHeight * 1.7
 
     onClosing: {
         close.accepted = backend.exitApplication()

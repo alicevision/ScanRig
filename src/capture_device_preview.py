@@ -61,7 +61,7 @@ class CaptureDevicePreview(QObject):
         self.runningPreview = True
         
 
-    @Slot()
+    @Slot(result="QVariantList")
     def getAvailableUvcCameras(self):
         return self.previewDevices.availableUvcCameras()
 
@@ -85,6 +85,10 @@ class CaptureDevicePreview(QObject):
             return False
         else:
             return self.acquisitionDevices.isDeviceIn(self.currentId)
+
+    @Slot(result="QVariantList")
+    def getDevicesInAcquisition(self):
+        return self.acquisitionDevices.getDevicesNames()
 
 
     #----------- GETTERS & SETTERS FOR UVC CAMERAS SETTINGS
