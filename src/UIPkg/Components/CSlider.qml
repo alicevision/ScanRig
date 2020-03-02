@@ -11,6 +11,7 @@ Item {
     property alias stepSize: slider.stepSize
     signal moved(int newValue)
 
+    property int labelSize: 90
     height: 20
     
     RowLayout {
@@ -19,7 +20,7 @@ Item {
 
         Label {
             id: name
-            Layout.preferredWidth: 80
+            Layout.preferredWidth: container.labelSize
             text: ""
             horizontalAlignment: Text.AlignRight
         }
@@ -34,6 +35,7 @@ Item {
         }
 
         Label {
+            id: result
             text: slider.value
             horizontalAlignment: Text.AlignLeft
         }

@@ -31,8 +31,7 @@ class Acquisition(QObject):
         GLOBAL_RUNNING = [True]
 
         # Get arguments
-        args = args_parser.parse()
-
+        args = args_parser.parse()CheckBox
         # Initialize arduino
         arduinoSer = selectPort()
         # Init custom Serial reader to handle readLine correctly
@@ -92,6 +91,10 @@ class Acquisition(QObject):
 
         return
         '''
+
+    @Slot()
+    def startEngine(self):
+        print("Starting Engine")
 
     def start(self, stop):
         self.runningAcquisition = AcquisitionState.ON
