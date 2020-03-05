@@ -16,6 +16,7 @@ from PySide2.QtGui import QIcon
 # During development process
 os.environ["MESHROOM_OUTPUT_QML_WARNINGS"] = "1"
 os.environ["MESHROOM_INSTANT_CODING"] = "1"
+logging.basicConfig(level=logging.DEBUG)
 
 
 class MessageHandler(object):
@@ -62,8 +63,16 @@ class App():
         QCoreApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
 
         # Set up the application window
+        pwd = os.path.dirname(__file__)
+        qmlDir = os.path.join(pwd, "UIPkg")
         self.engine = QmlInstantEngine()
+        self.engine.addFilesFromDirectory(qmlDir, recursive=True)
         self.engine.setWatching(os.environ.get("MESHROOM_INSTANT_CODING", False))
+
+        # whether to output qml warnings to stderr (disable by default)
+        self.engine.setOutputWarningsToStandardError(MessageHandler.outputQmlWarnings)
+        qInstallMessageHandler(MessageHandler.handler)
+
         ctx = self.engine.rootContext()
 
         # Create a Backend object to communicate with QML

@@ -52,19 +52,27 @@ Item {
             }
         }
 
-        // CCameraPreview { 
-        //     Layout.fillWidth: true
-        //     Layout.alignment: Qt.AlignTop
-        // }
+        ColumnLayout {
+            CCameraSettings { 
+                id: cameraSettings
+                Layout.fillWidth: true
+                Layout.minimumWidth: 400
+                Layout.maximumWidth: 400
+                Layout.alignment: Qt.AlignTop
 
-        CCameraSettings { 
-            id: cameraSettings
-            Layout.fillWidth: true
-            Layout.minimumWidth: 400
-            Layout.maximumWidth: 400
-            Layout.alignment: Qt.AlignTop
+                onDialog: cameraPreview.changeTimer()
+            }   
 
-            onDialog: cameraPreview.changeTimer()
-        } 
+            ColumnLayout {
+                // Layout.fillWidth: true
+                // Layout.fillHeight: true
+
+                CEngineConfiguration {
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    id: engineConfiguration
+                }
+            }     
+        }
     }
 }
