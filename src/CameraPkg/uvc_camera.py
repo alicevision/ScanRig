@@ -33,7 +33,7 @@ class UvcCamera(object):
             "gamma" : 220,
             "gain" : 0, # From 0 to 100
             "sharpness" : 0,
-            "exposure" : 2000, # From 0 to 10 000
+            "exposure" : 500, # From 0 to 10 000
             "autoExposure" : 1
         }
         return settings

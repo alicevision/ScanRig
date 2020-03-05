@@ -26,6 +26,9 @@ class Acquisition(QObject):
         self.runningAcquisition = AcquisitionState.OFF
         self.savingDirectory = ""
 
+        self.arduinoSer = None
+        self.serialReader = None
+
     '''
     def start(self):
         GLOBAL_RUNNING = [True]

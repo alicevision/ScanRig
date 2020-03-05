@@ -5,6 +5,8 @@ import Qt.labs.platform 1.1
 
 GroupBox {
     title: qsTr("Camera Settings")
+    id: root
+    signal dialog()
 
     ColumnLayout {
         spacing: 10
@@ -21,7 +23,7 @@ GroupBox {
         RowLayout {
             Layout.fillWidth: true
 
-            CButton { text: "Choose destination folder"; onClicked: folderDialog.open() }
+            CButton { text: "Choose destination folder"; onClicked: { root.dialog(); folderDialog.open() } }
             Label {
                 text: folderDialog.currentFolder
             }
@@ -31,7 +33,10 @@ GroupBox {
                 folder: StandardPaths.standardLocations(StandardPaths.PicturesLocation)[0]
                 
                 Component.onCompleted: acquisition.changeSavingDirectory(folder)
-                onAccepted: acquisition.changeSavingDirectory(folder)
+                onAccepted: {
+                    acquisition.changeSavingDirectory(folder)
+                    root.dialog()
+                }
             }
         }
     }

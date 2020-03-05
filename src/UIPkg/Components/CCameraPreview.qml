@@ -8,6 +8,10 @@ GroupBox {
     id: root
     signal changedAcquisition()
 
+    function changeTimer() {
+        timer.running = !timer.running
+    }
+
     ColumnLayout {
         anchors.fill: parent
         
@@ -33,6 +37,7 @@ GroupBox {
             }
 
             Timer {
+                id: timer
                 interval: 40; running: true; repeat: true
                 onTriggered: image.reload()
             }
