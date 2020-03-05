@@ -1,13 +1,57 @@
 import sys
 import threading
 import time
+import os
+import logging
 from UIPkg.image_provider import ImageProvider
 from UIPkg.palette import Palette
 from backend import Backend
+from utils import QmlInstantEngine
 
 from PySide2.QtWidgets import QApplication
-from PySide2.QtCore import Qt, QCoreApplication
+from PySide2.QtCore import Qt, QCoreApplication, QUrl, Slot, QJsonValue, Property, qInstallMessageHandler, QtMsgType
 from PySide2.QtQml import QQmlApplicationEngine
+from PySide2.QtGui import QIcon
+
+# During development process
+os.environ["MESHROOM_OUTPUT_QML_WARNINGS"] = "1"
+os.environ["MESHROOM_INSTANT_CODING"] = "1"
+
+
+class MessageHandler(object):
+    """
+    MessageHandler that translates Qt logs to Python logging system.
+    Also contains and filters a list of blacklisted QML warnings that end up in the
+    standard error even when setOutputWarningsToStandardError is set to false on the engine.
+    """
+
+    outputQmlWarnings = bool(os.environ.get("MESHROOM_OUTPUT_QML_WARNINGS", False))
+
+    logFunctions = {
+        QtMsgType.QtDebugMsg: logging.debug,
+        QtMsgType.QtWarningMsg: logging.warning,
+        QtMsgType.QtInfoMsg: logging.info,
+        QtMsgType.QtFatalMsg: logging.fatal,
+        QtMsgType.QtCriticalMsg: logging.critical,
+        QtMsgType.QtSystemMsg: logging.critical
+    }
+
+    # Warnings known to be inoffensive and related to QML but not silenced
+    # even when 'MESHROOM_OUTPUT_QML_WARNINGS' is set to False
+    qmlWarningsBlacklist = (
+        'Failed to download scene at QUrl("")',
+        'QVariant(Invalid) Please check your QParameters',
+        'Texture will be invalid for this frame',
+    )
+
+    @classmethod
+    def handler(cls, messageType, context, message):
+        """ Message handler remapping Qt logs to Python logging system. """
+        # discard blacklisted Qt messages related to QML when 'output qml warnings' is set to false
+        if not cls.outputQmlWarnings and any(w in message for w in cls.qmlWarningsBlacklist):
+            return
+        MessageHandler.logFunctions[messageType](message)
+
 
 class App():
     def __init__(self):
@@ -18,8 +62,9 @@ class App():
         QCoreApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
 
         # Set up the application window
-        engine = QQmlApplicationEngine()
-        ctx = engine.rootContext()
+        self.engine = QmlInstantEngine()
+        self.engine.setWatching(os.environ.get("MESHROOM_INSTANT_CODING", False))
+        ctx = self.engine.rootContext()
 
         # Create a Backend object to communicate with QML
         self.backend = Backend()
@@ -28,11 +73,11 @@ class App():
         ctx.setContextProperty("acquisition", self.backend.acquisition)
         ctx.setContextProperty("availableUvcCameras", self.backend.preview.previewDevices.availableUvcCameras())
 
-        engine.addImageProvider("imageProvider", self.backend.preview.imageProvider)
+        self.engine.addImageProvider("imageProvider", self.backend.preview.imageProvider)
 
         # Apply palette
-        darkPalette = Palette(engine)
+        darkPalette = Palette(self.engine)
         
         # Run app
-        engine.load("UIPkg/App.qml")
+        self.engine.load("UIPkg/App.qml")
         sys.exit(app.exec_())

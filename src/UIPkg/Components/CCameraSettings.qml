@@ -36,6 +36,11 @@ GroupBox {
                 onAccepted: {
                     acquisition.changeSavingDirectory(folder)
                     root.dialog()
+                    console.log("Accepted")
+                }
+                onRejected: {
+                    root.dialog()
+                    console.log("Rejected")
                 }
             }
         }
