@@ -26,8 +26,130 @@ class Acquisition(QObject):
         self.runningAcquisition = AcquisitionState.OFF
         self.savingDirectory = ""
 
+        self.engineSettings = self.initEngineSettings()
         self.arduinoSer = None
         self.serialReader = None
+
+
+#-------------------------------------------- ENGINE SETTINGS
+    def initEngineSettings(self):
+        settings = {
+            "totalAngle": 180,
+            "stepAngle": 15,
+            "direction": 0,
+            "acceleration": 45,
+            "timeSpeed": 50,
+            "bsgi": False,
+            "bsgiAngle": 45
+        }
+        return settings
+
+
+    @Slot()
+    def getEngineTotalAngle(self):                   
+        return self.engineSettings["totalAngle"]
+                                         
+    @Slot(int)
+    def setEngineTotalAngle(self, val):
+        self.engineSettings["totalAngle"] = val
+        self.engineTotalAngleChanged.emit()
+
+    engineTotalAngleChanged = Signal()
+    totalAngle = Property(int, getEngineTotalAngle, setEngineTotalAngle, notify=engineTotalAngleChanged)
+
+
+    @Slot()
+    def getEngineStepAngle(self):                   
+        return self.engineSettings["stepAngle"]
+                                         
+    @Slot(int)
+    def setEngineStepAngle(self, val):
+        self.engineSettings["stepAngle"] = val
+        self.engineStepAngleChanged.emit()
+
+    engineStepAngleChanged = Signal()
+    stepAngle = Property(int, getEngineStepAngle, setEngineStepAngle, notify=engineStepAngleChanged)
+
+
+    @Slot()
+    def getEngineDirection(self):                   
+        return self.engineSettings["direction"]
+                                         
+    @Slot(int)
+    def setEngineDirection(self, val):
+        self.engineSettings["direction"] = val
+        self.engineDirectionChanged.emit()
+
+    engineDirectionChanged = Signal()
+    direction = Property(int, getEngineDirection, setEngineDirection, notify=engineDirectionChanged)
+
+
+    @Slot()
+    def getEngineAcceleration(self):                   
+        return self.engineSettings["acceleration"]
+                                         
+    @Slot(int)
+    def setEngineAcceleration(self, val):
+        self.engineSettings["acceleration"] = val
+        self.engineAccelerationChanged.emit()
+
+    engineAccelerationChanged = Signal()
+    acceleration = Property(int, getEngineAcceleration, setEngineAcceleration, notify=engineAccelerationChanged)
+
+
+    @Slot()
+    def getEngineTimeSpeed(self):                   
+        return self.engineSettings["timeSpeed"]
+                                         
+    @Slot(int)
+    def setEngineTimeSpeed(self, val):
+        self.engineSettings["timeSpeed"] = val
+        self.engineTimeSpeedChanged.emit()
+
+    engineTimeSpeedChanged = Signal()
+    timeSpeed = Property(int, getEngineTimeSpeed, setEngineTimeSpeed, notify=engineTimeSpeedChanged)
+
+
+    @Slot()
+    def getEngineBSGI(self):                   
+        return self.engineSettings["bsgi"]
+                                         
+    @Slot(bool)
+    def setEngineBSGI(self, val):
+        self.engineSettings["bsgi"] = val
+        self.engineBSGIChanged.emit()
+
+    engineBSGIChanged = Signal()
+    bsgi = Property(bool, getEngineBSGI, setEngineBSGI, notify=engineBSGIChanged)
+
+
+    @Slot()
+    def getEngineBSGIAngle(self):                   
+        return self.engineSettings["bsgiAngle"]
+                                         
+    @Slot(int)
+    def setEngineBSGIAngle(self, val):
+        self.engineSettings["bsgiAngle"] = val
+        self.engineBSGIAngleChanged.emit()
+
+    engineBSGIAngleChanged = Signal()
+    bsgiAngle = Property(int, getEngineBSGIAngle, setEngineBSGIAngle, notify=engineBSGIAngleChanged)
+
+
+    @Slot()
+    def startEngine(self):
+        print("Starting Engine")
+
+
+#-------------------------------------------- IMAGES DIRECTORY
+    @Slot(str)
+    def changeSavingDirectory(self, path) :
+        directory = path.split("file://")[1]
+        print(directory)
+        self.savingDirectory = directory
+
+
+#-------------------------------------------- ACQUISITION
 
     '''
     def start(self):
@@ -95,9 +217,6 @@ class Acquisition(QObject):
         return
         '''
 
-    @Slot()
-    def startEngine(self):
-        print("Starting Engine")
 
     def start(self, stop):
         self.runningAcquisition = AcquisitionState.ON
@@ -131,10 +250,3 @@ class Acquisition(QObject):
         self.captureDevices.stopDevices()
         print("End of Acquisition")
         self.runningAcquisition = AcquisitionState.OVER
-
-
-    @Slot(str)
-    def changeSavingDirectory(self, path) :
-        directory = path.split("file://")[1]
-        print(directory)
-        self.savingDirectory = directory
