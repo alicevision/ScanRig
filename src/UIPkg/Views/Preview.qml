@@ -42,13 +42,20 @@ Item {
                 model: ListModel {
                     id: selectedDevices
                 }
+
+                Component.onCompleted: refreshList()
                 
                 delegate: Item {
-                    height: 50
+                    height: 25
                     width: parent.width
-                    Text {
-                        text: name //'name' is the key to access the attribute
+                    
+                    Rectangle {
+                        anchors.fill: parent
+                        color: palette.highlight
+                        border.width: 2
+                        border.color: palette.window
                     }
+                    CCenteredText { text: name; font: font.family } //'name' is the key to access the attribute
                 }
             }
         }

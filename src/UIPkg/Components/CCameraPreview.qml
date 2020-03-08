@@ -108,7 +108,7 @@ GroupBox {
             ComboBox {
                 id: draftResolution
                 Layout.preferredHeight: 25
-                Layout.preferredWidth: 75
+                Layout.preferredWidth: 100
                 displayText: preview.cameraDraftResolution
                 contentItem: CCenteredText { text: parent.displayText }
 
@@ -148,6 +148,9 @@ GroupBox {
                 preview.addRemoveDeviceToAcquisition()
                 acquisitionListBtn.refreshText()
                 root.changedAcquisition()
+
+                if(preview.getDevicesInAcquisition().length > 0) backend.setReadyForAcquisition(true)
+                else backend.setReadyForAcquisition(false)
             }
 
             function refreshText() {

@@ -9,5 +9,5 @@ Text {
     horizontalAlignment: Text.AlignHCenter
     text: parent.text
     font: parent.font
-    color: "#C8C8C8"
+    color: palette.text
 }

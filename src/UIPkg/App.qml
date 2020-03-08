@@ -27,8 +27,18 @@ ApplicationWindow {
             Layout.topMargin: 10
             Layout.alignment: Qt.AlignCenter
 
-            CButton { id: startBtn; text: "Start"; onClicked: { mainLayout.disableMainLayout(backend.startAcquisition()) } }
-            CButton { id: stopBtn; text: "Stop"; onClicked: { mainLayout.enableMainLayout(backend.stopAcquisition()) } }
+            CButton { 
+                id: startBtn
+                text: "Start"
+                enabled: backend.mainLayoutEnabled && backend.readyForAcquisitionProperty
+                onClicked: { mainLayout.disableMainLayout(backend.startAcquisition()) } 
+            }
+            CButton { 
+                id: stopBtn
+                text: "Stop"
+                enabled: !backend.mainLayoutEnabled
+                onClicked: { mainLayout.enableMainLayout(backend.stopAcquisition()) } 
+            }
         }
 
         TabBar {
@@ -36,7 +46,7 @@ ApplicationWindow {
             Layout.preferredWidth: parent.width
 
             TabButton { text: "Camera Preview"; width: implicitWidth; contentItem: CCenteredText {} }
-            TabButton { text: "Engine Configuration"; width: implicitWidth; contentItem: CCenteredText {} }
+            TabButton { text: "Multicamera View"; width: implicitWidth; contentItem: CCenteredText {} }
         }
 
         StackLayout {
@@ -62,12 +72,12 @@ ApplicationWindow {
                 Layout.fillHeight: true
             }
 
-            Loader {
-                source: "Views/Capture.qml"
+            // Loader {
+            //     source: "Views/Capture.qml"
 
-                Layout.preferredHeight: parent.height*0.9
-                Layout.fillHeight: true
-            }
+            //     Layout.preferredHeight: parent.height*0.9
+            //     Layout.fillHeight: true
+            // }
         }
     }
 

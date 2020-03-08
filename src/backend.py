@@ -15,6 +15,7 @@ class Backend(QObject):
         self.acquisition = Acquisition()
         self.preview = CaptureDevicePreview(self.acquisition.captureDevices)
         self.mainLayout = True
+        self.readyForAcquisition = False
 
         # THREAD: Main Thread which works continuously
         self.stopMainThread = False
@@ -110,3 +111,16 @@ class Backend(QObject):
             return True
         else:
             return False
+
+    #---------- QLM Property
+    @Slot(result=bool)
+    def getReadyForAcquisition(self):
+        return self.readyForAcquisition                                     
+    
+    @Slot(bool)
+    def setReadyForAcquisition(self, boolean):
+        self.readyForAcquisition = boolean
+        self.readyForAcquisitionChanged.emit()
+
+    readyForAcquisitionChanged = Signal()
+    readyForAcquisitionProperty = Property(bool, getReadyForAcquisition, setReadyForAcquisition, notify=readyForAcquisitionChanged)

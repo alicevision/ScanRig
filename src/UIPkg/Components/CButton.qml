@@ -6,6 +6,8 @@ Flow {
     property alias text: button.text
     signal clicked()
 
+    opacity: enabled ? 1 : 0.3
+
     Button {
         id: button
         text: qsTr("My custom text")
