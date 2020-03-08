@@ -19,6 +19,18 @@ class CaptureDevicePreview(QObject):
         self.acquisitionDevices = acquisitionDevices
         self.signals = self.initSignals()
 
+    @Slot()
+    def getCurrentId(self):   
+        return self.currentId                                        
+    
+    @Slot(int)
+    def setCurrentId(self, val):
+        self.currentId = val
+        self.currentIdChanged.emit()
+
+    currentIdChanged = Signal()
+    currentIdProperty = Property(int, getCurrentId, setCurrentId, notify=currentIdChanged)
+
 
     @Slot(result=bool)
     def getRunningPreview(self):
@@ -28,7 +40,7 @@ class CaptureDevicePreview(QObject):
     @Slot(str)
     def changePreview(self, camId):
         camId = int(camId)
-        self.currentId = camId
+        self.setCurrentId(camId)
 
         # If "No Selected Device" is chosen
         if self.currentId == -1 :
@@ -130,8 +142,9 @@ class CaptureDevicePreview(QObject):
     def getCameraDraftResolution(self):
         if not self.previewDevices.isEmpty():   
             device = self.previewDevices.getDevice(0)
-            if isinstance(device, UvcCamera):             
-                return device.getDraftResolution()
+            if isinstance(device, UvcCamera):
+                res = device.getDraftResolution()
+                return f'{res[0]}x{res[1]}'           
             else:
                 return ""
         else:
@@ -167,7 +180,8 @@ class CaptureDevicePreview(QObject):
         if not self.previewDevices.isEmpty():   
             device = self.previewDevices.getDevice(0)
             if isinstance(device, UvcCamera):             
-                return device.getResolution()
+                res = device.getResolution()
+                return f'{res[0]}x{res[1]}'
             else:
                 return ""
         else:

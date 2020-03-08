@@ -20,7 +20,7 @@ GroupBox {
         Image {
             id: image
             property bool backBuffer: false
-            property int camId: -1
+            property int camId: preview.currentIdProperty
             source: "no_device_selected.png"
 
             asynchronous: false
@@ -71,7 +71,7 @@ GroupBox {
                 // Using JS to add the AvailableDevices to the list
                 Component.onCompleted: {
                     // availableDevices is a list which comes from Python
-                    for(let uvcCamIndex in availableUvcCameras) {
+                    for(let uvcCamIndex in preview.getAvailableUvcCameras()) {
                         const txt = "UVC: " + uvcCamIndex.toString()
                         availableDevicesList.append({text: txt})
                     }
@@ -87,7 +87,6 @@ GroupBox {
 
                     if (txt === "No Device Selected") {
                         preview.changePreview(-1)
-                        image.camId = -1
                         image.source = "no_device_selected.png"
                     }
                     else if (camera === image.camId) {
@@ -95,7 +94,6 @@ GroupBox {
                     }
                     else {
                         preview.changePreview(camera)
-                        image.camId = camera
                     }
                     acquisitionListBtn.refreshText()
                     draftResolution.updateResolutionsList()
@@ -106,18 +104,6 @@ GroupBox {
             Label {
                 text: "Preview Quality:"
             }
-
-            // ComboBox {
-            //     Layout.preferredHeight: 25
-            //     Layout.preferredWidth: 75
-            //     displayText: preview.cameraDraftResolution
-            //     contentItem: CCenteredText { text: parent.displayText }
-
-            //     model: ["Full", "Full HD", "HD", "SD"]
-            //     onActivated: {
-            //         preview.setCameraDraftResolution(currentText)
-            //     }
-            // }
 
             ComboBox {
                 id: draftResolution

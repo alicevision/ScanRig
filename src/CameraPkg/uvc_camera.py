@@ -66,7 +66,7 @@ class UvcCamera(object):
         return
 
     def getResolution(self):
-        return f'{self.settings["width"]}x{self.settings["height"]}'
+        return (self.settings["width"], self.settings["height"])
 
     def setDraftResolution(self, w, h):
         self.settings["draftWidth"] = w
@@ -74,7 +74,7 @@ class UvcCamera(object):
         return
 
     def getDraftResolution(self):
-        return f'{self.settings["draftWidth"]}x{self.settings["draftHeight"]}'
+        return (self.settings["draftWidth"], self.settings["draftHeight"])
 
 
     def changeResolution(self, draft=False):
