@@ -11,6 +11,28 @@ GroupBox {
     ColumnLayout {
         spacing: 10
 
+        RowLayout {
+            Layout.fillWidth: true
+
+            Label {
+                text: "Resolution"
+                horizontalAlignment: Text.AlignRight
+                Layout.preferredWidth: exposure.labelSize
+            }
+
+            ComboBox {
+                Layout.preferredHeight: 25
+                Layout.preferredWidth: 75
+                displayText: preview.cameraDraftResolution
+                contentItem: CCenteredText { text: parent.displayText }
+
+                model: ["Full", "Full HD", "HD", "SD"]
+                onActivated: {
+                    preview.setCameraDraftResolution(currentText)
+                }
+            }
+        }
+
         CSlider { id: exposure; text: "Exposure"; from: 0; to: 10000; stepSize: 20; value: preview.cameraExposure; onMoved: preview.setCameraExposure(newValue) }
         CSlider { id: brightness; text: "Brightness"; from: -10; to: 10; stepSize: 1; value: preview.cameraBrightness; onMoved: preview.setCameraBrightness(newValue) }
         CSlider { id: contrast; text: "Contrast"; from: -10; to: 10; stepSize: 1; value: preview.cameraContrast; onMoved: preview.setCameraContrast(newValue) }

@@ -16,8 +16,11 @@ class UvcCamera(object):
             self.settings = self.initSettings()
 
         self.capture = cv2.VideoCapture()
-        
         self.start()
+        self.resolutions = self.findResolutions()
+        self.setResolution(self.resolutions[0][0], self.resolutions[0][1])
+        print(self.resolutions)
+        self.setDraftResolution("Full")
 
 
     #----------------------------------------- SETTINGS
@@ -25,6 +28,8 @@ class UvcCamera(object):
         settings = {
             "width" : 1280,
             "height" : 720,
+            "draftWidth" : 1280,
+            "draftHeight" : 720,
             "brightness" : 0,
             "contrast" : 0,
             "saturation" : 32,
@@ -38,13 +43,65 @@ class UvcCamera(object):
         }
         return settings
 
+    def findResolutions(self):
+        resolutions = []
+        toTest = [(4208, 3120), (4096, 2160), (3840, 2160), (2880, 2160), (1920, 1440), (1920, 1080), (1280, 960), (1280, 720), (640,480), (320, 240), (160, 120)]
+
+        for (w,h) in toTest:
+            self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, w)
+            self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, h)
+
+            actualWidth = self.capture.get(cv2.CAP_PROP_FRAME_WIDTH)
+            actualHeight = self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
+
+            if actualWidth == w and actualHeight == h:
+                resolutions.append((w,h))
+
+        return resolutions
+
     def setResolution(self, w, h):
-        self.settings["width"] = w
-        self.settings["height"] = h
+        self.setFinalResolution(w, h)
 
         self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.settings.get("width"))
         self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.settings.get("height"))
         return
+
+    def setFinalResolution(self, w, h):
+        self.settings["width"] = w
+        self.settings["height"] = h
+        return
+
+    def setDraftResolution(self, res):
+        if res == "Full" :
+            self.settings["draftWidth"] = self.settings.get("width")
+            self.settings["draftHeight"] = self.settings.get("height")
+        elif res == "Full HD" :
+            self.settings["draftWidth"] = 1920
+            self.settings["draftHeight"] = 1080
+        elif res == "HD" :
+            self.settings["draftWidth"] = 1280
+            self.settings["draftHeight"] = 720
+        elif res == "SD" :
+            self.settings["draftWidth"] = 640
+            self.settings["draftHeight"] = 480
+        else:
+            return       
+
+        self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.settings.get("draftWidth"))
+        self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.settings.get("draftHeight"))
+        return
+
+    def getDraftResolution(self):
+        if self.settings["draftWidth"] == self.settings["width"] and self.settings["draftHeight"] == self.settings["height"]:
+            return "Full"
+        elif self.settings["draftWidth"] == 1920 and self.settings["draftHeight"] == 1080:
+            return "Full HD"
+        elif self.settings["draftWidth"] == 1280 and self.settings["draftHeight"] == 720:
+            return "HD"
+        elif self.settings["draftWidth"] == 640 and self.settings["draftHeight"] == 480:
+            return "SD"
+        else:
+            return ""
 
     def setBrightness(self, value):
         self.settings["brightness"] = value
@@ -86,6 +143,7 @@ class UvcCamera(object):
         self.capture.set(cv2.CAP_PROP_EXPOSURE, self.settings.get("exposure"))
         return
 
+    # Set everything but the Draft Resolution (of course)
     def setAllSettings(self):
         self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.settings.get("width"))
         self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.settings.get("height"))

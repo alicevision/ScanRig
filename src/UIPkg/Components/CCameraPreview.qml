@@ -107,10 +107,12 @@ GroupBox {
             ComboBox {
                 Layout.preferredHeight: 25
                 Layout.preferredWidth: 75
+                displayText: preview.cameraDraftResolution
                 contentItem: CCenteredText { text: parent.displayText }
 
-                model: ["Full", "1/2", "1/4"]
+                model: ["Full", "Full HD", "HD", "SD"]
                 onActivated: {
+                    preview.setCameraDraftResolution(currentText)
                 }
             }
         }

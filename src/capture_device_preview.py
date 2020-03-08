@@ -91,6 +91,7 @@ class CaptureDevicePreview(QObject):
         return self.acquisitionDevices.getDevicesNames()
 
 
+
     #----------- GETTERS & SETTERS FOR UVC CAMERAS SETTINGS
     def initSignals(self):
         signals = []
@@ -102,8 +103,36 @@ class CaptureDevicePreview(QObject):
         signals.append(self.cameraGammaChanged)
         signals.append(self.cameraGainChanged)
         signals.append(self.cameraSharpnessChanged)
+        signals.append(self.cameraDraftResolutionChanged)
 
         return signals
+
+
+
+    @Slot(result=str)
+    def getCameraDraftResolution(self):
+        if not self.previewDevices.isEmpty():   
+            device = self.previewDevices.getDevice(0)
+            if isinstance(device, UvcCamera):                 
+                return device.getDraftResolution()
+            else:
+                return ""
+        else:
+            return ""
+
+    @Slot(str)
+    def setCameraDraftResolution(self, string):
+        if not self.previewDevices.isEmpty(): 
+            device = self.previewDevices.getDevice(0)
+            if isinstance(device, UvcCamera): 
+                self.runningPreview = False
+                time.sleep(0.1)
+                device.setDraftResolution(string)
+                self.runningPreview = True
+                self.cameraDraftResolutionChanged.emit()
+
+    cameraDraftResolutionChanged = Signal()
+    cameraDraftResolution = Property(str, getCameraDraftResolution, setCameraDraftResolution, notify=cameraDraftResolutionChanged)  
 
 
     @Slot()
