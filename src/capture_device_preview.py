@@ -52,6 +52,7 @@ class CaptureDevicePreview(QObject):
             if existingDevice:
                 print("existing device")
                 existingDevice.start()
+                existingDevice.changeResolution(draft=True)
                 self.previewDevices.devices.append(existingDevice)
             else:
                 self.previewDevices.addUvcCamera(self.currentId)
@@ -64,6 +65,21 @@ class CaptureDevicePreview(QObject):
     @Slot(result="QVariantList")
     def getAvailableUvcCameras(self):
         return self.previewDevices.availableUvcCameras()
+
+    @Slot(result="QStringList")
+    def getAvailableUvcResolutions(self):
+        if not self.previewDevices.isEmpty():   
+            device = self.previewDevices.getDevice(0)
+            if isinstance(device, UvcCamera):
+                printableResolutions = []
+
+                for elt in device.resolutions:
+                    txt = f'{elt[0]}x{elt[1]}'
+                    printableResolutions.append(txt)
+
+                return printableResolutions
+            else:
+                return ""
 
     @Slot()
     def addRemoveDeviceToAcquisition(self):
@@ -104,6 +120,7 @@ class CaptureDevicePreview(QObject):
         signals.append(self.cameraGainChanged)
         signals.append(self.cameraSharpnessChanged)
         signals.append(self.cameraDraftResolutionChanged)
+        signals.append(self.cameraResolutionChanged)
 
         return signals
 
@@ -113,7 +130,7 @@ class CaptureDevicePreview(QObject):
     def getCameraDraftResolution(self):
         if not self.previewDevices.isEmpty():   
             device = self.previewDevices.getDevice(0)
-            if isinstance(device, UvcCamera):                 
+            if isinstance(device, UvcCamera):             
                 return device.getDraftResolution()
             else:
                 return ""
@@ -124,15 +141,53 @@ class CaptureDevicePreview(QObject):
     def setCameraDraftResolution(self, string):
         if not self.previewDevices.isEmpty(): 
             device = self.previewDevices.getDevice(0)
-            if isinstance(device, UvcCamera): 
+            if isinstance(device, UvcCamera):
+                # Stop the preview
                 self.runningPreview = False
                 time.sleep(0.1)
-                device.setDraftResolution(string)
+
+                # Get resolution from string
+                res = string.split("x")
+                w = int(res[0])
+                h = int(res[1])
+                # Set resolution
+                device.setDraftResolution(w, h)
+                device.changeResolution(draft=True)
+
+                # Run again the preview
                 self.runningPreview = True
                 self.cameraDraftResolutionChanged.emit()
 
     cameraDraftResolutionChanged = Signal()
-    cameraDraftResolution = Property(str, getCameraDraftResolution, setCameraDraftResolution, notify=cameraDraftResolutionChanged)  
+    cameraDraftResolution = Property(str, getCameraDraftResolution, setCameraDraftResolution, notify=cameraDraftResolutionChanged)
+
+
+    @Slot(result=str)
+    def getCameraResolution(self):
+        if not self.previewDevices.isEmpty():   
+            device = self.previewDevices.getDevice(0)
+            if isinstance(device, UvcCamera):             
+                return device.getResolution()
+            else:
+                return ""
+        else:
+            return ""
+
+    @Slot(str)
+    def setCameraResolution(self, string):
+        if not self.previewDevices.isEmpty(): 
+            device = self.previewDevices.getDevice(0)
+            if isinstance(device, UvcCamera):
+                # Get resolution from string
+                res = string.split("x")
+                w = int(res[0])
+                h = int(res[1])
+                # Set resolution in the dictionnary only (the preview is not affected)
+                device.setResolution(w, h)
+                self.cameraResolutionChanged.emit()
+
+    cameraResolutionChanged = Signal()
+    cameraResolution = Property(str, getCameraResolution, setCameraResolution, notify=cameraResolutionChanged)  
 
 
     @Slot()

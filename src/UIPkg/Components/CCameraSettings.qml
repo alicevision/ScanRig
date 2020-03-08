@@ -7,6 +7,7 @@ GroupBox {
     title: qsTr("Camera Settings")
     id: root
     signal dialog()
+    property alias res : resolutionComboBox
 
     ColumnLayout {
         spacing: 10
@@ -21,14 +22,33 @@ GroupBox {
             }
 
             ComboBox {
+                id: resolutionComboBox
                 Layout.preferredHeight: 25
                 Layout.preferredWidth: 75
-                displayText: preview.cameraDraftResolution
+                displayText: preview.cameraResolution
                 contentItem: CCenteredText { text: parent.displayText }
 
-                model: ["Full", "Full HD", "HD", "SD"]
+                model: ListModel {
+                    id: availableResolutionsList
+                }
+
+                // Using JS to add the availableResolutions to the list
+                Component.onCompleted: {
+                    updateResolutionsList()
+                }
+
                 onActivated: {
-                    preview.setCameraDraftResolution(currentText)
+                    preview.setCameraResolution(currentText)
+                }
+
+                function updateResolutionsList() {
+                    availableResolutionsList.clear()
+                    const resolutions = preview.getAvailableUvcResolutions()
+
+                    for(let i = 0; i < resolutions.length; ++i) {
+                        const txt = resolutions[i].toString()
+                        availableResolutionsList.append({text: txt})
+                    }               
                 }
             }
         }

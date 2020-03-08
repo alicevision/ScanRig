@@ -7,6 +7,7 @@ GroupBox {
     title: qsTr("Camera Preview")
     id: root
     signal changedAcquisition()
+    signal changedDevice()
 
     function changeTimer() {
         timer.running = !timer.running
@@ -97,6 +98,8 @@ GroupBox {
                         image.camId = camera
                     }
                     acquisitionListBtn.refreshText()
+                    draftResolution.updateResolutionsList()
+                    root.changedDevice()
                 }
             }
 
@@ -104,15 +107,46 @@ GroupBox {
                 text: "Preview Quality:"
             }
 
+            // ComboBox {
+            //     Layout.preferredHeight: 25
+            //     Layout.preferredWidth: 75
+            //     displayText: preview.cameraDraftResolution
+            //     contentItem: CCenteredText { text: parent.displayText }
+
+            //     model: ["Full", "Full HD", "HD", "SD"]
+            //     onActivated: {
+            //         preview.setCameraDraftResolution(currentText)
+            //     }
+            // }
+
             ComboBox {
+                id: draftResolution
                 Layout.preferredHeight: 25
                 Layout.preferredWidth: 75
                 displayText: preview.cameraDraftResolution
                 contentItem: CCenteredText { text: parent.displayText }
 
-                model: ["Full", "Full HD", "HD", "SD"]
+                model: ListModel {
+                    id: availableResolutionsList
+                }
+
+                // Using JS to add the availableResolutions to the list
+                Component.onCompleted: {
+                    updateResolutionsList()
+                }
+
                 onActivated: {
                     preview.setCameraDraftResolution(currentText)
+                }
+
+                function updateResolutionsList() {
+                    availableResolutionsList.clear()
+                    const resolutions = preview.getAvailableUvcResolutions()
+
+                    for(let i = 0; i < resolutions.length; ++i) {
+                        const txt = resolutions[i].toString()
+                        availableResolutionsList.append({text: txt})
+                    }               
                 }
             }
         }

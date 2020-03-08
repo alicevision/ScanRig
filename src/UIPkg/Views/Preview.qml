@@ -19,6 +19,7 @@ Item {
                 clip: true
 
                 onChangedAcquisition: selectedDevicesList.refreshList()
+                onChangedDevice: cameraSettings.res.updateResolutionsList()
             }
 
             ListView {
