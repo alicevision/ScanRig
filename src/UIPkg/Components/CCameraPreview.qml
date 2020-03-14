@@ -15,12 +15,12 @@ GroupBox {
 
     ColumnLayout {
         anchors.fill: parent
-        
+
         /***** PREVIEW *****/
         Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.preferredHeight: parent.height
+            Layout.preferredHeight: parent.height - 60
 
             Image {
                 id: image
