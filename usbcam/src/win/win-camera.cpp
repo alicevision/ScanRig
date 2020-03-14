@@ -116,7 +116,7 @@ namespace USBCam {
         frameSource.SetFormatAsync(frameSource.SupportedFormats().GetAt(id)).get();
     }
 
-    FrameEncoding WinCamera::SubTypeToFrameEncoding(const std::string& subType) const {
+    ICamera::FrameEncoding WinCamera::SubTypeToFrameEncoding(const std::string& subType) const {
         if (subType == "NV12")
             return FrameEncoding::NV12;
         if (subType == "MJPG")
