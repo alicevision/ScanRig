@@ -61,20 +61,19 @@ Item {
         }
 
         ColumnLayout {
+            Layout.fillWidth: true
+            Layout.minimumWidth: 400
+            Layout.maximumWidth: 400
+
             CCameraSettings { 
                 id: cameraSettings
                 Layout.fillWidth: true
-                Layout.minimumWidth: 400
-                Layout.maximumWidth: 400
                 Layout.alignment: Qt.AlignTop
 
                 onDialog: cameraPreview.changeTimer()
             }   
 
             ColumnLayout {
-                // Layout.fillWidth: true
-                // Layout.fillHeight: true
-
                 CEngineConfiguration {
                     Layout.fillHeight: true
                     Layout.fillWidth: true

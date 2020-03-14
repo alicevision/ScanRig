@@ -17,32 +17,39 @@ GroupBox {
         anchors.fill: parent
         
         /***** PREVIEW *****/
-        Image {
-            id: image
-            property bool backBuffer: false
-            property int camId: preview.currentIdProperty
-            source: "no_device_selected.png"
+        Item {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.preferredHeight: parent.height
 
-            asynchronous: false
+            Image {
+                id: image
+                property bool backBuffer: false
+                property int camId: preview.currentIdProperty
+                source: "no_device_selected.png"
 
-            fillMode: Image.PreserveAspectFit
-            Layout.preferredWidth: parent.width
-            Layout.preferredHeight: parent.width / (image.sourceSize.width/image.sourceSize.height)
-            Layout.alignment: Qt.AlignTop
+                asynchronous: false
 
-            function reload() {
-                if(camId != -1 && preview.getRunningPreview()) {
-                    backBuffer = !backBuffer
-                    image.source = "image://imageProvider/" + camId + "/" + backBuffer
+                fillMode: Image.PreserveAspectFit
+                height: parent.height
+                width: parent.width
+                Layout.alignment: Qt.AlignCenter
+
+                function reload() {
+                    if(camId != -1 && preview.getRunningPreview()) {
+                        backBuffer = !backBuffer
+                        image.source = "image://imageProvider/" + camId + "/" + backBuffer
+                    }
+                }
+
+                Timer {
+                    id: timer
+                    interval: 40; running: true; repeat: true
+                    onTriggered: image.reload()
                 }
             }
-
-            Timer {
-                id: timer
-                interval: 40; running: true; repeat: true
-                onTriggered: image.reload()
-            }
         }
+
 
         /***** SETTINGS *****/
         RowLayout {
