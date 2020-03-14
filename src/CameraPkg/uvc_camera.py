@@ -179,6 +179,9 @@ class UvcCamera(object):
         if not self.status:
             logging.warning("Image cannot be retrieved")
 
+    def setSavingFrames(self, savingFrames):
+        self.framesToSave = savingFrames
+
     def saveFrame(self):
         if self.framesToSave:
             self.framesToSave.put((self.indexCam, self.nbSavedFrame, self.frame))

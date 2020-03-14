@@ -11,6 +11,7 @@ import args_parser
 import CameraPkg
 from CameraPkg.capture_device_list import CaptureDeviceList
 from CameraPkg.uvc_camera import UvcCamera
+from CameraPkg.saving import SaveWatcher
 from MoteurPkg.serial_management import availablePorts, serialWrite, SerialReader, selectPort
 
 
@@ -25,6 +26,7 @@ class Acquisition(QObject):
         self.captureDevices = CaptureDeviceList()
         self.runningAcquisition = AcquisitionState.OFF
         self.savingDirectory = ""
+        self.takenImages = 0
 
         self.engineSettings = self.initEngineSettings()
         self.arduinoSer = None
@@ -141,13 +143,25 @@ class Acquisition(QObject):
         print("Starting Engine")
 
 
-#-------------------------------------------- IMAGES DIRECTORY
+#-------------------------------------------- IMAGES
     @Slot(str)
     def changeSavingDirectory(self, path) :
         directory = path.split("file://")[1]
         print(directory)
         self.savingDirectory = directory
 
+    
+    @Slot()
+    def getTakenImages(self):                   
+        return self.takenImages
+                                         
+    @Slot()
+    def incrementTakenImages(self):
+        self.takenImages += 1
+        self.takenImagesChanged.emit()
+
+    takenImagesChanged = Signal()
+    takenImagesProp = Property(int, getTakenImages, incrementTakenImages, notify=takenImagesChanged)
 
 #-------------------------------------------- ACQUISITION
 
@@ -220,12 +234,20 @@ class Acquisition(QObject):
 
     def start(self, stop):
         self.runningAcquisition = AcquisitionState.ON
+        self.takenImages = 0
         i = 0
 
         # Start UVC Cameras
         for device in self.captureDevices.devices:
             if isinstance(device, UvcCamera):
                 device.start()
+        # Set the queue saving frames to every devices
+        self.captureDevices.setSavingFramesToDevices()
+
+        # Initialize and start saving thread
+        stopSavingThread = [False]
+        savingThread = SaveWatcher(stopSavingThread, self.captureDevices.savingFrames, self.savingDirectory)
+        savingThread.start()
 
         while True:
             if stop():
@@ -238,15 +260,14 @@ class Acquisition(QObject):
             self.captureDevices.retrieveFrames()
 
             if i % 10 == 0 :
-                frame = self.captureDevices.devices[0].frame
-                directory = self.savingDirectory
-                filename = f'cam_0_{i}.jpg'
-                outFilepath = os.path.join(directory, filename)
-                logging.info(f'Writting file={outFilepath}')
-                cv2.imwrite(outFilepath, frame)
+                self.captureDevices.saveFrames()
 
             i += 1
 
+        # Wait the end of saving thread
+        stopSavingThread[0] = True
+        savingThread.join()
+
         self.captureDevices.stopDevices()
-        print("End of Acquisition")
+        logging.info("End of Acquisition")
         self.runningAcquisition = AcquisitionState.OVER
