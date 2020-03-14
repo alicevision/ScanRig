@@ -6,8 +6,8 @@ import "Components"
 ApplicationWindow {
     title: qsTr("ScanRig App")
     visible: true
-    height: 900
-    width: 900 * 1.7
+    height: 700
+    width: 700 * 1.7
 
     minimumHeight: 700
     minimumWidth: minimumHeight * 1.7
@@ -68,7 +68,7 @@ ApplicationWindow {
             Loader {
                 source: "Views/Preview.qml"
 
-                Layout.preferredHeight: parent.height*0.9
+                Layout.preferredHeight: parent.height*0.8
                 Layout.fillHeight: true
             }
 
@@ -79,7 +79,26 @@ ApplicationWindow {
             //     Layout.fillHeight: true
             // }
         }
+
+        Item {
+            id: loadingBarAcquisition
+            enabled: !backend.mainLayoutEnabled
+            visible: !backend.mainLayoutEnabled
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.preferredHeight: 20
+
+            Rectangle {
+                anchors.fill: parent
+                color: palette.highlight
+                border.width: 2
+                border.color: palette.window
+            }
+            CCenteredText { 
+                text: "Acquisition in progress: " + acquisition.nbTakenImagesProp + "/" + acquisition.nbImagesToTakeProp + "  | More information in the terminal."
+                font: font.family 
+            }
+        }
     }
 
 }
-

@@ -26,7 +26,8 @@ class Acquisition(QObject):
         self.captureDevices = CaptureDeviceList()
         self.runningAcquisition = AcquisitionState.OFF
         self.savingDirectory = ""
-        self.takenImages = 0
+        self.nbTakenImages = 0
+        self.nbImagesToTake = 0
 
         self.engineSettings = self.initEngineSettings()
         self.arduinoSer = None
@@ -152,16 +153,32 @@ class Acquisition(QObject):
 
     
     @Slot()
-    def getTakenImages(self):                   
-        return self.takenImages
+    def getNbTakenImages(self):                   
+        return self.nbTakenImages
                                          
-    @Slot()
-    def incrementTakenImages(self):
-        self.takenImages += 1
-        self.takenImagesChanged.emit()
+    @Slot(int)
+    def setNbTakenImages(self, val):
+        if val == 0:
+            self.nbTakenImages = 0
+        if val == 1:
+            self.nbTakenImages += 1
+        self.nbTakenImagesChanged.emit()
 
-    takenImagesChanged = Signal()
-    takenImagesProp = Property(int, getTakenImages, incrementTakenImages, notify=takenImagesChanged)
+    nbTakenImagesChanged = Signal()
+    nbTakenImagesProp = Property(int, getNbTakenImages, setNbTakenImages, notify=nbTakenImagesChanged)
+
+
+    @Slot()
+    def getNbImagesToTake(self):                   
+        return self.nbImagesToTake
+                                         
+    @Slot(int)
+    def setNbImagesToTake(self, val):
+        self.nbImagesToTake = val
+        self.nbImagesToTakeChanged.emit()
+
+    nbImagesToTakeChanged = Signal()
+    nbImagesToTakeProp = Property(int, getNbImagesToTake, setNbImagesToTake, notify=nbImagesToTakeChanged)
 
 #-------------------------------------------- ACQUISITION
 
@@ -234,7 +251,8 @@ class Acquisition(QObject):
 
     def start(self, stop):
         self.runningAcquisition = AcquisitionState.ON
-        self.takenImages = 0
+        self.setNbTakenImages(0)
+        self.setNbImagesToTake(6)
         i = 0
 
         # Start UVC Cameras
@@ -261,6 +279,7 @@ class Acquisition(QObject):
 
             if i % 10 == 0 :
                 self.captureDevices.saveFrames()
+                self.setNbTakenImages(1)
 
             i += 1
 
