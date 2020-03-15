@@ -65,7 +65,7 @@ namespace USBCam {
         try {
             m_sourceInfo = filteredGroups.GetAt(portNumber);
         } catch (winrt::hresult_error const& ex) {
-            throw std::out_of_range("Camera does not exist at this index : " + std::to_string(portNumber) + " : " + winrt::to_string(ex.message()));
+            throw std::out_of_range("Camera does not exist at this port : " + std::to_string(portNumber) + " : " + winrt::to_string(ex.message()));
         }
 
         // Set default settings
