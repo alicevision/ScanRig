@@ -42,6 +42,13 @@ namespace USBCam {
          */
         void TakeAndSavePictures() const;
 
+        /**
+         * @brief Set the Capture format of the usb cams
+         * 
+         * @param id 
+         */
+        void SetFormat(uint32_t id);
+
     private:
         std::vector<ICamera*> m_cams;
     };

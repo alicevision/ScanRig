@@ -61,9 +61,11 @@ namespace USBCam {
         // Get camera
         m_sourceGroups = MediaFrameSourceGroup::FindAllAsync().get();
         auto filteredGroups = GetFilteredSourceGroupList(m_sourceGroups);
-        m_sourceInfo = filteredGroups.GetAt(portNumber); 
-        if (m_sourceInfo == nullptr) {
-            throw std::out_of_range(std::string("Camera does not exist at this index : " + portNumber));
+
+        try {
+            m_sourceInfo = filteredGroups.GetAt(portNumber);
+        } catch (winrt::hresult_error const& ex) {
+            throw std::out_of_range("Camera does not exist at this index : " + std::to_string(portNumber) + " : " + winrt::to_string(ex.message()));
         }
 
         // Set default settings
@@ -73,7 +75,7 @@ namespace USBCam {
         settings.StreamingCaptureMode(StreamingCaptureMode::Video);
         
         // Init camera
-        m_capture.InitializeAsync(settings).get(); // FIXME throws an exeption but cannot be catched
+        m_capture.InitializeAsync(settings).get(); // FIXME throws an exception but cannot be catched 'Device do not exist'
 
         StartPreview();
     }
