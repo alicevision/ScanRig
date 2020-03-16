@@ -18,6 +18,8 @@
 namespace USBCam {
 
     // https://lwn.net/Articles/203924/
+    // http://jwhsmith.net/2014/12/capturing-a-webcam-stream-using-v4l2/
+    // https://chromium.googlesource.com/chromium/src.git/+/40.0.2214.91/media/video/capture/linux/video_capture_device_linux.cc
 
     std::vector<Port> GetDevicesList() {
         std::vector<Port> ports;
@@ -76,13 +78,29 @@ namespace USBCam {
     std::vector<ICamera::Capabilities> LinuxCamera::GetCapabilities() const {
         std::vector<ICamera::Capabilities> capabilities;
         
-        /*
+        // Get supported frame encodings
+        std::vector<FrameEncoding> encodings;
         v4l2_fmtdesc desc;
         CLEAR(desc);
-        if (ioctl(m_fd, VIDIOC_ENUM_FMT, &desc) == -1) {
-            throw std::runtime_error("Cannot get camera capabilities : " + std::string(strerror(errno)));
+        desc.index = 0;
+        desc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        
+        while (ioctl(m_fd, VIDIOC_ENUM_FMT, &desc) == 0) {
+            desc.index++;
+            switch (desc.pixelformat) {
+            case V4L2_PIX_FMT_MJPEG:
+                encodings.push_back(FrameEncoding::MJPG);
+                break;
+
+            case V4L2_PIX_FMT_UYVY:
+                encodings.push_back(FrameEncoding::UYVY);
+                break;
+            
+            default:
+                encodings.push_back(FrameEncoding::_UNKNOWN);
+                break;
+            }
         }
-        */
         
         return capabilities;
     }

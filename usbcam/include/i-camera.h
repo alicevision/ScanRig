@@ -16,6 +16,7 @@ namespace USBCam {
         enum class FrameEncoding {
             _UNKNOWN,
             YUY2,
+            UYVY,
             MJPG,
             NV12
         };
