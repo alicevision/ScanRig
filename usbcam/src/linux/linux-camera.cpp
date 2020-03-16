@@ -6,13 +6,16 @@
 
 #include <string>
 #include <cstring>
+#include <iostream>
+#include <stdexcept>
+
 #include <linux/uinput.h>
 #include <linux/videodev2.h>
 #include <sys/ioctl.h>
+#include <sys/mman.h>
 #include <fcntl.h>
-#include <stdexcept>
 #include <errno.h>
-#include <iostream>
+#include <unistd.h>
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
@@ -53,10 +56,14 @@ namespace USBCam {
         // Set Default capture format
         const auto caps = GetCapabilities();
         SetFormat(caps.at(0));
+
+        // Prepare capture
+        m_buffer = new MMapBuffer(m_fd);
     }
 
     LinuxCamera::~LinuxCamera() {
-
+        delete m_buffer;
+        close(m_fd);
     }
 
     std::vector<ICamera::Capabilities> LinuxCamera::GetCapabilities() const {
@@ -136,6 +143,10 @@ namespace USBCam {
     void LinuxCamera::TakeAndSavePicture() const {
 
     }
+
+    ////////////////////////////////////////////////////////////////////
+    ////////////////////////// PRIVATE METHODS /////////////////////////
+    ////////////////////////////////////////////////////////////////////
 
     ICamera::FrameEncoding LinuxCamera::PixelFormatToFrameEncoding(unsigned int pixelFormat) const {
         switch (pixelFormat) {
