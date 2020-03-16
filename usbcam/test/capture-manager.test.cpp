@@ -14,9 +14,8 @@ SCENARIO("A Capture Manager can handle multiple camera, change settings, launch 
         }
     }
 
-    /*
     GIVEN("A single Camera") {
-        USBCam::CaptureManager manager({1});
+        USBCam::CaptureManager manager({0});
 
         WHEN("I ask for its capabilities") {
             auto caps = manager.GetCam(0)->GetCapabilities();
@@ -34,7 +33,8 @@ SCENARIO("A Capture Manager can handle multiple camera, change settings, launch 
             }
         }
     }
-    */
+
+    /*
 
     GIVEN("3 Cameras") {
         USBCam::CaptureManager manager({0, 2, 3});
@@ -47,4 +47,5 @@ SCENARIO("A Capture Manager can handle multiple camera, change settings, launch 
             }
         }
     }
+    */
 }
