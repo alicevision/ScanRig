@@ -1,4 +1,4 @@
-#include "linux/mmap-buffer.h"
+#include "linux/mmap-buffers.h"
 
 #ifdef __linux__
 
@@ -7,7 +7,6 @@
 #include <stdexcept>
 
 #include <linux/uinput.h>
-#include <linux/videodev2.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <fcntl.h>
@@ -15,52 +14,50 @@
 #include <unistd.h>
 
 namespace USBCam {
-    MMapBuffer::MMapBuffer(const unsigned int fd) {
+    MMapBuffers::MMapBuffers(const unsigned int fd, const unsigned int count) {
         // Request buffers
         v4l2_requestbuffers bufrequest;
         bufrequest.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         bufrequest.memory = V4L2_MEMORY_MMAP;
-        bufrequest.count = 1;
+        bufrequest.count = 1; // TEMP
 
         if (ioctl(fd, VIDIOC_REQBUFS, &bufrequest) == -1) {
             throw std::runtime_error("Cannot request new buffer : " + std::string(strerror(errno)));
         }
 
         // Allocate buffers
-        v4l2_buffer bufferinfo;
-        memset(&(bufferinfo), 0, sizeof(bufferinfo)); // Clear
-        bufferinfo.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-        bufferinfo.memory = V4L2_MEMORY_MMAP;
-        bufferinfo.index = 0; // Only one buffer for now
+        memset(&(m_buffer.info), 0, sizeof(m_buffer.info)); // Clear
+        m_buffer.info.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        m_buffer.info.memory = V4L2_MEMORY_MMAP;
+        m_buffer.info.index = 0; // Only one buffer for now
 
-        if (ioctl(fd, VIDIOC_QUERYBUF, &bufferinfo) == -1) {
+        if (ioctl(fd, VIDIOC_QUERYBUF, &m_buffer.info) == -1) {
             throw std::runtime_error("Cannot allocate buffer : " + std::string(strerror(errno)));
         }
 
         // Map buffer to memory
-        m_start = mmap(
+        m_buffer.start = mmap(
             NULL,
-            bufferinfo.length,
+            m_buffer.info.length,
             PROT_READ | PROT_WRITE,
             MAP_SHARED,
             fd,
-            bufferinfo.m.offset
+            m_buffer.info.m.offset
         );
 
-        if (m_start == MAP_FAILED) {
+        if (m_buffer.start == MAP_FAILED) {
             throw std::runtime_error("Cannot map buffer : " + std::string(strerror(errno)));
         }
-        m_length = bufferinfo.length;
 
         Clear();
     }
 
-    MMapBuffer::~MMapBuffer() {
-        munmap(m_start, m_length);
+    MMapBuffers::~MMapBuffers() {
+        munmap(m_buffer.start, m_buffer.info.length);
     }
 
-    void MMapBuffer::Clear() {
-        memset(m_start, 0, m_length);
+    void MMapBuffers::Clear() {
+        memset(m_buffer.start, 0, m_buffer.info.length);
     }
 }
 

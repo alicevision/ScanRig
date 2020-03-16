@@ -58,11 +58,11 @@ namespace USBCam {
         SetFormat(caps.at(0));
 
         // Prepare capture
-        m_buffer = new MMapBuffer(m_fd);
+        m_buffers = new MMapBuffers(m_fd, 1);
     }
 
     LinuxCamera::~LinuxCamera() {
-        delete m_buffer;
+        delete m_buffers;
         close(m_fd);
     }
 

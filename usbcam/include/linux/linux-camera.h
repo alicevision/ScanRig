@@ -8,7 +8,7 @@
 #include <string>
 #include <stdint.h>
 
-#include "mmap-buffer.h"
+#include "mmap-buffers.h"
 
 namespace USBCam {
     class LinuxCamera : public ICamera {
@@ -26,7 +26,7 @@ namespace USBCam {
 
     private:
         int m_fd;
-        MMapBuffer* m_buffer;
+        MMapBuffers* m_buffers;
     };
 
 }
