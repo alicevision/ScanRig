@@ -19,6 +19,10 @@ namespace USBCam {
         virtual void TakeAndSavePicture() const override;
     
     private:
+        FrameEncoding PixelFormatToFrameEncoding(unsigned int pixelFormat) const;
+        unsigned int FrameEncodingToPixelFormat(FrameEncoding encoding) const; 
+
+    private:
         int m_fd;
     };
 

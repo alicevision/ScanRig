@@ -4,6 +4,7 @@
 #include <iostream>
 
 SCENARIO("A Capture Manager can handle multiple camera, change settings, launch capture and save images in multithread", "[capture-manager]") {
+    /*
     GIVEN("Multiple plugged devices") {
         WHEN("I ask for the connected cameras") {
             const auto list = USBCam::GetDevicesList();
@@ -13,6 +14,7 @@ SCENARIO("A Capture Manager can handle multiple camera, change settings, launch 
             }
         }
     }
+    */
 
     GIVEN("A single Camera") {
         USBCam::CaptureManager manager({0});
@@ -25,6 +27,7 @@ SCENARIO("A Capture Manager can handle multiple camera, change settings, launch 
             }
         }
 
+        /*
         WHEN("I take a picture") {
             manager.GetCam(0)->TakeAndSavePicture();
 
@@ -32,6 +35,7 @@ SCENARIO("A Capture Manager can handle multiple camera, change settings, launch 
                 REQUIRE(true);
             }
         }
+        */
     }
 
     /*

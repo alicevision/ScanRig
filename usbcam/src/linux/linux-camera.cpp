@@ -12,6 +12,7 @@
 #include <fcntl.h>
 #include <stdexcept>
 #include <errno.h>
+#include <iostream>
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
@@ -79,49 +80,61 @@ namespace USBCam {
         std::vector<ICamera::Capabilities> capabilities;
         
         // Get supported frame encodings
-        std::vector<FrameEncoding> encodings;
+        std::vector<unsigned int> encodings;
         v4l2_fmtdesc formatDesc;
         CLEAR(formatDesc);
         formatDesc.index = 0;
         formatDesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
         while (ioctl(m_fd, VIDIOC_ENUM_FMT, &formatDesc) == 0) {
-            formatDesc.index++;
             switch (formatDesc.pixelformat) {
-            case V4L2_PIX_FMT_MJPEG:
-                encodings.push_back(FrameEncoding::MJPG);
-                break;
-
-            case V4L2_PIX_FMT_UYVY:
-                encodings.push_back(FrameEncoding::UYVY);
-                break;
-            
-            default:
-                encodings.push_back(FrameEncoding::_UNKNOWN);
-                break;
+            case V4L2_PIX_FMT_MJPEG: encodings.push_back(V4L2_PIX_FMT_MJPEG); break;
+            case V4L2_PIX_FMT_UYVY: encodings.push_back(V4L2_PIX_FMT_UYVY); break;
+            default: break;
             }
+            formatDesc.index++;
         }
 
         // Get supported frame sizes
         v4l2_frmsizeenum frameDesc;
         CLEAR(frameDesc);
-        frameDesc.index = 0;
         frameDesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        
+        for (const auto encoding : encodings) {
+            frameDesc.index = 0;
+            frameDesc.pixel_format = encoding;
+            
+            while (ioctl(m_fd, VIDIOC_ENUM_FRAMESIZES, &frameDesc) == 0) {
+                ICamera::Capabilities cap;
+                cap.id = frameDesc.index;
+                cap.height = frameDesc.discrete.height;
+                cap.width = frameDesc.discrete.width;
+                cap.encoding = PixelFormatToFrameEncoding(frameDesc.pixel_format);
+                cap.frameRate = 0;
 
-        while (ioctl(m_fd, VIDIOC_ENUM_FRAMESIZES, &frameDesc) == 0) {
-            frameDesc.index++;
+                capabilities.push_back(cap);
+                frameDesc.index++;
+            }
         }
 
         // Get supported frame intervals
         v4l2_frmivalenum intervalDesc;
         CLEAR(intervalDesc);
-        intervalDesc.index = 0;
         intervalDesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-        while (ioctl(m_fd, VIDIOC_ENUM_FRAMEINTERVALS, &intervalDesc) == 0) {
-            intervalDesc.index++;
+        for (auto& cap : capabilities) {
+            intervalDesc.width = cap.width;
+            intervalDesc.height = cap.height;
+            intervalDesc.pixel_format = FrameEncodingToPixelFormat(cap.encoding);
+
+            if (ioctl(m_fd, VIDIOC_ENUM_FRAMEINTERVALS, &intervalDesc) == -1) {
+                std::cerr << "Cannot get framerate : " << std::string(strerror(errno)) << std::endl;
+                continue;
+            }
+
+            cap.frameRate = intervalDesc.stepwise.min.denominator;
         }
-        
+
         return capabilities;
     }
 
@@ -131,6 +144,24 @@ namespace USBCam {
 
     void LinuxCamera::TakeAndSavePicture() const {
 
+    }
+
+    ICamera::FrameEncoding LinuxCamera::PixelFormatToFrameEncoding(unsigned int pixelFormat) const {
+        switch (pixelFormat) {
+            case V4L2_PIX_FMT_MJPEG: return FrameEncoding::MJPG;
+            case V4L2_PIX_FMT_UYVY: return FrameEncoding::UYVY;
+            default: return FrameEncoding::_UNKNOWN;
+        }
+    }
+
+    unsigned int LinuxCamera::FrameEncodingToPixelFormat(FrameEncoding encoding) const {
+        switch (encoding) {
+            case FrameEncoding::MJPG: return V4L2_PIX_FMT_MJPEG;
+            case FrameEncoding::UYVY: return V4L2_PIX_FMT_UYVY;
+            default:
+                std::cerr << "Unknown encoding !" << std::endl;
+                return 0;
+        }
     }
 }
 
