@@ -43,9 +43,9 @@ namespace USBCam {
         /**
          * @brief Set the capture setting of the camera
          * 
-         * @param id - Capabilities id
+         * @param cap - Camera capability
          */
-        virtual void SetFormat(uint32_t id) = 0;
+        virtual void SetFormat(const Capabilities& cap) = 0;
 
         /**
          * @brief Take a picture and save it in current working directory

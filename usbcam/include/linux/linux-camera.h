@@ -15,7 +15,7 @@ namespace USBCam {
         virtual ~LinuxCamera();
 
         virtual std::vector<ICamera::Capabilities> GetCapabilities() const override;
-        virtual void SetFormat(uint32_t id) override;
+        virtual void SetFormat(const ICamera::Capabilities& cap) override;
         virtual void TakeAndSavePicture() const override;
     
     private:

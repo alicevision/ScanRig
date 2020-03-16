@@ -18,10 +18,6 @@
 
 namespace USBCam {
 
-    // https://lwn.net/Articles/203924/
-    // http://jwhsmith.net/2014/12/capturing-a-webcam-stream-using-v4l2/
-    // https://chromium.googlesource.com/chromium/src.git/+/40.0.2214.91/media/video/capture/linux/video_capture_device_linux.cc
-
     std::vector<Port> GetDevicesList() {
         std::vector<Port> ports;
 
@@ -51,25 +47,12 @@ namespace USBCam {
         const auto path = std::string("/dev/video") + std::to_string(portNumber);
         m_fd = open(path.c_str(), O_RDWR);
         if (m_fd == -1) {
-            throw std::out_of_range("Camera does not exist at this port : " + std::to_string(portNumber) + " : " + std::string(strerror(errno)));
+            throw std::invalid_argument("Camera does not exist at this port : " + std::to_string(portNumber) + " : " + std::string(strerror(errno)));
         }
 
-        // Get Camera capabilities
-        v4l2_capability cap;
-        if (ioctl(m_fd, VIDIOC_QUERYCAP, &cap) == -1) {
-            throw std::runtime_error("Cannot get device capabilities for port : " + std::to_string(portNumber) + " : "+ std::string(strerror(errno)));
-        }
-
-        // Set default capture format
-        v4l2_format format;
-        CLEAR(format);
-        format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-        format.fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG;
-        format.fmt.pix.width = 800;
-        format.fmt.pix.height = 640;
-        if (ioctl(m_fd, VIDIOC_S_FMT, &format) == -1) {
-            throw std::runtime_error("Cannot set camera default capture format for port : " + std::to_string(portNumber) + " : "+ std::string(strerror(errno)));
-        }
+        // Set Default capture format
+        const auto caps = GetCapabilities();
+        SetFormat(caps.at(0));
     }
 
     LinuxCamera::~LinuxCamera() {
@@ -138,8 +121,16 @@ namespace USBCam {
         return capabilities;
     }
 
-    void LinuxCamera::SetFormat(uint32_t id) {
-
+    void LinuxCamera::SetFormat(const ICamera::Capabilities& cap) {
+        v4l2_format format;
+        CLEAR(format);
+        format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        format.fmt.pix.pixelformat = FrameEncodingToPixelFormat(cap.encoding);
+        format.fmt.pix.width = cap.width;
+        format.fmt.pix.height = cap.height;
+        if (ioctl(m_fd, VIDIOC_S_FMT, &format) == -1) {
+            throw std::runtime_error("Cannot set camera default capture format : " + std::string(strerror(errno)));
+        }
     }
 
     void LinuxCamera::TakeAndSavePicture() const {

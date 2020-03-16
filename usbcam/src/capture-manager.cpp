@@ -40,7 +40,7 @@ namespace USBCam {
 
     void CaptureManager::SetFormat(uint32_t id) {
         for (const auto cam : m_cams) {
-            cam->SetFormat(id);
+            // cam->SetFormat(id);
         }
     }
 }
