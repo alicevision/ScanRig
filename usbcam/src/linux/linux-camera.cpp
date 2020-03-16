@@ -80,14 +80,14 @@ namespace USBCam {
         
         // Get supported frame encodings
         std::vector<FrameEncoding> encodings;
-        v4l2_fmtdesc desc;
-        CLEAR(desc);
-        desc.index = 0;
-        desc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-        
-        while (ioctl(m_fd, VIDIOC_ENUM_FMT, &desc) == 0) {
-            desc.index++;
-            switch (desc.pixelformat) {
+        v4l2_fmtdesc formatDesc;
+        CLEAR(formatDesc);
+        formatDesc.index = 0;
+        formatDesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+        while (ioctl(m_fd, VIDIOC_ENUM_FMT, &formatDesc) == 0) {
+            formatDesc.index++;
+            switch (formatDesc.pixelformat) {
             case V4L2_PIX_FMT_MJPEG:
                 encodings.push_back(FrameEncoding::MJPG);
                 break;
@@ -100,6 +100,26 @@ namespace USBCam {
                 encodings.push_back(FrameEncoding::_UNKNOWN);
                 break;
             }
+        }
+
+        // Get supported frame sizes
+        v4l2_frmsizeenum frameDesc;
+        CLEAR(frameDesc);
+        frameDesc.index = 0;
+        frameDesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+        while (ioctl(m_fd, VIDIOC_ENUM_FRAMESIZES, &frameDesc) == 0) {
+            frameDesc.index++;
+        }
+
+        // Get supported frame intervals
+        v4l2_frmivalenum intervalDesc;
+        CLEAR(intervalDesc);
+        intervalDesc.index = 0;
+        intervalDesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+        while (ioctl(m_fd, VIDIOC_ENUM_FRAMEINTERVALS, &intervalDesc) == 0) {
+            intervalDesc.index++;
         }
         
         return capabilities;
