@@ -22,7 +22,10 @@ namespace USBCam {
     
     private:
         FrameEncoding PixelFormatToFrameEncoding(unsigned int pixelFormat) const;
-        unsigned int FrameEncodingToPixelFormat(FrameEncoding encoding) const; 
+        unsigned int FrameEncodingToPixelFormat(FrameEncoding encoding) const;
+
+        void StartStreaming();
+        void StopStreaming();
 
     private:
         int m_fd;

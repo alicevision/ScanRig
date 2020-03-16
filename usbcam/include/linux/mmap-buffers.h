@@ -22,13 +22,27 @@ namespace USBCam {
          */
         void Clear();
 
+        /**
+         * @brief Queue the next buffer
+         */
+        void Queue();
+
+        /**
+         * @brief Dequeue the last buffer
+         */
+        void Dequeue();
+
+        unsigned int GetLength() { return m_buffer.info.length; }
+        void* GetStart() { return m_buffer.start; }
+
     private:
         struct V4L2Buffer {
             v4l2_buffer info;
             void* start;
         };
 
-        V4L2Buffer m_buffer;
+        V4L2Buffer m_buffer; // TEMP use a std::vector
+        unsigned int m_fd;
     };
 }
 

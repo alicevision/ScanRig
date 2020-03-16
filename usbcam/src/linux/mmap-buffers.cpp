@@ -5,6 +5,7 @@
 #include <string>
 #include <cstring>
 #include <stdexcept>
+#include <iostream>
 
 #include <linux/uinput.h>
 #include <sys/ioctl.h>
@@ -14,7 +15,7 @@
 #include <unistd.h>
 
 namespace USBCam {
-    MMapBuffers::MMapBuffers(const unsigned int fd, const unsigned int count) {
+    MMapBuffers::MMapBuffers(const unsigned int fd, const unsigned int count) : m_fd(fd) {
         // Request buffers
         v4l2_requestbuffers bufrequest;
         bufrequest.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -50,14 +51,35 @@ namespace USBCam {
         }
 
         Clear();
+        Queue();
     }
 
     MMapBuffers::~MMapBuffers() {
         munmap(m_buffer.start, m_buffer.info.length);
+        
+        v4l2_requestbuffers bufrequest;
+        bufrequest.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        bufrequest.memory = V4L2_MEMORY_MMAP;
+        bufrequest.count = 0;
+        if (ioctl(m_fd, VIDIOC_REQBUFS, &bufrequest) == -1) {
+            std::cerr << "Cannot reset buffers : " << strerror(errno) << std::endl;
+        }
     }
 
     void MMapBuffers::Clear() {
         memset(m_buffer.start, 0, m_buffer.info.length);
+    }
+
+    void MMapBuffers::Queue() {
+        if (ioctl(m_fd, VIDIOC_QBUF, &m_buffer.info) == -1) {
+            throw std::runtime_error("Cannot queue buffer : " + std::string(strerror(errno)));
+        }
+    }
+
+    void MMapBuffers::Dequeue() {
+        if (ioctl(m_fd, VIDIOC_DQBUF, &m_buffer.info) == -1) {
+            throw std::runtime_error("Cannot dequeue buffer : " + std::string(strerror(errno)));
+        }
     }
 }
 

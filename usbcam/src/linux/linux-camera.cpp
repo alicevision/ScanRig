@@ -57,11 +57,13 @@ namespace USBCam {
         const auto caps = GetCapabilities();
         SetFormat(caps.at(0));
 
-        // Prepare capture
+        // Start stream
         m_buffers = new MMapBuffers(m_fd, 1);
+        StartStreaming();
     }
 
     LinuxCamera::~LinuxCamera() {
+        StopStreaming();
         delete m_buffers;
         close(m_fd);
     }
@@ -141,7 +143,17 @@ namespace USBCam {
     }
 
     void LinuxCamera::TakeAndSavePicture() const {
+        m_buffers->Dequeue();
 
+        int jpgfile;
+        if ((jpgfile = open("/tmp/myimage.jpeg", O_WRONLY | O_CREAT, 0660)) == -1) {
+            throw std::runtime_error("Cannot create a new image");
+        }
+        
+        write(jpgfile, m_buffers->GetStart(), m_buffers->GetLength());
+        close(jpgfile);
+
+        m_buffers->Queue();
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -163,6 +175,20 @@ namespace USBCam {
             default:
                 std::cerr << "Unknown encoding !" << std::endl;
                 return 0;
+        }
+    }
+
+    void LinuxCamera::StartStreaming() {
+        int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        if (ioctl(m_fd, VIDIOC_STREAMON, &type) == -1) {
+            throw std::runtime_error("Cannot start streaming : " + std::string(strerror(errno)));
+        }
+    }
+
+    void LinuxCamera::StopStreaming() {
+        int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        if (ioctl(m_fd, VIDIOC_STREAMOFF, &type) == -1) {
+            throw std::runtime_error("Cannot stop streaming : " + std::string(strerror(errno)));
         }
     }
 }
