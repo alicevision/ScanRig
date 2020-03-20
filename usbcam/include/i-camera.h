@@ -48,6 +48,13 @@ namespace USBCam {
         virtual void SetFormat(const Capabilities& cap) = 0;
 
         /**
+         * @brief Get the Format used by the camera
+         * 
+         * @return Capabilities 
+         */
+        virtual Capabilities GetFormat() = 0;
+
+        /**
          * @brief Take a picture and save it in current working directory
          */
         virtual void TakeAndSavePicture() const = 0;

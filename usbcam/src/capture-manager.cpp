@@ -23,6 +23,9 @@ namespace USBCam {
             throw;
         } catch(...) {
             std::cerr << "[CaptureManager] Unknown exception !" << std::endl;
+            for (auto cam : m_cams) {
+                delete cam;
+            }
         }
     }
 

@@ -54,8 +54,7 @@ namespace USBCam {
         }
 
         // Set Default capture format
-        const auto caps = GetCapabilities();
-        SetFormat(caps.at(0));
+        SetFormat(GetFormat());
 
         // Start stream
         m_buffers = new MMapBuffers(m_fd, 1);
@@ -142,16 +141,32 @@ namespace USBCam {
         }
     }
 
+    ICamera::Capabilities LinuxCamera::GetFormat() {
+        v4l2_format format;
+        CLEAR(format);
+        format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+        if (ioctl(m_fd, VIDIOC_G_FMT, &format) == -1) {
+            throw std::runtime_error("Cannot get camera capture format : " + std::string(strerror(errno)));
+        }
+
+        ICamera::Capabilities cap;
+        cap.encoding = PixelFormatToFrameEncoding(format.fmt.pix.pixelformat);
+        cap.width = format.fmt.pix.width;
+        cap.height = format.fmt.pix.height;
+        return cap;
+    }
+
     void LinuxCamera::TakeAndSavePicture() const {
         m_buffers->Dequeue();
 
-        int jpgfile;
-        if ((jpgfile = open("/tmp/myimage.jpeg", O_WRONLY | O_CREAT, 0660)) == -1) {
+        int imgFile;
+        if ((imgFile = open("myimage.yuv", O_WRONLY | O_CREAT, 0660)) == -1) {
             throw std::runtime_error("Cannot create a new image");
         }
         
-        write(jpgfile, m_buffers->GetStart(), m_buffers->GetLength());
-        close(jpgfile);
+        write(imgFile, m_buffers->GetStart(), m_buffers->GetLength());
+        close(imgFile);
 
         m_buffers->Queue();
     }

@@ -18,6 +18,7 @@ namespace USBCam {
 
         virtual std::vector<ICamera::Capabilities> GetCapabilities() const override;
         virtual void SetFormat(const ICamera::Capabilities& cap) override;
+        virtual Capabilities GetFormat() override;
         virtual void TakeAndSavePicture() const override;
     
     private:
