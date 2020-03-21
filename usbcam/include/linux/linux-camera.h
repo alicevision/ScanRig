@@ -27,6 +27,7 @@ namespace USBCam {
 
         void StartStreaming();
         void StopStreaming();
+        void Wait() const;
 
     private:
         int m_fd;

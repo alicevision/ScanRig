@@ -63,6 +63,11 @@ namespace USBCam {
         // Start stream
         m_buffers = new MMapBuffers(m_fd, 1);
         StartStreaming();
+
+        // Remove first frame as it is often corrupted
+        Wait();
+        m_buffers->Dequeue();
+        m_buffers->Queue();
     }
 
     LinuxCamera::~LinuxCamera() {
@@ -162,13 +167,7 @@ namespace USBCam {
     }
 
     void LinuxCamera::TakeAndSavePicture() const {
-        const auto poolFlags = POLLIN | POLLRDNORM | POLLERR;
-        pollfd fd { m_fd, poolFlags, 0 };
-        int ret = poll(&fd, 1, 5000);
-        if (ret == -1) {
-            throw std::runtime_error("Pool error : " + std::string(strerror(errno)));
-        }
-
+        Wait();
         m_buffers->Dequeue();
 
         int imgFile;
@@ -185,6 +184,15 @@ namespace USBCam {
     ////////////////////////////////////////////////////////////////////
     ////////////////////////// PRIVATE METHODS /////////////////////////
     ////////////////////////////////////////////////////////////////////
+
+    void LinuxCamera::Wait() const {
+        const auto poolFlags = POLLIN | POLLRDNORM | POLLERR;
+        pollfd fd { m_fd, poolFlags, 0 };
+        int ret = poll(&fd, 1, 5000);
+        if (ret == -1) {
+            throw std::runtime_error("Pool error : " + std::string(strerror(errno)));
+        }
+    }
 
     ICamera::FrameEncoding LinuxCamera::PixelFormatToFrameEncoding(unsigned int pixelFormat) const {
         switch (pixelFormat) {
