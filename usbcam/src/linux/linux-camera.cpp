@@ -8,11 +8,13 @@
 #include <cstring>
 #include <iostream>
 #include <stdexcept>
+#include <vector>
 
 #include <linux/uinput.h>
 #include <linux/videodev2.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
+#include <sys/poll.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <unistd.h>
@@ -160,8 +162,12 @@ namespace USBCam {
     }
 
     void LinuxCamera::TakeAndSavePicture() const {
-        // TODO make sure that the buffer is complete before dequeing
-        // use poll() ?
+        const auto poolFlags = POLLIN | POLLRDNORM | POLLERR;
+        pollfd fd { m_fd, poolFlags, 0 };
+        int ret = poll(&fd, 1, 5000);
+        if (ret == -1) {
+            throw std::runtime_error("Pool error : " + std::string(strerror(errno)));
+        }
 
         m_buffers->Dequeue();
 
