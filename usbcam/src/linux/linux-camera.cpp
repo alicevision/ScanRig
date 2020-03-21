@@ -48,13 +48,15 @@ namespace USBCam {
 
     LinuxCamera::LinuxCamera(uint32_t portNumber) : m_fd(-1) {
         const auto path = std::string("/dev/video") + std::to_string(portNumber);
-        m_fd = open(path.c_str(), O_RDWR);
+        m_fd = open(path.c_str(), O_RDWR | O_NONBLOCK);
         if (m_fd == -1) {
             throw std::invalid_argument("Camera does not exist at this port : " + std::to_string(portNumber) + " : " + std::string(strerror(errno)));
         }
 
         // Set Default capture format
-        SetFormat(GetFormat());
+        auto format = GetFormat();
+        format.encoding = ICamera::FrameEncoding::MJPG;
+        SetFormat(format);
 
         // Start stream
         m_buffers = new MMapBuffers(m_fd, 1);
@@ -158,10 +160,13 @@ namespace USBCam {
     }
 
     void LinuxCamera::TakeAndSavePicture() const {
+        // TODO make sure that the buffer is complete before dequeing
+        // use poll() ?
+
         m_buffers->Dequeue();
 
         int imgFile;
-        if ((imgFile = open("myimage.yuv", O_WRONLY | O_CREAT, 0660)) == -1) {
+        if ((imgFile = open("myimage.jpeg", O_WRONLY | O_CREAT, 0660)) == -1) {
             throw std::runtime_error("Cannot create a new image");
         }
         
