@@ -14,26 +14,31 @@ namespace USBCam {
          * @param fd - File Descriptor describing camera optained with open()
          * @param count - Number of buffers to use
          */
-        MMapBuffers(const unsigned int fd, const unsigned int count = 1);
+        MMapBuffers(const unsigned int fd, const unsigned int count = 5);
         ~MMapBuffers();
 
         /**
-         * @brief Clear buffer data
+         * @brief Clear all buffers data
          */
         void Clear();
 
         /**
-         * @brief Queue the next buffer
+         * @brief Queue the last dequeued buffer
          */
         void Queue();
 
         /**
-         * @brief Dequeue the last buffer
+         * @brief Dequeue the next filled buffer
          */
         void Dequeue();
 
-        unsigned int GetLength() { return m_buffer.info.length; }
-        void* GetStart() { return m_buffer.start; }
+        /**
+         * @brief Get the length of the last dequeued buffer
+         * 
+         * @return unsigned int 
+         */
+        unsigned int GetLength() { return m_buffers.at(m_lastDequeued).info.length; }
+        void* GetStart() { return m_buffers.at(m_lastDequeued).start; }
 
     private:
         struct V4L2Buffer {
@@ -41,7 +46,9 @@ namespace USBCam {
             void* start;
         };
 
-        V4L2Buffer m_buffer; // TEMP use a std::vector
+        std::vector<V4L2Buffer> m_buffers;
+        unsigned int m_bufferCount;
+        unsigned int m_lastDequeued;
         unsigned int m_fd;
     };
 }

@@ -28,7 +28,7 @@ namespace USBCam {
 
         for (unsigned int i = 0; i < 60; i++) {
             const auto path = std::string("/dev/video") + std::to_string(i);
-            const int fd = open(path.c_str(), O_RDONLY | O_NONBLOCK);
+            const int fd = open(path.c_str(), O_RDONLY);
 
             if (fd != -1) {
                 Port port;
@@ -145,6 +145,7 @@ namespace USBCam {
         format.fmt.pix.pixelformat = FrameEncodingToPixelFormat(cap.encoding);
         format.fmt.pix.width = cap.width;
         format.fmt.pix.height = cap.height;
+
         if (ioctl(m_fd, VIDIOC_S_FMT, &format) == -1) {
             throw std::runtime_error("Cannot set camera default capture format : " + std::string(strerror(errno)));
         }
@@ -187,9 +188,8 @@ namespace USBCam {
 
     void LinuxCamera::Wait() const {
         const auto poolFlags = POLLIN | POLLRDNORM | POLLERR;
-        pollfd fd { m_fd, poolFlags, 0 };
-        int ret = poll(&fd, 1, 5000);
-        if (ret == -1) {
+        pollfd desc { m_fd, poolFlags, 0 };
+        if (poll(&desc, 1, 5000) == -1) {
             throw std::runtime_error("Pool error : " + std::string(strerror(errno)));
         }
     }

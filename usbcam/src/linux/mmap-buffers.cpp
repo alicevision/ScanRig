@@ -15,39 +15,45 @@
 #include <unistd.h>
 
 namespace USBCam {
-    MMapBuffers::MMapBuffers(const unsigned int fd, const unsigned int count) : m_fd(fd) {
+    MMapBuffers::MMapBuffers(const unsigned int fd, const unsigned int count) : m_fd(fd), m_bufferCount(count), m_lastDequeued(count) {
         // Request buffers
         v4l2_requestbuffers bufrequest;
         bufrequest.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         bufrequest.memory = V4L2_MEMORY_MMAP;
-        bufrequest.count = 1; // TEMP
+        bufrequest.count = count;
 
         if (ioctl(fd, VIDIOC_REQBUFS, &bufrequest) == -1) {
-            throw std::runtime_error("Cannot request new buffer : " + std::string(strerror(errno)));
+            throw std::runtime_error("Cannot request buffers : " + std::string(strerror(errno)));
         }
 
         // Allocate buffers
-        memset(&(m_buffer.info), 0, sizeof(m_buffer.info)); // Clear
-        m_buffer.info.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-        m_buffer.info.memory = V4L2_MEMORY_MMAP;
-        m_buffer.info.index = 0; // Only one buffer for now
+        m_buffers.resize(count);
+        unsigned int index = 0;
+        for (auto& buffer : m_buffers) {
+            memset(&buffer.info, 0, sizeof(buffer.info)); // Clear structure
+            buffer.info.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+            buffer.info.memory = V4L2_MEMORY_MMAP;
+            buffer.info.index = index;
 
-        if (ioctl(fd, VIDIOC_QUERYBUF, &m_buffer.info) == -1) {
-            throw std::runtime_error("Cannot allocate buffer : " + std::string(strerror(errno)));
-        }
+            if (ioctl(fd, VIDIOC_QUERYBUF, &buffer.info) == -1) {
+                throw std::runtime_error("Cannot allocate buffer : " + std::string(strerror(errno)));
+            }
 
-        // Map buffer to memory
-        m_buffer.start = mmap(
-            NULL,
-            m_buffer.info.length,
-            PROT_READ | PROT_WRITE,
-            MAP_SHARED,
-            fd,
-            m_buffer.info.m.offset
-        );
+            // Map buffer to memory
+            buffer.start = mmap(
+                NULL,
+                buffer.info.length,
+                PROT_READ | PROT_WRITE,
+                MAP_SHARED,
+                fd,
+                buffer.info.m.offset
+            );
 
-        if (m_buffer.start == MAP_FAILED) {
-            throw std::runtime_error("Cannot map buffer : " + std::string(strerror(errno)));
+            if (buffer.start == MAP_FAILED) {
+                throw std::runtime_error("Cannot map buffer : " + std::string(strerror(errno)));
+            }
+
+            index++;
         }
 
         Clear();
@@ -55,8 +61,11 @@ namespace USBCam {
     }
 
     MMapBuffers::~MMapBuffers() {
-        munmap(m_buffer.start, m_buffer.info.length);
+        for (auto& buffer : m_buffers) {
+            munmap(buffer.start, buffer.info.length);
+        }
         
+        // Reset camera buffer state
         v4l2_requestbuffers bufrequest;
         bufrequest.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         bufrequest.memory = V4L2_MEMORY_MMAP;
@@ -67,17 +76,25 @@ namespace USBCam {
     }
 
     void MMapBuffers::Clear() {
-        memset(m_buffer.start, 0, m_buffer.info.length);
+        for (auto& buffer : m_buffers) {
+            memset(buffer.start, 0, buffer.info.length);
+        }
     }
 
     void MMapBuffers::Queue() {
-        if (ioctl(m_fd, VIDIOC_QBUF, &m_buffer.info) == -1) {
+        if (ioctl(m_fd, VIDIOC_QBUF, &m_buffers.at(m_lastDequeued).info) == -1) {
             throw std::runtime_error("Cannot queue buffer : " + std::string(strerror(errno)));
         }
     }
 
     void MMapBuffers::Dequeue() {
-        if (ioctl(m_fd, VIDIOC_DQBUF, &m_buffer.info) == -1) {
+        if (m_lastDequeued + 1 >= m_bufferCount) {
+            m_lastDequeued = 0;
+        } else {
+            m_lastDequeued++;
+        }
+        
+        if (ioctl(m_fd, VIDIOC_DQBUF, &m_buffers.at(m_lastDequeued).info) == -1) {
             throw std::runtime_error("Cannot dequeue buffer : " + std::string(strerror(errno)));
         }
     }

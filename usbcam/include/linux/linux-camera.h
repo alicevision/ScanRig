@@ -27,6 +27,10 @@ namespace USBCam {
 
         void StartStreaming();
         void StopStreaming();
+
+        /**
+         * @brief Wait for a buffer to be available
+         */
         void Wait() const;
 
     private:
