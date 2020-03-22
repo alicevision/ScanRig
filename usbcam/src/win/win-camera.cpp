@@ -160,7 +160,7 @@ namespace USBCam {
         m_reader.StartAsync().get();
     }
 
-    void WinCamera::TakeAndSavePicture() const {
+    void WinCamera::TakeAndSavePicture() {
         auto path = std::filesystem::current_path();
         auto folderRoot = Windows::Storage::StorageFolder::GetFolderFromPathAsync(path.c_str()).get();
         auto folder = folderRoot.CreateFolderAsync(to_hstring(std::string("cam_") + std::to_string(m_portNumber)), CreationCollisionOption::OpenIfExists).get();

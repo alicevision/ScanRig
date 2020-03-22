@@ -15,6 +15,7 @@
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <sys/poll.h>
+#include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <unistd.h>
@@ -48,7 +49,7 @@ namespace USBCam {
         return ports;
     }
 
-    LinuxCamera::LinuxCamera(uint32_t portNumber) : m_fd(-1) {
+    LinuxCamera::LinuxCamera(uint32_t portNumber) : m_fd(-1), m_id(portNumber), m_frameCount(0) {
         const auto path = std::string("/dev/video") + std::to_string(portNumber);
         m_fd = open(path.c_str(), O_RDWR | O_NONBLOCK);
         if (m_fd == -1) {
@@ -68,6 +69,11 @@ namespace USBCam {
         Wait();
         m_buffers->Dequeue();
         m_buffers->Queue();
+
+        // Create capture hierarchy
+        mkdir("./capture", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        const std::string savePath = "./capture/cam" + std::to_string(m_id);
+        mkdir(savePath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     }
 
     LinuxCamera::~LinuxCamera() {
@@ -167,13 +173,14 @@ namespace USBCam {
         return cap;
     }
 
-    void LinuxCamera::TakeAndSavePicture() const {
+    void LinuxCamera::TakeAndSavePicture() {
         Wait();
         m_buffers->Dequeue();
 
-        int imgFile;
-        if ((imgFile = open("myimage.jpeg", O_WRONLY | O_CREAT, 0660)) == -1) {
-            throw std::runtime_error("Cannot create a new image");
+        const std::string filepath =  "./capture/cam" + std::to_string(m_id) + "/" + std::to_string(m_frameCount) + ".jpeg";
+        int imgFile = open(filepath.c_str(), O_WRONLY | O_CREAT, 0660);
+        if (imgFile == -1) {
+            throw std::runtime_error("Cannot create image at : " + imgFile);
         }
         
         write(imgFile, m_buffers->GetStart(), m_buffers->GetLength());

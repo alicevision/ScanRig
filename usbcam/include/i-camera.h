@@ -57,6 +57,6 @@ namespace USBCam {
         /**
          * @brief Take a picture and save it in current working directory
          */
-        virtual void TakeAndSavePicture() const = 0;
+        virtual void TakeAndSavePicture() = 0;
     };
 }

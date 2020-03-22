@@ -19,7 +19,7 @@ namespace USBCam {
         virtual std::vector<ICamera::Capabilities> GetCapabilities() const override;
         virtual void SetFormat(const ICamera::Capabilities& cap) override;
         virtual Capabilities GetFormat() override;
-        virtual void TakeAndSavePicture() const override;
+        virtual void TakeAndSavePicture() override;
     
     private:
         FrameEncoding PixelFormatToFrameEncoding(unsigned int pixelFormat) const;
@@ -35,6 +35,8 @@ namespace USBCam {
 
     private:
         int m_fd;
+        unsigned int m_id;
+        unsigned int m_frameCount;
         MMapBuffers* m_buffers;
     };
 
