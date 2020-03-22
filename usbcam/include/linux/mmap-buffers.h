@@ -23,6 +23,11 @@ namespace USBCam {
         void Clear();
 
         /**
+         * @brief Queue all buffers
+         */
+        void QueueAll();
+
+        /**
          * @brief Queue the last dequeued buffer
          */
         void Queue();

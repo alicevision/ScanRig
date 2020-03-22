@@ -57,7 +57,7 @@ namespace USBCam {
         }
 
         Clear();
-        Queue();
+        QueueAll();
     }
 
     MMapBuffers::~MMapBuffers() {
@@ -78,6 +78,14 @@ namespace USBCam {
     void MMapBuffers::Clear() {
         for (auto& buffer : m_buffers) {
             memset(buffer.start, 0, buffer.info.length);
+        }
+    }
+
+    void MMapBuffers::QueueAll() {
+        for (auto& buffer : m_buffers) {
+            if (ioctl(m_fd, VIDIOC_QBUF, &buffer.info) == -1) {
+                throw std::runtime_error("Cannot queue buffer : " + std::string(strerror(errno)));
+            }
         }
     }
 
