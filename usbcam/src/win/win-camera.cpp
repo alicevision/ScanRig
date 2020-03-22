@@ -113,9 +113,14 @@ namespace USBCam {
         return capabilities;
     }
 
-    void WinCamera::SetFormat(uint32_t id) {
+    ICamera::Capabilities WinCamera::GetFormat() {
+        ICamera::Capabilities cap;
+        return cap;
+    }
+
+    void WinCamera::SetFormat(const ICamera::Capabilities& cap) {
         auto frameSource = m_capture.FrameSources().Lookup(m_sourceInfo.Id());
-        frameSource.SetFormatAsync(frameSource.SupportedFormats().GetAt(id)).get();
+        frameSource.SetFormatAsync(frameSource.SupportedFormats().GetAt(cap.id)).get();
     }
 
     ICamera::FrameEncoding WinCamera::SubTypeToFrameEncoding(const std::string& subType) const {

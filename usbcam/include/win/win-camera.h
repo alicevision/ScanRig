@@ -43,7 +43,8 @@ namespace USBCam {
         virtual ~WinCamera();
 
         virtual std::vector<ICamera::Capabilities> GetCapabilities() const override;
-        virtual void SetFormat(uint32_t id) override;
+        virtual void SetFormat(const ICamera::Capabilities& cap) override;
+        virtual ICamera::Capabilities GetFormat() override;
         virtual void TakeAndSavePicture() const override;
         
     private:
