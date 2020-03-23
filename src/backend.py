@@ -33,8 +33,7 @@ class Backend(QObject):
                 break
 
             if self.preview.runningPreview:
-                self.preview.previewDevices.grabFrames()
-                self.preview.previewDevices.retrieveFrames()
+                self.preview.previewDevices.readFrames()
 
             if self.acquisition.runningAcquisition == AcquisitionState.OVER:
                 self.acquisition.runningAcquisition = AcquisitionState.OFF # STOP Acquisition

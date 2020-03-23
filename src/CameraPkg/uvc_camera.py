@@ -86,7 +86,6 @@ class UvcCamera(object):
             self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.settings.get("height"))
         
         self.fillBuffer()
-        self.retrieveFrame()
         return
 
 
@@ -146,7 +145,6 @@ class UvcCamera(object):
         self.capture.set(cv2.CAP_PROP_AUTO_EXPOSURE, self.settings.get("autoExposure"))
 
         self.fillBuffer()
-        self.retrieveFrame()
 
         return
 
@@ -156,7 +154,6 @@ class UvcCamera(object):
             v = self.capture.open(self.indexCam, apiPreference=cv2.CAP_V4L2)
             if v:
                 self.fillBuffer()
-                self.retrieveFrame()
                 self.setAllSettings()
 
             else:
@@ -166,18 +163,12 @@ class UvcCamera(object):
 
     def fillBuffer(self):
         for i in range(int(self.capture.get(cv2.CAP_PROP_BUFFERSIZE)) + 1):
-            self.grabFrame()
+            self.readFrame()
 
-    def grabFrame(self):
-        # print("image grabbed")
-        ret = self.capture.grab()
-        if not ret:
-            logging.warning("Image cannot be grabbed")
-
-    def retrieveFrame(self):
-        self.status, self.frame = self.capture.retrieve()
+    def readFrame(self):
+        self.status, self.frame = self.capture.read()
         if not self.status:
-            logging.warning("Image cannot be retrieved")
+            logging.warning("Image cannot be read")
 
     def setSavingFrames(self, savingFrames):
         self.framesToSave = savingFrames

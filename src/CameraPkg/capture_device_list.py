@@ -54,15 +54,10 @@ class CaptureDeviceList(object):
                 return device
         return None
 
-    def grabFrames(self):
+    def readFrames(self):
         for device in self.devices:
             if isinstance(device, UvcCamera):
-                device.grabFrame()
-
-    def retrieveFrames(self):
-        for device in self.devices:
-            if isinstance(device, UvcCamera):
-                device.retrieveFrame()
+                device.readFrame()
 
     def setSavingFramesToDevices(self):
         for device in self.devices:
