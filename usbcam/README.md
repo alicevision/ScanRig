@@ -44,4 +44,5 @@ TODO
 | Link | Description |
 | --- | --- |
 | [Windows Universal Camera samples](https://github.com/microsoft/Windows-universal-samples/tree/master/Samples/CameraStarterKit) | |
-
+| [Windows Camera samples](https://github.com/microsoft/Windows-Camera) | |
+| [Windows Media Capture Reference](https://docs.microsoft.com/en-us/uwp/api/windows.media.capture.mediacapture) | |
