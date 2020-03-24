@@ -54,7 +54,9 @@ namespace USBCam {
 
         // Control methods
 
-        virtual void TakeAndSavePicture() override;
+        virtual void SetSaveDirectory(std::string path) override;
+        virtual void SaveLastFrame() override;
+        virtual const Frame& GetLastFrame() override;
         
     private:
         FrameEncoding SubTypeToFrameEncoding(const std::string& subType) const;

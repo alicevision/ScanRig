@@ -203,7 +203,7 @@ namespace USBCam {
         return control.value;
     }
 
-    void LinuxCamera::TakeAndSavePicture() {
+    void LinuxCamera::SaveLastFrame() {
         Wait();
         m_buffers->Dequeue();
 

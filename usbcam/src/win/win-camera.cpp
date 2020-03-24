@@ -192,13 +192,22 @@ namespace USBCam {
         }
     }
 
-    void WinCamera::TakeAndSavePicture() {
+    void WinCamera::SetSaveDirectory(std::string path) {
+
+    }
+
+    void WinCamera::SaveLastFrame() {
         auto path = std::filesystem::current_path();
         auto folderRoot = Windows::Storage::StorageFolder::GetFolderFromPathAsync(path.c_str()).get();
         auto folder = folderRoot.CreateFolderAsync(to_hstring(std::string("cam_") + std::to_string(m_portNumber)), CreationCollisionOption::OpenIfExists).get();
         auto saveFile = folder.CreateFileAsync(L"01.png", CreationCollisionOption::GenerateUniqueName).get();
 
         m_capture.CapturePhotoToStorageFileAsync(ImageEncodingProperties::CreatePng(), saveFile).get();
+    }
+
+    const ICamera::Frame& WinCamera::GetLastFrame() {
+        ICamera::Frame myFrame;
+        return myFrame;
     }
 
     /////////////////////////////////////////////////////////////////////////

@@ -54,8 +54,15 @@ namespace USBCam {
          */
         struct CameraSettingDetail {
             CameraSetting type = CameraSetting::_UNKNOWN;
-            int min = 0;
-            int max = 10000;
+            int32_t min = 0;
+            int32_t max = 10000;
+        };
+
+        /**
+         * @brief Camera frame data structure
+         */
+        struct Frame {
+            Format format;
         };
 
         virtual ~ICamera() {};
@@ -105,10 +112,30 @@ namespace USBCam {
         virtual int GetSetting(CameraSetting setting) = 0;
 
         /**
-         * @brief Take a picture and save it in current working directory
+         * @brief Set the Save Directory for output images
+         * 
+         * @param path 
          */
-        virtual void TakeAndSavePicture() = 0;
+        virtual void SetSaveDirectory(std::string path) = 0;
 
+        /**
+         * @brief Take a picture and save it the save directory
+         */
+        virtual void SaveLastFrame() = 0;
+
+        /**
+         * @brief Take a picture and give a const reference to its data
+         * 
+         * @return Frame&
+         */
+        virtual const Frame& GetLastFrame() = 0;
+
+        /**
+         * @brief Translates Camera Setting enum to string
+         * 
+         * @param setting 
+         * @return std::string 
+         */
         static std::string CameraSettingToString(CameraSetting setting) {
             switch (setting) {
             case CameraSetting::BRIGHTNESS: return "Brightness";

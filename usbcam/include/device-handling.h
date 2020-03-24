@@ -1,6 +1,8 @@
 #pragma once
 
 #include <string>
+#include <memory>
+#include <vector>
 
 #include "i-camera.h"
 
@@ -20,11 +22,10 @@ namespace USBCam {
     std::vector<Port> GetDevicesList();
 
     /**
-     * @brief Create a new Camera
-     * @note You must delete the object when you are done
+     * @brief Create a new Camera. You own it.
      * 
      * @param portNumber 
-     * @return ICamera* 
+     * @return std::unique_ptr<ICamera>
      */
-    ICamera* CreateCamera(uint32_t portNumber);
+    std::unique_ptr<ICamera> CreateCamera(uint32_t portNumber);
 }

@@ -6,12 +6,12 @@
 #include <iostream>
 
 namespace USBCam {
-    ICamera* CreateCamera(uint32_t port) {
+    std::unique_ptr<ICamera> CreateCamera(uint32_t port) {
         try {
             #ifdef _WIN32
-                return new WinCamera(port);
+                return std::unique_ptr<ICamera>(new WinCamera(port));
             #elif __linux__
-                return new LinuxCamera(port);
+                return std::unique_ptr<ICamera>(new LinuxCamera(port));
             #endif
         } catch(const std::exception& e) {
             std::cerr << "[CreateCamera] " << e.what() << std::endl;
