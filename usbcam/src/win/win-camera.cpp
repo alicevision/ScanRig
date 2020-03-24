@@ -144,7 +144,10 @@ namespace USBCam {
             m_capture.VideoDeviceController().ExposureControl().SetValueAsync(time);
             break;
         }
-        
+        case CameraSetting::BRIGHTNESS: m_capture.VideoDeviceController().Brightness().TrySetValue(value); break;
+        case CameraSetting::CONTRAST: m_capture.VideoDeviceController().Contrast().TrySetValue(value); break;
+        case CameraSetting::GAIN: m_capture.VideoDeviceController().IsoSpeedControl().SetValueAsync(value); break;
+        case CameraSetting::HUE: m_capture.VideoDeviceController().Hue().TrySetValue(value); break;
         default:
             break;
         }
@@ -152,11 +155,26 @@ namespace USBCam {
 
     int WinCamera::GetSetting(ICamera::CameraSetting setting) {
         switch (setting) {
+        case CameraSetting::GAIN: return m_capture.VideoDeviceController().IsoSpeedControl().Value();
         case CameraSetting::EXPOSURE: {
             const auto exposure = m_capture.VideoDeviceController().ExposureControl().Value();
             return 0;
         }
-
+        case CameraSetting::BRIGHTNESS: {
+            double value = 0;
+            m_capture.VideoDeviceController().Brightness().TryGetValue(value); 
+            return static_cast<int>(value);
+        }
+        case CameraSetting::CONTRAST: {
+            double value = 0;
+            m_capture.VideoDeviceController().Contrast().TryGetValue(value); 
+            return static_cast<int>(value);
+        }
+        case CameraSetting::HUE: {
+            double value = 0;
+            m_capture.VideoDeviceController().Hue().TryGetValue(value); 
+            return static_cast<int>(value);
+        }
         default: 
             return 0;
         }
