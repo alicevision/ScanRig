@@ -5,7 +5,7 @@
 #include <iostream>
 #include <filesystem>
 
-#include "capture-manager.h"
+#include "device-handling.h"
 
 namespace USBCam {
 

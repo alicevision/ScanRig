@@ -1,7 +1,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include "capture-manager.h"
+#include "device-handling.h"
 #include "i-camera.h"
 
 namespace py = pybind11;
@@ -10,6 +10,7 @@ namespace USBCam {
 
     PYBIND11_MODULE(usbcam, m) {
         m.def("GetDevicesList", &GetDevicesList, "Get connected devices");
+        m.def("CreateCamera", &CreateCamera, "Create a new camera");
 
         py::class_<Port>(m, "Port")
             .def_readonly("number", &Port::number)
@@ -25,10 +26,5 @@ namespace USBCam {
         py::class_<ICamera>(m, "ICamera")
             .def("GetSupportedFormats", &ICamera::GetSupportedFormats)
             .def("SetFormat", &ICamera::SetFormat);
-
-        py::class_<CaptureManager>(m, "CaptureManager")
-            .def(py::init<std::vector<uint32_t>>())
-            .def("GetCam", &CaptureManager::GetCam)
-            .def("TakeAndSavePictures", &CaptureManager::TakeAndSavePictures);
     }
 }

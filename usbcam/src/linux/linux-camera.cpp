@@ -2,7 +2,7 @@
 
 #ifdef __linux__
 
-#include "capture-manager.h"
+#include "device-handling.h"
 
 #include <string>
 #include <cstring>
