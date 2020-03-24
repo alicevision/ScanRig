@@ -22,6 +22,21 @@ namespace USBCam {
         };
 
         /**
+         * @brief Camera settings that can be set by the user
+         */
+        enum class CameraSetting {
+            BRIGHTNESS,
+            CONTRAST,
+            SATURATION,
+            HUE,
+            WHITE_BALANCE,
+            AUTO_WHITE_BALANCE,
+            GAIN,
+            SHARPNESS,
+            EXPOSURE
+        };
+
+        /**
          * @brief Capture settings supported by the camera
          */
         struct Capabilities {
@@ -53,6 +68,22 @@ namespace USBCam {
          * @return Capabilities 
          */
         virtual Capabilities GetFormat() = 0;
+
+        /**
+         * @brief Set the Camera setting
+         * 
+         * @param setting 
+         * @param value 
+         */
+        virtual void SetSetting(CameraSetting setting, unsigned int value) = 0;
+
+        /**
+         * @brief Get the setting value
+         * 
+         * @param setting 
+         * @return unsigned int 
+         */
+        virtual unsigned int GetSetting(CameraSetting setting) = 0;
 
         /**
          * @brief Take a picture and save it in current working directory

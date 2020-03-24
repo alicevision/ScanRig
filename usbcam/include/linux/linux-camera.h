@@ -16,14 +16,24 @@ namespace USBCam {
         LinuxCamera(uint32_t portNumber);
         virtual ~LinuxCamera();
 
-        virtual std::vector<ICamera::Capabilities> GetCapabilities() const override;
-        virtual void SetFormat(const ICamera::Capabilities& cap) override;
+        // Getters and setters
+
+        virtual std::vector<Capabilities> GetCapabilities() const override;
+        virtual void SetFormat(const Capabilities& cap) override;
         virtual Capabilities GetFormat() override;
+        
+        virtual void SetSetting(CameraSetting setting, unsigned int value) override;
+        virtual unsigned int GetSetting(CameraSetting setting) override;
+
+        // Control methods
+
         virtual void TakeAndSavePicture() override;
     
     private:
         FrameEncoding PixelFormatToFrameEncoding(unsigned int pixelFormat) const;
         unsigned int FrameEncodingToPixelFormat(FrameEncoding encoding) const;
+        CameraSetting ControlIdToCameraSetting(unsigned int controlId) const;
+        unsigned int CameraSettingToControlId(CameraSetting setting) const;
 
         void StartStreaming();
         void StopStreaming();

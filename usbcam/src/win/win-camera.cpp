@@ -8,6 +8,11 @@
 #include "capture-manager.h"
 
 namespace USBCam {
+
+    /////////////////////////////////////////////////////////////////////////
+    /////////////////////////// Non-Class functions /////////////////////////
+    /////////////////////////////////////////////////////////////////////////
+
     std::vector<Port> GetDevicesInfo(const IVector<MediaFrameSourceInfo>& filteredSources) {
         std::vector<Port> ports;
         auto source = filteredSources.First();
@@ -55,6 +60,10 @@ namespace USBCam {
     std::vector<Port> GetDevicesList() {
         return GetDevicesInfo(GetFilteredSourceGroupList(MediaFrameSourceGroup::FindAllAsync().get()));
     }
+
+    /////////////////////////////////////////////////////////////////////////
+    ////////////////////////////// Public Methods ///////////////////////////
+    /////////////////////////////////////////////////////////////////////////
 
     WinCamera::WinCamera(uint32_t portNumber) 
     : m_sourceGroups(nullptr), m_sourceInfo(nullptr), m_reader(nullptr), m_portNumber(portNumber) {
@@ -123,6 +132,27 @@ namespace USBCam {
         frameSource.SetFormatAsync(frameSource.SupportedFormats().GetAt(cap.id)).get();
     }
 
+    void WinCamera::SetSetting(CameraSetting setting, unsigned int value) {
+        
+    }
+
+    unsigned int WinCamera::GetSetting(CameraSetting setting) {
+        return 0;
+    }
+
+    void WinCamera::TakeAndSavePicture() {
+        auto path = std::filesystem::current_path();
+        auto folderRoot = Windows::Storage::StorageFolder::GetFolderFromPathAsync(path.c_str()).get();
+        auto folder = folderRoot.CreateFolderAsync(to_hstring(std::string("cam_") + std::to_string(m_portNumber)), CreationCollisionOption::OpenIfExists).get();
+        auto saveFile = folder.CreateFileAsync(L"01.png", CreationCollisionOption::GenerateUniqueName).get();
+
+        m_capture.CapturePhotoToStorageFileAsync(ImageEncodingProperties::CreatePng(), saveFile).get();
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    ///////////////////////////// Private Methods ///////////////////////////
+    /////////////////////////////////////////////////////////////////////////
+
     ICamera::FrameEncoding WinCamera::SubTypeToFrameEncoding(const std::string& subType) const {
         if (subType == "NV12")
             return FrameEncoding::NV12;
@@ -133,7 +163,7 @@ namespace USBCam {
     }
 
     void WinCamera::StartPreview() {
-        // start Preview to get the 3A running and wait for convergence.
+        // Start Preview to get the 3A running and wait for convergence.
         MediaFrameSource previewframeSource(nullptr);
         MediaStreamType streamTypelookup = MediaStreamType::VideoPreview;
 
@@ -158,15 +188,6 @@ namespace USBCam {
         m_reader = m_capture.CreateFrameReaderAsync(previewframeSource).get();
         m_reader.AcquisitionMode(MediaFrameReaderAcquisitionMode::Realtime);
         m_reader.StartAsync().get();
-    }
-
-    void WinCamera::TakeAndSavePicture() {
-        auto path = std::filesystem::current_path();
-        auto folderRoot = Windows::Storage::StorageFolder::GetFolderFromPathAsync(path.c_str()).get();
-        auto folder = folderRoot.CreateFolderAsync(to_hstring(std::string("cam_") + std::to_string(m_portNumber)), CreationCollisionOption::OpenIfExists).get();
-        auto saveFile = folder.CreateFileAsync(L"01.png", CreationCollisionOption::GenerateUniqueName).get();
-
-        m_capture.CapturePhotoToStorageFileAsync(ImageEncodingProperties::CreatePng(), saveFile).get();
     }
 }
 

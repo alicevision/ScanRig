@@ -173,6 +173,14 @@ namespace USBCam {
         return cap;
     }
 
+    void LinuxCamera::SetSetting(CameraSetting setting, unsigned int value) override {
+
+    }
+
+    unsigned int LinuxCamera::GetSetting(CameraSetting setting) override {
+        return 0;
+    }
+
     void LinuxCamera::TakeAndSavePicture() {
         Wait();
         m_buffers->Dequeue();
@@ -215,6 +223,24 @@ namespace USBCam {
             case FrameEncoding::UYVY: return V4L2_PIX_FMT_UYVY;
             default:
                 std::cerr << "Unknown encoding !" << std::endl;
+                return 0;
+        }
+    }
+
+    CameraSetting LinuxCamera::ControlIdToCameraSetting(unsigned int controlId) const {
+        switch (controlId) {
+            case V4L2_CID_BRIGHTNESS: return CameraSetting::BRIGHTNESS;
+            default:
+                std::cerr << "Unknown control ID !" << std::endl;
+                return 0;
+        }
+    }
+
+    unsigned int LinuxCamera::CameraSettingToControlId(CameraSetting setting) const {
+        switch (setting) {
+            case CameraSetting::BRIGHTNESS: return V4L2_CID_BRIGHTNESS;
+            default:
+                std::cerr << "Unknown camera setting !" << std::endl;
                 return 0;
         }
     }
