@@ -173,11 +173,12 @@ namespace USBCam {
         return cap;
     }
 
-    void LinuxCamera::SetSetting(CameraSetting setting, unsigned int value) override {
-
+    void LinuxCamera::SetSetting(CameraSetting setting, unsigned int value) {
+        const int settingId = CameraSettingToControlId(setting);
+        
     }
 
-    unsigned int LinuxCamera::GetSetting(CameraSetting setting) override {
+    unsigned int LinuxCamera::GetSetting(CameraSetting setting) {
         return 0;
     }
 
@@ -227,18 +228,36 @@ namespace USBCam {
         }
     }
 
-    CameraSetting LinuxCamera::ControlIdToCameraSetting(unsigned int controlId) const {
+    ICamera::CameraSetting LinuxCamera::ControlIdToCameraSetting(unsigned int controlId) const {
         switch (controlId) {
             case V4L2_CID_BRIGHTNESS: return CameraSetting::BRIGHTNESS;
+            case V4L2_CID_CONTRAST: return CameraSetting::CONTRAST;
+            case V4L2_CID_SATURATION: return CameraSetting::SATURATION;
+            case V4L2_CID_HUE: return CameraSetting::HUE;
+            case V4L2_CID_GAMMA: return CameraSetting::GAMMA;
+            case V4L2_CID_AUTO_WHITE_BALANCE: return CameraSetting::AUTO_WHITE_BALANCE;
+            case V4L2_CID_WHITE_BALANCE_TEMPERATURE: return CameraSetting::WHITE_BALANCE;
+            case V4L2_CID_GAIN: return CameraSetting::GAIN;
+            case V4L2_CID_SHARPNESS: return CameraSetting::SHARPNESS;
+            case V4L2_CID_EXPOSURE: return CameraSetting::EXPOSURE;
             default:
-                std::cerr << "Unknown control ID !" << std::endl;
-                return 0;
+                std::cerr << "Unknown control ID : " << controlId << std::endl;
+                return CameraSetting::_UNKNOWN;
         }
     }
 
-    unsigned int LinuxCamera::CameraSettingToControlId(CameraSetting setting) const {
+    unsigned int LinuxCamera::CameraSettingToControlId(ICamera::CameraSetting setting) const {
         switch (setting) {
             case CameraSetting::BRIGHTNESS: return V4L2_CID_BRIGHTNESS;
+            case CameraSetting::CONTRAST: return V4L2_CID_CONTRAST;
+            case CameraSetting::SATURATION: return V4L2_CID_SATURATION;
+            case CameraSetting::HUE: return V4L2_CID_HUE;
+            case CameraSetting::GAMMA: return V4L2_CID_GAMMA;
+            case CameraSetting::AUTO_WHITE_BALANCE: return V4L2_CID_AUTO_WHITE_BALANCE;
+            case CameraSetting::WHITE_BALANCE: return V4L2_CID_WHITE_BALANCE_TEMPERATURE;
+            case CameraSetting::GAIN: return V4L2_CID_GAIN;
+            case CameraSetting::SHARPNESS: return V4L2_CID_SHARPNESS;
+            case CameraSetting::EXPOSURE: return V4L2_CID_EXPOSURE;
             default:
                 std::cerr << "Unknown camera setting !" << std::endl;
                 return 0;

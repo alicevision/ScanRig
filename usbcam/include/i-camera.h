@@ -25,9 +25,11 @@ namespace USBCam {
          * @brief Camera settings that can be set by the user
          */
         enum class CameraSetting {
+            _UNKNOWN,
             BRIGHTNESS,
             CONTRAST,
             SATURATION,
+            GAMMA,
             HUE,
             WHITE_BALANCE,
             AUTO_WHITE_BALANCE,
