@@ -92,8 +92,9 @@ namespace USBCam {
          * 
          * @param setting 
          * @param value 
+         * @return bool - True on success, False on error
          */
-        virtual void SetSetting(CameraSetting setting, int value) = 0;
+        virtual bool SetSetting(CameraSetting setting, int value) = 0;
 
         /**
          * @brief Get the setting value

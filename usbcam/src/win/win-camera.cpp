@@ -137,17 +137,20 @@ namespace USBCam {
         return settings;
     }
 
-    void WinCamera::SetSetting(ICamera::CameraSetting setting, int value) {
+    bool WinCamera::SetSetting(ICamera::CameraSetting setting, int value) {
         switch (setting) {
-        case CameraSetting::EXPOSURE: m_capture.VideoDeviceController().Exposure().TrySetValue(value); break;
-        case CameraSetting::BRIGHTNESS: m_capture.VideoDeviceController().Brightness().TrySetValue(value); break;
-        case CameraSetting::CONTRAST: m_capture.VideoDeviceController().Contrast().TrySetValue(value); break;
-        case CameraSetting::ISO: m_capture.VideoDeviceController().IsoSpeedControl().SetValueAsync(value); break;
-        case CameraSetting::HUE: m_capture.VideoDeviceController().Hue().TrySetValue(value); break;
-        case CameraSetting::WHITE_BALANCE: m_capture.VideoDeviceController().WhiteBalance().TrySetValue(value); break;
-        case CameraSetting::AUTO_WHITE_BALANCE: m_capture.VideoDeviceController().WhiteBalance().TrySetAuto(value >= 1); break;
+        case CameraSetting::EXPOSURE:           return m_capture.VideoDeviceController().Exposure().TrySetValue(value);
+        case CameraSetting::BRIGHTNESS:         return m_capture.VideoDeviceController().Brightness().TrySetValue(value);
+        case CameraSetting::CONTRAST:           return m_capture.VideoDeviceController().Contrast().TrySetValue(value);
+        case CameraSetting::HUE:                return m_capture.VideoDeviceController().Hue().TrySetValue(value);
+        case CameraSetting::WHITE_BALANCE:      return m_capture.VideoDeviceController().WhiteBalance().TrySetValue(value);
+        case CameraSetting::AUTO_WHITE_BALANCE: return m_capture.VideoDeviceController().WhiteBalance().TrySetAuto(value >= 1);
+        case CameraSetting::ISO: {
+            m_capture.VideoDeviceController().IsoSpeedControl().SetValueAsync(value);
+            return true;
+        }
         default:
-            break;
+            return false;
         }
     }
 
