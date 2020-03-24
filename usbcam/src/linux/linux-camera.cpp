@@ -173,13 +173,27 @@ namespace USBCam {
         return cap;
     }
 
-    void LinuxCamera::SetSetting(CameraSetting setting, unsigned int value) {
+    void LinuxCamera::SetSetting(CameraSetting setting, int value) {
         const int settingId = CameraSettingToControlId(setting);
-        
+        v4l2_control control;
+        CLEAR(control);
+        control.id = settingId;
+        control.value = value;
+        if (ioctl(m_fd, VIDIOC_S_CTRL, &control) == -1) {
+            throw std::runtime_error("Cannot set setting" + CameraSettingToString(setting) + " : " + std::string(strerror(errno)));
+        }
     }
 
     unsigned int LinuxCamera::GetSetting(CameraSetting setting) {
-        return 0;
+        const int settingId = CameraSettingToControlId(setting);
+        v4l2_control control;
+        CLEAR(control);
+        control.id = settingId;
+        if (ioctl(m_fd, VIDIOC_S_CTRL, &control) == -1) {
+            throw std::runtime_error("Cannot set setting" + CameraSettingToString(setting) + " : " + std::string(strerror(errno)));
+        }
+
+        return control.value;
     }
 
     void LinuxCamera::TakeAndSavePicture() {

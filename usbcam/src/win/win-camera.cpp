@@ -132,7 +132,7 @@ namespace USBCam {
         frameSource.SetFormatAsync(frameSource.SupportedFormats().GetAt(cap.id)).get();
     }
 
-    void WinCamera::SetSetting(CameraSetting setting, unsigned int value) {
+    void WinCamera::SetSetting(CameraSetting setting, int value) {
         
     }
 

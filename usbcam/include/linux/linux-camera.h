@@ -22,7 +22,7 @@ namespace USBCam {
         virtual void SetFormat(const Capabilities& cap) override;
         virtual Capabilities GetFormat() override;
         
-        virtual void SetSetting(CameraSetting setting, unsigned int value) override;
+        virtual void SetSetting(CameraSetting setting, int value) override;
         virtual unsigned int GetSetting(CameraSetting setting) override;
 
         // Control methods
@@ -32,6 +32,10 @@ namespace USBCam {
     private:
         FrameEncoding PixelFormatToFrameEncoding(unsigned int pixelFormat) const;
         unsigned int FrameEncodingToPixelFormat(FrameEncoding encoding) const;
+
+        /**
+         * @link https://www.kernel.org/doc/html/v4.14/media/uapi/v4l/control.html
+         */
         CameraSetting ControlIdToCameraSetting(unsigned int controlId) const;
         unsigned int CameraSettingToControlId(CameraSetting setting) const;
 

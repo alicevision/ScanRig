@@ -48,7 +48,7 @@ namespace USBCam {
         virtual void SetFormat(const Capabilities& cap) override;
         virtual Capabilities GetFormat() override;
         
-        virtual void SetSetting(CameraSetting setting, unsigned int value) override;
+        virtual void SetSetting(CameraSetting setting, int value) override;
         virtual unsigned int GetSetting(CameraSetting setting) override;
 
         // Control methods

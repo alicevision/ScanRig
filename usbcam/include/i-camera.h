@@ -77,7 +77,7 @@ namespace USBCam {
          * @param setting 
          * @param value 
          */
-        virtual void SetSetting(CameraSetting setting, unsigned int value) = 0;
+        virtual void SetSetting(CameraSetting setting, int value) = 0;
 
         /**
          * @brief Get the setting value
@@ -91,5 +91,21 @@ namespace USBCam {
          * @brief Take a picture and save it in current working directory
          */
         virtual void TakeAndSavePicture() = 0;
+
+        static std::string CameraSettingToString(CameraSetting setting) {
+            switch (setting) {
+            case CameraSetting::BRIGHTNESS: return "Brightness";
+            case CameraSetting::CONTRAST: return "Constrast";
+            case CameraSetting::SATURATION: return "Saturation";
+            case CameraSetting::GAMMA: return "Gamma";
+            case CameraSetting::HUE: return "Hue";
+            case CameraSetting::WHITE_BALANCE: return "White balance";
+            case CameraSetting::AUTO_WHITE_BALANCE: return "Auto white balance";
+            case CameraSetting::GAIN: return "Gain";
+            case CameraSetting::SHARPNESS: return "Sharpness";
+            case CameraSetting::EXPOSURE: return "Exposure";
+            default: return "Unknown";
+            }
+        }
     };
 }
