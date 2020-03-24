@@ -44,10 +44,11 @@ namespace USBCam {
 
         // Getters and setters
 
-        virtual std::vector<Capabilities> GetCapabilities() const override;
-        virtual void SetFormat(const Capabilities& cap) override;
-        virtual Capabilities GetFormat() override;
+        virtual std::vector<Format> GetSupportedFormats() const override;
+        virtual void SetFormat(const Format& cap) override;
+        virtual Format GetFormat() override;
         
+        virtual std::vector<CameraSetting> GetSupportedSettings() const override;
         virtual void SetSetting(CameraSetting setting, int value) override;
         virtual unsigned int GetSetting(CameraSetting setting) override;
 

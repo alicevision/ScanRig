@@ -99,15 +99,15 @@ namespace USBCam {
         m_capture = nullptr;
     }
 
-    std::vector<ICamera::Capabilities> WinCamera::GetCapabilities() const {
-        std::vector<ICamera::Capabilities> capabilities;
+    std::vector<ICamera::Format> WinCamera::GetSupportedFormats() const {
+        std::vector<ICamera::Format> capabilities;
         auto mediaDescriptionIter = m_sourceInfo.VideoProfileMediaDescription().First();
         
         int idx = 0;
         while (mediaDescriptionIter.HasCurrent()) {
             const auto format = mediaDescriptionIter.Current();
 
-            ICamera::Capabilities cap;
+            ICamera::Format cap;
             cap.height = format.Height();
             cap.width = format.Width();
             cap.frameRate = static_cast<uint32_t>(format.FrameRate());
@@ -122,14 +122,19 @@ namespace USBCam {
         return capabilities;
     }
 
-    ICamera::Capabilities WinCamera::GetFormat() {
-        ICamera::Capabilities cap;
+    ICamera::Format WinCamera::GetFormat() {
+        ICamera::Format cap;
         return cap;
     }
 
-    void WinCamera::SetFormat(const ICamera::Capabilities& cap) {
+    void WinCamera::SetFormat(const ICamera::Format& cap) {
         auto frameSource = m_capture.FrameSources().Lookup(m_sourceInfo.Id());
         frameSource.SetFormatAsync(frameSource.SupportedFormats().GetAt(cap.id)).get();
+    }
+
+    std::vector<CameraSetting> WinCamera::GetSupportedSettings() const {
+        std::vector<CameraSetting> settings;
+        return settings;
     }
 
     void WinCamera::SetSetting(CameraSetting setting, int value) {

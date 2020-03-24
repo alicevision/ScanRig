@@ -22,6 +22,17 @@ namespace USBCam {
         };
 
         /**
+         * @brief Capture settings supported by the camera
+         */
+        struct Format {
+            uint32_t id = 0;
+            uint32_t frameRate = 0;
+            uint32_t width = 0;
+            uint32_t height = 0;
+            FrameEncoding encoding = FrameEncoding::_UNKNOWN;
+        };
+
+        /**
          * @brief Camera settings that can be set by the user
          */
         enum class CameraSetting {
@@ -38,38 +49,34 @@ namespace USBCam {
             EXPOSURE
         };
 
-        /**
-         * @brief Capture settings supported by the camera
-         */
-        struct Capabilities {
-            uint32_t id = 0;
-            uint32_t frameRate = 0;
-            uint32_t width = 0;
-            uint32_t height = 0;
-            FrameEncoding encoding = FrameEncoding::_UNKNOWN;
-        };
-
         virtual ~ICamera() {};
 
         /**
          * @brief Get the record values supported by the camera
-         * @return std::vector<Capabilities> 
+         * @return std::vector<Format> 
          */
-        virtual std::vector<Capabilities> GetCapabilities() const = 0;
+        virtual std::vector<Format> GetSupportedFormats() const = 0;
 
         /**
          * @brief Set the capture setting of the camera
          * 
          * @param cap - Camera capability
          */
-        virtual void SetFormat(const Capabilities& cap) = 0;
+        virtual void SetFormat(const Format& cap) = 0;
 
         /**
          * @brief Get the Format used by the camera
          * 
-         * @return Capabilities 
+         * @return Format 
          */
-        virtual Capabilities GetFormat() = 0;
+        virtual Format GetFormat() = 0;
+
+        /**
+         * @brief Get the Supported Settings of the camera
+         * 
+         * @return std::vector<CameraSetting> 
+         */
+        virtual std::vector<CameraSetting> GetSupportedSettings() const = 0;
 
         /**
          * @brief Set the Camera setting

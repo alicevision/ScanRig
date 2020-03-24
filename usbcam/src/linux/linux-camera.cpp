@@ -82,8 +82,8 @@ namespace USBCam {
         close(m_fd);
     }
 
-    std::vector<ICamera::Capabilities> LinuxCamera::GetCapabilities() const {
-        std::vector<ICamera::Capabilities> capabilities;
+    std::vector<ICamera::Format> LinuxCamera::GetSupportedFormats() const {
+        std::vector<ICamera::Format> capabilities;
         
         // Get supported frame encodings
         std::vector<unsigned int> encodings;
@@ -111,7 +111,7 @@ namespace USBCam {
             frameDesc.pixel_format = encoding;
             
             while (ioctl(m_fd, VIDIOC_ENUM_FRAMESIZES, &frameDesc) == 0) {
-                ICamera::Capabilities cap;
+                ICamera::Format cap;
                 cap.id = frameDesc.index;
                 cap.height = frameDesc.discrete.height;
                 cap.width = frameDesc.discrete.width;
@@ -144,7 +144,7 @@ namespace USBCam {
         return capabilities;
     }
 
-    void LinuxCamera::SetFormat(const ICamera::Capabilities& cap) {
+    void LinuxCamera::SetFormat(const ICamera::Format& cap) {
         v4l2_format format;
         CLEAR(format);
         format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -157,7 +157,7 @@ namespace USBCam {
         }
     }
 
-    ICamera::Capabilities LinuxCamera::GetFormat() {
+    ICamera::Format LinuxCamera::GetFormat() {
         v4l2_format format;
         CLEAR(format);
         format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -166,11 +166,16 @@ namespace USBCam {
             throw std::runtime_error("Cannot get camera capture format : " + std::string(strerror(errno)));
         }
 
-        ICamera::Capabilities cap;
+        ICamera::Format cap;
         cap.encoding = PixelFormatToFrameEncoding(format.fmt.pix.pixelformat);
         cap.width = format.fmt.pix.width;
         cap.height = format.fmt.pix.height;
         return cap;
+    }
+
+    std::vector<ICamera::CameraSetting> LinuxCamera::GetSupportedSettings() const {
+        std::vector<ICamera::CameraSetting> settings;
+        return settings;
     }
 
     void LinuxCamera::SetSetting(CameraSetting setting, int value) {

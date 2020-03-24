@@ -18,7 +18,7 @@ SCENARIO("A Capture Manager can handle multiple camera, change settings, launch 
         USBCam::CaptureManager manager({0});
 
         WHEN("I ask for its capabilities") {
-            auto caps = manager.GetCam(0)->GetCapabilities();
+            auto caps = manager.GetCam(0)->GetSupportedFormats();
 
             THEN("I should get them") {
                 REQUIRE(caps.at(0).frameRate != 0);
