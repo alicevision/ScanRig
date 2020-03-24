@@ -173,8 +173,8 @@ namespace USBCam {
         return cap;
     }
 
-    std::vector<ICamera::CameraSetting> LinuxCamera::GetSupportedSettings() const {
-        std::vector<ICamera::CameraSetting> settings;
+    std::vector<ICamera::CameraSettingDetail> LinuxCamera::GetSupportedSettings() const {
+        std::vector<ICamera::CameraSettingDetail> settings;
         return settings;
     }
 
@@ -256,7 +256,7 @@ namespace USBCam {
             case V4L2_CID_GAMMA: return CameraSetting::GAMMA;
             case V4L2_CID_AUTO_WHITE_BALANCE: return CameraSetting::AUTO_WHITE_BALANCE;
             case V4L2_CID_WHITE_BALANCE_TEMPERATURE: return CameraSetting::WHITE_BALANCE;
-            case V4L2_CID_GAIN: return CameraSetting::GAIN;
+            case V4L2_CID_GAIN: return CameraSetting::ISO;
             case V4L2_CID_SHARPNESS: return CameraSetting::SHARPNESS;
             case V4L2_CID_EXPOSURE: return CameraSetting::EXPOSURE;
             default:
@@ -274,7 +274,7 @@ namespace USBCam {
             case CameraSetting::GAMMA: return V4L2_CID_GAMMA;
             case CameraSetting::AUTO_WHITE_BALANCE: return V4L2_CID_AUTO_WHITE_BALANCE;
             case CameraSetting::WHITE_BALANCE: return V4L2_CID_WHITE_BALANCE_TEMPERATURE;
-            case CameraSetting::GAIN: return V4L2_CID_GAIN;
+            case CameraSetting::ISO: return V4L2_CID_GAIN;
             case CameraSetting::SHARPNESS: return V4L2_CID_SHARPNESS;
             case CameraSetting::EXPOSURE: return V4L2_CID_EXPOSURE;
             default:

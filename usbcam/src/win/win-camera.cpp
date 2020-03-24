@@ -132,22 +132,20 @@ namespace USBCam {
         frameSource.SetFormatAsync(frameSource.SupportedFormats().GetAt(cap.id)).get();
     }
 
-    std::vector<ICamera::CameraSetting> WinCamera::GetSupportedSettings() const {
-        std::vector<CameraSetting> settings;
+    std::vector<ICamera::CameraSettingDetail> WinCamera::GetSupportedSettings() const {
+        std::vector<CameraSettingDetail> settings;
         return settings;
     }
 
     void WinCamera::SetSetting(ICamera::CameraSetting setting, int value) {
         switch (setting) {
-        case CameraSetting::EXPOSURE: {
-            Windows::Foundation::TimeSpan time(value);
-            m_capture.VideoDeviceController().ExposureControl().SetValueAsync(time);
-            break;
-        }
+        case CameraSetting::EXPOSURE: m_capture.VideoDeviceController().Exposure().TrySetValue(value); break;
         case CameraSetting::BRIGHTNESS: m_capture.VideoDeviceController().Brightness().TrySetValue(value); break;
         case CameraSetting::CONTRAST: m_capture.VideoDeviceController().Contrast().TrySetValue(value); break;
-        case CameraSetting::GAIN: m_capture.VideoDeviceController().IsoSpeedControl().SetValueAsync(value); break;
+        case CameraSetting::ISO: m_capture.VideoDeviceController().IsoSpeedControl().SetValueAsync(value); break;
         case CameraSetting::HUE: m_capture.VideoDeviceController().Hue().TrySetValue(value); break;
+        case CameraSetting::WHITE_BALANCE: m_capture.VideoDeviceController().WhiteBalance().TrySetValue(value); break;
+        case CameraSetting::AUTO_WHITE_BALANCE: m_capture.VideoDeviceController().WhiteBalance().TrySetAuto(value >= 1); break;
         default:
             break;
         }
@@ -155,10 +153,11 @@ namespace USBCam {
 
     int WinCamera::GetSetting(ICamera::CameraSetting setting) {
         switch (setting) {
-        case CameraSetting::GAIN: return m_capture.VideoDeviceController().IsoSpeedControl().Value();
+        case CameraSetting::ISO: return m_capture.VideoDeviceController().IsoSpeedControl().Value();
         case CameraSetting::EXPOSURE: {
-            const auto exposure = m_capture.VideoDeviceController().ExposureControl().Value();
-            return 0;
+            double value = 0;
+            m_capture.VideoDeviceController().Exposure().TryGetValue(value);
+            return static_cast<int>(value);
         }
         case CameraSetting::BRIGHTNESS: {
             double value = 0;
@@ -173,6 +172,16 @@ namespace USBCam {
         case CameraSetting::HUE: {
             double value = 0;
             m_capture.VideoDeviceController().Hue().TryGetValue(value); 
+            return static_cast<int>(value);
+        }
+        case CameraSetting::AUTO_WHITE_BALANCE: {
+            bool value = false;
+            m_capture.VideoDeviceController().WhiteBalance().TryGetAuto(value); 
+            return value ? 1 : 0;
+        }
+        case CameraSetting::WHITE_BALANCE: {
+            double value = 0;
+            m_capture.VideoDeviceController().WhiteBalance().TryGetValue(value); 
             return static_cast<int>(value);
         }
         default: 

@@ -37,16 +37,25 @@ namespace USBCam {
          */
         enum class CameraSetting {
             _UNKNOWN,
+            AUTO_WHITE_BALANCE,
             BRIGHTNESS,
             CONTRAST,
-            SATURATION,
+            EXPOSURE,
             GAMMA,
             HUE,
-            WHITE_BALANCE,
-            AUTO_WHITE_BALANCE,
-            GAIN,
+            ISO,
+            SATURATION,
             SHARPNESS,
-            EXPOSURE
+            WHITE_BALANCE
+        };
+
+        /**
+         * @brief Camera settings with possible values
+         */
+        struct CameraSettingDetail {
+            CameraSetting type = CameraSetting::_UNKNOWN;
+            int min = 0;
+            int max = 10000;
         };
 
         virtual ~ICamera() {};
@@ -74,9 +83,9 @@ namespace USBCam {
         /**
          * @brief Get the Supported Settings of the camera
          * 
-         * @return std::vector<CameraSetting> 
+         * @return std::vector<CameraSettingDetail> 
          */
-        virtual std::vector<CameraSetting> GetSupportedSettings() const = 0;
+        virtual std::vector<CameraSettingDetail> GetSupportedSettings() const = 0;
 
         /**
          * @brief Set the Camera setting
@@ -108,7 +117,7 @@ namespace USBCam {
             case CameraSetting::HUE: return "Hue";
             case CameraSetting::WHITE_BALANCE: return "White balance";
             case CameraSetting::AUTO_WHITE_BALANCE: return "Auto white balance";
-            case CameraSetting::GAIN: return "Gain";
+            case CameraSetting::ISO: return "Gain";
             case CameraSetting::SHARPNESS: return "Sharpness";
             case CameraSetting::EXPOSURE: return "Exposure";
             default: return "Unknown";
