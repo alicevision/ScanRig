@@ -122,7 +122,7 @@ namespace USBCam {
         return capabilities;
     }
 
-    ICamera::Format WinCamera::GetFormat() {
+    ICamera::Format WinCamera::GetFormat() const {
         ICamera::Format cap;
         return cap;
     }
@@ -154,7 +154,7 @@ namespace USBCam {
         }
     }
 
-    int WinCamera::GetSetting(ICamera::CameraSetting setting) {
+    int WinCamera::GetSetting(ICamera::CameraSetting setting) const {
         switch (setting) {
         case CameraSetting::ISO: return m_capture.VideoDeviceController().IsoSpeedControl().Value();
         case CameraSetting::EXPOSURE: {

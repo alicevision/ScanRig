@@ -85,7 +85,7 @@ namespace USBCam {
          * 
          * @return Format 
          */
-        virtual Format GetFormat() = 0;
+        virtual Format GetFormat() const = 0;
 
         /**
          * @brief Get the Supported Settings of the camera
@@ -109,7 +109,7 @@ namespace USBCam {
          * @param setting 
          * @return int 
          */
-        virtual int GetSetting(CameraSetting setting) = 0;
+        virtual int GetSetting(CameraSetting setting) const = 0;
 
         /**
          * @brief Set the Save Directory for output images
