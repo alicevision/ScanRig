@@ -189,7 +189,7 @@ namespace USBCam {
         }
     }
 
-    unsigned int LinuxCamera::GetSetting(CameraSetting setting) {
+    int LinuxCamera::GetSetting(CameraSetting setting) {
         const int settingId = CameraSettingToControlId(setting);
         v4l2_control control;
         CLEAR(control);

@@ -132,17 +132,34 @@ namespace USBCam {
         frameSource.SetFormatAsync(frameSource.SupportedFormats().GetAt(cap.id)).get();
     }
 
-    std::vector<CameraSetting> WinCamera::GetSupportedSettings() const {
+    std::vector<ICamera::CameraSetting> WinCamera::GetSupportedSettings() const {
         std::vector<CameraSetting> settings;
         return settings;
     }
 
-    void WinCamera::SetSetting(CameraSetting setting, int value) {
+    void WinCamera::SetSetting(ICamera::CameraSetting setting, int value) {
+        switch (setting) {
+        case CameraSetting::EXPOSURE: {
+            Windows::Foundation::TimeSpan time(value);
+            m_capture.VideoDeviceController().ExposureControl().SetValueAsync(time);
+            break;
+        }
         
+        default:
+            break;
+        }
     }
 
-    unsigned int WinCamera::GetSetting(CameraSetting setting) {
-        return 0;
+    int WinCamera::GetSetting(ICamera::CameraSetting setting) {
+        switch (setting) {
+        case CameraSetting::EXPOSURE: {
+            const auto exposure = m_capture.VideoDeviceController().ExposureControl().Value();
+            return 0;
+        }
+
+        default: 
+            return 0;
+        }
     }
 
     void WinCamera::TakeAndSavePicture() {

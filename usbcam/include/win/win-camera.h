@@ -50,7 +50,7 @@ namespace USBCam {
         
         virtual std::vector<CameraSetting> GetSupportedSettings() const override;
         virtual void SetSetting(CameraSetting setting, int value) override;
-        virtual unsigned int GetSetting(CameraSetting setting) override;
+        virtual int GetSetting(CameraSetting setting) override;
 
         // Control methods
 

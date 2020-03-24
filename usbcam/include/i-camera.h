@@ -90,9 +90,9 @@ namespace USBCam {
          * @brief Get the setting value
          * 
          * @param setting 
-         * @return unsigned int 
+         * @return int 
          */
-        virtual unsigned int GetSetting(CameraSetting setting) = 0;
+        virtual int GetSetting(CameraSetting setting) = 0;
 
         /**
          * @brief Take a picture and save it in current working directory
