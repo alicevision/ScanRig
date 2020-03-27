@@ -4,7 +4,7 @@
 #include <iostream>
 
 SCENARIO("We should be able to create and control cameras connected by USB", "[camera]") {
-    GIVEN("One plugged camera") {
+    GIVEN("Multiple plugged devices") {
         WHEN("I ask for the connected cameras") {
             const auto list = USBCam::GetDevicesList();
 
@@ -13,18 +13,16 @@ SCENARIO("We should be able to create and control cameras connected by USB", "[c
                 REQUIRE(list.at(0).name != "");
             }
         }
+    }
 
-        WHEN("I want to take control of a camera") {
-            auto camera0 = USBCam::CreateCamera(1);
+    GIVEN("A plugged camera") {
+        auto camera0 = USBCam::CreateCamera(0);
 
-            THEN("I should be able to take a picture") {
-                REQUIRE_NOTHROW(camera0->SaveLastFrame());
-            }
-            THEN("I should be able to change its settings") {
-                REQUIRE(camera0->SetSetting(USBCam::ICamera::CameraSetting::BRIGHTNESS, 0));
-                REQUIRE_NOTHROW(camera0->SaveLastFrame());
-                REQUIRE(camera0->SetSetting(USBCam::ICamera::CameraSetting::BRIGHTNESS, 10000));
-                REQUIRE_NOTHROW(camera0->SaveLastFrame());
+        WHEN("I change its settings") {
+            REQUIRE(camera0->SetSetting(USBCam::ICamera::CameraSetting::BRIGHTNESS, 10));
+
+            THEN("The settings should be changed") {
+                REQUIRE(camera0->GetSetting(USBCam::ICamera::CameraSetting::BRIGHTNESS) == 10);
             }
         }
     }

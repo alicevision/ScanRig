@@ -196,7 +196,7 @@ namespace USBCam {
         v4l2_control control;
         CLEAR(control);
         control.id = settingId;
-        if (ioctl(m_fd, VIDIOC_S_CTRL, &control) == -1) {
+        if (ioctl(m_fd, VIDIOC_G_CTRL, &control) == -1) {
             throw std::runtime_error("Cannot set setting" + CameraSettingToString(setting) + " : " + std::string(strerror(errno)));
         }
 
