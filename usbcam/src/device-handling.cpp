@@ -4,6 +4,7 @@
 #include "linux/linux-camera.h"
 
 #include <iostream>
+#include <memory>
 
 namespace USBCam {
     std::unique_ptr<ICamera> CreateCamera(uint32_t port) {

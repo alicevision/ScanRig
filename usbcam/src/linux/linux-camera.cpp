@@ -157,7 +157,7 @@ namespace USBCam {
         }
     }
 
-    ICamera::Format LinuxCamera::GetFormat() {
+    ICamera::Format LinuxCamera::GetFormat() const {
         v4l2_format format;
         CLEAR(format);
         format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -185,13 +185,13 @@ namespace USBCam {
         control.id = settingId;
         control.value = value;
         if (ioctl(m_fd, VIDIOC_S_CTRL, &control) == -1) {
-            std::err << "Cannot set " << CameraSettingToString(setting) << " : " << strerror(errno) << std::endl;
+            std::cerr << "Cannot set " << CameraSettingToString(setting) << " : " << strerror(errno) << std::endl;
             return false;
         }
         return true;
     }
 
-    int LinuxCamera::GetSetting(CameraSetting setting) {
+    int LinuxCamera::GetSetting(CameraSetting setting) const {
         const int settingId = CameraSettingToControlId(setting);
         v4l2_control control;
         CLEAR(control);
@@ -216,7 +216,17 @@ namespace USBCam {
         write(imgFile, m_buffers->GetStart(), m_buffers->GetLength());
         close(imgFile);
 
+        m_frameCount++;
         m_buffers->Queue();
+    }
+
+    void LinuxCamera::SetSaveDirectory(std::string path) {
+
+    }
+
+    const ICamera::Frame& LinuxCamera::GetLastFrame() {
+        Frame myframe;
+        return myframe;
     }
 
     ////////////////////////////////////////////////////////////////////
