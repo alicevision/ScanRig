@@ -285,8 +285,10 @@ namespace USBCam {
             case CameraSetting::HUE: return V4L2_CID_HUE;
             case CameraSetting::GAMMA: return V4L2_CID_GAMMA;
             case CameraSetting::AUTO_WHITE_BALANCE: return V4L2_CID_AUTO_WHITE_BALANCE;
+            case CameraSetting::AUTO_EXPOSURE: return V4L2_CID_EXPOSURE_AUTO;
+            case CameraSetting::AUTO_ISO: return V4L2_CID_ISO_SENSITIVITY_AUTO;
             case CameraSetting::WHITE_BALANCE: return V4L2_CID_WHITE_BALANCE_TEMPERATURE;
-            case CameraSetting::ISO: return V4L2_CID_GAIN;
+            case CameraSetting::ISO: return V4L2_CID_ISO_SENSITIVITY;
             case CameraSetting::SHARPNESS: return V4L2_CID_SHARPNESS;
             case CameraSetting::EXPOSURE: return V4L2_CID_EXPOSURE_ABSOLUTE;
             default:

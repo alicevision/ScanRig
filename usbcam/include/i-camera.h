@@ -38,6 +38,8 @@ namespace USBCam {
         enum class CameraSetting {
             _UNKNOWN,
             AUTO_WHITE_BALANCE,
+            AUTO_EXPOSURE,
+            AUTO_ISO,
             BRIGHTNESS,
             CONTRAST,
             EXPOSURE,
@@ -145,6 +147,8 @@ namespace USBCam {
             case CameraSetting::HUE: return "Hue";
             case CameraSetting::WHITE_BALANCE: return "White balance";
             case CameraSetting::AUTO_WHITE_BALANCE: return "Auto white balance";
+            case CameraSetting::AUTO_EXPOSURE: return "Auto exposure";
+            case CameraSetting::AUTO_ISO: return "Auto iso";
             case CameraSetting::ISO: return "Gain";
             case CameraSetting::SHARPNESS: return "Sharpness";
             case CameraSetting::EXPOSURE: return "Exposure";
