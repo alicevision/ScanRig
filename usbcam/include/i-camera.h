@@ -149,7 +149,7 @@ namespace USBCam {
             case CameraSetting::AUTO_WHITE_BALANCE: return "Auto white balance";
             case CameraSetting::AUTO_EXPOSURE: return "Auto exposure";
             case CameraSetting::AUTO_ISO: return "Auto iso";
-            case CameraSetting::ISO: return "Gain";
+            case CameraSetting::ISO: return "Iso";
             case CameraSetting::SHARPNESS: return "Sharpness";
             case CameraSetting::EXPOSURE: return "Exposure";
             default: return "Unknown";
