@@ -16,13 +16,24 @@ SCENARIO("We should be able to create and control cameras connected by USB", "[c
     }
 
     GIVEN("A plugged camera") {
-        auto camera0 = USBCam::CreateCamera(0);
+        auto camera0 = USBCam::CreateCamera(1);
 
         WHEN("I change its settings") {
             REQUIRE(camera0->SetSetting(USBCam::ICamera::CameraSetting::BRIGHTNESS, 10));
 
             THEN("The settings should be changed") {
                 REQUIRE(camera0->GetSetting(USBCam::ICamera::CameraSetting::BRIGHTNESS) == 10);
+            }
+        }
+
+        WHEN("I take 2 pictures with different settings") {
+            REQUIRE(camera0->SetSetting(USBCam::ICamera::CameraSetting::EXPOSURE, 10000));
+            REQUIRE_NOTHROW(camera0->SaveLastFrame());
+            REQUIRE(camera0->SetSetting(USBCam::ICamera::CameraSetting::EXPOSURE, 1000));
+            REQUIRE_NOTHROW(camera0->SaveLastFrame());
+
+            THEN("The two pictures should be different") {
+                REQUIRE(true); // Manual check needed
             }
         }
     }
