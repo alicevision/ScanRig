@@ -145,6 +145,7 @@ namespace USBCam {
         case CameraSetting::HUE:                return m_capture.VideoDeviceController().Hue().TrySetValue(value);
         case CameraSetting::WHITE_BALANCE:      return m_capture.VideoDeviceController().WhiteBalance().TrySetValue(value);
         case CameraSetting::AUTO_WHITE_BALANCE: return m_capture.VideoDeviceController().WhiteBalance().TrySetAuto(value >= 1);
+        case CameraSetting::AUTO_EXPOSURE:      return m_capture.VideoDeviceController().Exposure().TrySetAuto(value >= 1);
         case CameraSetting::ISO: {
             m_capture.VideoDeviceController().IsoSpeedControl().SetValueAsync(value);
             return true;
