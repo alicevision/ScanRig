@@ -50,7 +50,7 @@ namespace USBCam {
     }
 
     LinuxCamera::LinuxCamera(uint32_t portNumber) 
-        : m_fd(-1), m_id(portNumber), m_frameCount(0), m_buffers(nullptr)
+        : m_fd(-1), m_id(portNumber), m_frameCount(0), m_buffers(nullptr), m_savePath("./capture/")
     {
         const auto path = std::string("/dev/video") + std::to_string(portNumber);
         m_fd = open(path.c_str(), O_RDWR | O_NONBLOCK);
@@ -58,15 +58,11 @@ namespace USBCam {
             throw std::invalid_argument("Camera does not exist at this port : " + std::to_string(portNumber) + " : " + std::string(strerror(errno)));
         }
 
-        // Set Default capture format
         auto format = GetFormat();
         format.encoding = ICamera::FrameEncoding::MJPG;
         SetFormat(format);
         
-        // Create capture hierarchy
-        mkdir("./capture", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-        const std::string savePath = "./capture/cam" + std::to_string(m_id);
-        mkdir(savePath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        CreateCaptureFolders();
     }
 
     LinuxCamera::~LinuxCamera() {
@@ -185,6 +181,24 @@ namespace USBCam {
 
     std::vector<ICamera::CameraSettingDetail> LinuxCamera::GetSupportedSettings() const {
         std::vector<ICamera::CameraSettingDetail> settings;
+
+        v4l2_queryctrl queryCtrl;
+        CLEAR(queryCtrl);
+        queryCtrl.id = V4L2_CTRL_FLAG_NEXT_CTRL;
+        // TODO check for querymenu see what it does
+
+        while (ioctl(m_fd, VIDIOC_QUERYCTRL, &queryCtrl) == 0) {
+            if (!(queryCtrl.flags & V4L2_CTRL_FLAG_DISABLED)) {
+                ICamera::CameraSettingDetail detail;
+                detail.type = ControlIdToCameraSetting(queryCtrl.id);
+                detail.max = queryCtrl.maximum;
+                detail.min = queryCtrl.minimum;
+                settings.push_back(detail);
+            }
+
+            queryCtrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
+        }
+
         return settings;
     }
 
@@ -217,7 +231,7 @@ namespace USBCam {
         Wait();
         m_buffers->Dequeue();
 
-        const std::string filepath =  "./capture/cam" + std::to_string(m_id) + "/" + std::to_string(m_frameCount) + ".jpeg";
+        const std::string filepath =  m_savePath + "cam" + std::to_string(m_id) + "/" + std::to_string(m_frameCount) + ".jpeg";
         int imgFile = open(filepath.c_str(), O_WRONLY | O_CREAT, 0660);
         if (imgFile == -1) {
             throw std::runtime_error("Cannot create image at : " + imgFile);
@@ -231,10 +245,12 @@ namespace USBCam {
     }
 
     void LinuxCamera::SetSaveDirectory(std::string path) {
-
+        m_savePath = path;
+        CreateCaptureFolders();
     }
 
     const ICamera::Frame& LinuxCamera::GetLastFrame() {
+        // TODO
         return m_frame;
     }
 
@@ -318,6 +334,12 @@ namespace USBCam {
         if (ioctl(m_fd, VIDIOC_STREAMOFF, &type) == -1) {
             throw std::runtime_error("Cannot stop streaming : " + std::string(strerror(errno)));
         }
+    }
+
+    void LinuxCamera::CreateCaptureFolders() {
+        mkdir(m_savePath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        const std::string path = m_savePath + "cam" + std::to_string(m_id);
+        mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     }
 }
 

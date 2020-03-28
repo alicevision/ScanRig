@@ -44,6 +44,7 @@ namespace USBCam {
 
         void StartStreaming();
         void StopStreaming();
+        void CreateCaptureFolders();
 
         /**
          * @brief Wait for a buffer to be available
@@ -56,6 +57,7 @@ namespace USBCam {
         unsigned int m_frameCount;
         MMapBuffers* m_buffers;
         Frame m_frame;
+        std::string m_savePath;
     };
 
 }

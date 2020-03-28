@@ -27,15 +27,18 @@ SCENARIO("We should be able to create and control cameras connected by USB", "[c
                 REQUIRE(resolutions.at(0).height > 0);
             }
 
-            THEN("The settings should be changed") {
+            THEN("The size of the saved images should be changed") {
                 REQUIRE_NOTHROW(camera0->SetFormat(resolutions.at(0)));
                 REQUIRE_NOTHROW(camera0->SaveLastFrame());
                 REQUIRE_NOTHROW(camera0->SetFormat(resolutions.at(1)));
                 REQUIRE_NOTHROW(camera0->SaveLastFrame());
+                // Manual check required for now
             }
         }
 
         WHEN("I change its settings") {
+            auto settings = camera0->GetSupportedSettings();
+            
             REQUIRE(camera0->SetSetting(USBCam::ICamera::CameraSetting::BRIGHTNESS, 10));
 
             THEN("The settings should be changed") {
