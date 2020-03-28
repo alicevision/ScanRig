@@ -184,9 +184,7 @@ namespace USBCam {
 
         v4l2_queryctrl queryCtrl;
         CLEAR(queryCtrl);
-        queryCtrl.id = V4L2_CTRL_FLAG_NEXT_CTRL;
-        // TODO check for querymenu see what it does
-        // TODO check for extended settings
+        queryCtrl.id = V4L2_CTRL_FLAG_NEXT_CTRL | V4L2_CTRL_FLAG_NEXT_COMPOUND;
 
         while (ioctl(m_fd, VIDIOC_QUERYCTRL, &queryCtrl) == 0) {
             if (!(queryCtrl.flags & V4L2_CTRL_FLAG_DISABLED)) {
@@ -195,13 +193,23 @@ namespace USBCam {
                 detail.max = queryCtrl.maximum;
                 detail.min = queryCtrl.minimum;
 
+                //if (queryCtrl.type == V4L2_CTRL_TYPE_MENU)
+                //    QueryControlMenuItems(queryCtrl.id, queryCtrl.minimum, queryCtrl.maximum);
+
+                if (detail.type == ICamera::CameraSetting::AUTO_EXPOSURE || 
+                    detail.type == ICamera::CameraSetting::AUTO_ISO ||
+                    detail.type == ICamera::CameraSetting::AUTO_WHITE_BALANCE) {
+                    detail.min = 0;
+                    detail.max = 1;
+                }
+
                 if (detail.type != ICamera::CameraSetting::_UNKNOWN)
                     settings.push_back(detail);
                 else
                     std::cerr << queryCtrl.name << " not supported by usbcam library" << std::endl;
             }
 
-            queryCtrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
+            queryCtrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL | V4L2_CTRL_FLAG_NEXT_COMPOUND;
         }
 
         return settings;
@@ -298,6 +306,18 @@ namespace USBCam {
             default:
                 std::cerr << "Unknown encoding !" << std::endl;
                 return 0;
+        }
+    }
+
+    void LinuxCamera::QueryControlMenuItems(unsigned int controlId, int min, int max) const {
+        v4l2_querymenu queryMenu;
+        CLEAR(queryMenu);
+        queryMenu.id = controlId;
+
+        for (queryMenu.index = min; queryMenu.index <= max; queryMenu.index++) {
+            if (ioctl(m_fd, VIDIOC_QUERYMENU, &queryMenu) == 0) {
+                std::cout << queryMenu.name << std::endl;
+            }   
         }
     }
 

@@ -45,6 +45,7 @@ namespace USBCam {
         void StartStreaming();
         void StopStreaming();
         void CreateCaptureFolders();
+        void QueryControlMenuItems(unsigned int controlId, int min, int max) const;
 
         /**
          * @brief Wait for a buffer to be available
