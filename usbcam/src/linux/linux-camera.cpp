@@ -193,7 +193,11 @@ namespace USBCam {
                 detail.type = ControlIdToCameraSetting(queryCtrl.id);
                 detail.max = queryCtrl.maximum;
                 detail.min = queryCtrl.minimum;
-                settings.push_back(detail);
+
+                if (detail.type != ICamera::CameraSetting::_UNKNOWN)
+                    settings.push_back(detail);
+                else
+                    std::cerr << queryCtrl.name << " not supported by usbcam library" << std::endl;
             }
 
             queryCtrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
@@ -295,7 +299,8 @@ namespace USBCam {
             case V4L2_CID_WHITE_BALANCE_TEMPERATURE: return CameraSetting::WHITE_BALANCE;
             case V4L2_CID_GAIN: return CameraSetting::ISO;
             case V4L2_CID_SHARPNESS: return CameraSetting::SHARPNESS;
-            case V4L2_CID_EXPOSURE: return CameraSetting::EXPOSURE;
+            case V4L2_CID_EXPOSURE: return CameraSetting::EXPOSURE; // TODO see how to handle exposure_absolute
+            case V4L2_CID_EXPOSURE_AUTO: return CameraSetting::AUTO_EXPOSURE;
             default:
                 std::cerr << "Unknown control ID : " << controlId << std::endl;
                 return CameraSetting::_UNKNOWN;
