@@ -186,6 +186,7 @@ namespace USBCam {
         CLEAR(queryCtrl);
         queryCtrl.id = V4L2_CTRL_FLAG_NEXT_CTRL;
         // TODO check for querymenu see what it does
+        // TODO check for extended settings
 
         while (ioctl(m_fd, VIDIOC_QUERYCTRL, &queryCtrl) == 0) {
             if (!(queryCtrl.flags & V4L2_CTRL_FLAG_DISABLED)) {
@@ -217,6 +218,10 @@ namespace USBCam {
         switch (setting) {
         case ICamera::CameraSetting::AUTO_EXPOSURE: 
             control.value = (value == 0) ? V4L2_EXPOSURE_MANUAL : V4L2_EXPOSURE_AUTO; break;
+        case ICamera::CameraSetting::AUTO_WHITE_BALANCE:
+            control.value = (value == 0) ? V4L2_WHITE_BALANCE_MANUAL : V4L2_WHITE_BALANCE_AUTO; break;
+        case ICamera::CameraSetting::AUTO_ISO:
+            control.value = (value == 0) ? V4L2_ISO_SENSITIVITY_MANUAL : V4L2_ISO_SENSITIVITY_AUTO; break;
         default: break;
         }
 
@@ -298,17 +303,20 @@ namespace USBCam {
 
     ICamera::CameraSetting LinuxCamera::ControlIdToCameraSetting(unsigned int controlId) const {
         switch (controlId) {
+            case V4L2_CID_EXPOSURE_AUTO: return CameraSetting::AUTO_EXPOSURE;
+            case V4L2_CID_AUTO_WHITE_BALANCE: return CameraSetting::AUTO_WHITE_BALANCE;
+            case V4L2_CID_ISO_SENSITIVITY_AUTO: return CameraSetting::AUTO_ISO;
             case V4L2_CID_BRIGHTNESS: return CameraSetting::BRIGHTNESS;
             case V4L2_CID_CONTRAST: return CameraSetting::CONTRAST;
+            case V4L2_CID_EXPOSURE_ABSOLUTE: return CameraSetting::EXPOSURE;
+            case V4L2_CID_IMAGE_STABILIZATION: return CameraSetting::ENABLE_STABILIZATION;
+            case V4L2_CID_WIDE_DYNAMIC_RANGE: return CameraSetting::ENABLE_HDR;
             case V4L2_CID_SATURATION: return CameraSetting::SATURATION;
             case V4L2_CID_HUE: return CameraSetting::HUE;
             case V4L2_CID_GAMMA: return CameraSetting::GAMMA;
-            case V4L2_CID_AUTO_WHITE_BALANCE: return CameraSetting::AUTO_WHITE_BALANCE;
             case V4L2_CID_WHITE_BALANCE_TEMPERATURE: return CameraSetting::WHITE_BALANCE;
             case V4L2_CID_GAIN: return CameraSetting::ISO;
             case V4L2_CID_SHARPNESS: return CameraSetting::SHARPNESS;
-            case V4L2_CID_EXPOSURE_ABSOLUTE: return CameraSetting::EXPOSURE;
-            case V4L2_CID_EXPOSURE_AUTO: return CameraSetting::AUTO_EXPOSURE;
             default:
                 std::cerr << "Unknown control ID : " << controlId << std::endl;
                 return CameraSetting::_UNKNOWN;
@@ -317,18 +325,20 @@ namespace USBCam {
 
     unsigned int LinuxCamera::CameraSettingToControlId(ICamera::CameraSetting setting) const {
         switch (setting) {
-            case CameraSetting::BRIGHTNESS: return V4L2_CID_BRIGHTNESS;
-            case CameraSetting::CONTRAST: return V4L2_CID_CONTRAST;
-            case CameraSetting::SATURATION: return V4L2_CID_SATURATION;
-            case CameraSetting::HUE: return V4L2_CID_HUE;
-            case CameraSetting::GAMMA: return V4L2_CID_GAMMA;
             case CameraSetting::AUTO_WHITE_BALANCE: return V4L2_CID_AUTO_WHITE_BALANCE;
             case CameraSetting::AUTO_EXPOSURE: return V4L2_CID_EXPOSURE_AUTO;
             case CameraSetting::AUTO_ISO: return V4L2_CID_ISO_SENSITIVITY_AUTO;
+            case CameraSetting::BRIGHTNESS: return V4L2_CID_BRIGHTNESS;
+            case CameraSetting::CONTRAST: return V4L2_CID_CONTRAST;
+            case CameraSetting::EXPOSURE: return V4L2_CID_EXPOSURE_ABSOLUTE;
+            case CameraSetting::ENABLE_STABILIZATION: return V4L2_CID_IMAGE_STABILIZATION;
+            case CameraSetting::ENABLE_HDR: return V4L2_CID_WIDE_DYNAMIC_RANGE;
+            case CameraSetting::SATURATION: return V4L2_CID_SATURATION;
+            case CameraSetting::HUE: return V4L2_CID_HUE;
+            case CameraSetting::GAMMA: return V4L2_CID_GAMMA;
             case CameraSetting::WHITE_BALANCE: return V4L2_CID_WHITE_BALANCE_TEMPERATURE;
             case CameraSetting::ISO: return V4L2_CID_ISO_SENSITIVITY;
             case CameraSetting::SHARPNESS: return V4L2_CID_SHARPNESS;
-            case CameraSetting::EXPOSURE: return V4L2_CID_EXPOSURE_ABSOLUTE;
             default:
                 std::cerr << "Unknown camera setting !" << std::endl;
                 return 0;

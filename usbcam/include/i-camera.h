@@ -43,6 +43,8 @@ namespace USBCam {
             BRIGHTNESS,
             CONTRAST,
             EXPOSURE,
+            ENABLE_HDR,
+            ENABLE_STABILIZATION,
             GAMMA,
             HUE,
             ISO,
@@ -152,6 +154,8 @@ namespace USBCam {
             case CameraSetting::ISO: return "Iso";
             case CameraSetting::SHARPNESS: return "Sharpness";
             case CameraSetting::EXPOSURE: return "Exposure";
+            case CameraSetting::ENABLE_HDR: return "Enable High Dynamic Range";
+            case CameraSetting::ENABLE_STABILIZATION: return "Enable optic stabilization";
             default: return "Unknown";
             }
         }

@@ -38,6 +38,8 @@ namespace USBCam {
             .value("Brightness", ICamera::CameraSetting::BRIGHTNESS)
             .value("Contrast", ICamera::CameraSetting::CONTRAST)
             .value("Exposure", ICamera::CameraSetting::EXPOSURE)
+            .value("Enable_HDR", ICamera::CameraSetting::ENABLE_HDR)
+            .value("Enable_Stabilization", ICamera::CameraSetting::ENABLE_STABILIZATION)
             .value("Gamma", ICamera::CameraSetting::GAMMA)
             .value("Hue", ICamera::CameraSetting::HUE)
             .value("Iso", ICamera::CameraSetting::ISO)
