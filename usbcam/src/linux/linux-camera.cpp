@@ -212,6 +212,14 @@ namespace USBCam {
         CLEAR(control);
         control.id = settingId;
         control.value = value;
+
+        // Additionnal controls to fix wrong values
+        switch (setting) {
+        case ICamera::CameraSetting::AUTO_EXPOSURE: 
+            control.value = (value == 0) ? V4L2_EXPOSURE_MANUAL : V4L2_EXPOSURE_AUTO; break;
+        default: break;
+        }
+
         if (ioctl(m_fd, VIDIOC_S_CTRL, &control) == -1) {
             std::cerr << "Cannot set " << CameraSettingToString(setting) << " with value " << value << " : " << strerror(errno) << std::endl;
             return false;
@@ -299,7 +307,7 @@ namespace USBCam {
             case V4L2_CID_WHITE_BALANCE_TEMPERATURE: return CameraSetting::WHITE_BALANCE;
             case V4L2_CID_GAIN: return CameraSetting::ISO;
             case V4L2_CID_SHARPNESS: return CameraSetting::SHARPNESS;
-            case V4L2_CID_EXPOSURE: return CameraSetting::EXPOSURE; // TODO see how to handle exposure_absolute
+            case V4L2_CID_EXPOSURE_ABSOLUTE: return CameraSetting::EXPOSURE;
             case V4L2_CID_EXPOSURE_AUTO: return CameraSetting::AUTO_EXPOSURE;
             default:
                 std::cerr << "Unknown control ID : " << controlId << std::endl;

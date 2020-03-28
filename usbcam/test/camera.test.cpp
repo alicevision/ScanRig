@@ -39,10 +39,11 @@ SCENARIO("We should be able to create and control cameras connected by USB", "[c
         WHEN("I change its settings") {
             auto settings = camera0->GetSupportedSettings();
             
-            REQUIRE(camera0->SetSetting(USBCam::ICamera::CameraSetting::BRIGHTNESS, 10));
+            REQUIRE(camera0->SetSetting(USBCam::ICamera::CameraSetting::AUTO_EXPOSURE, 0));
+            REQUIRE(camera0->SetSetting(USBCam::ICamera::CameraSetting::EXPOSURE, 100));
 
             THEN("The settings should be changed") {
-                REQUIRE(camera0->GetSetting(USBCam::ICamera::CameraSetting::BRIGHTNESS) == 10);
+                REQUIRE(camera0->GetSetting(USBCam::ICamera::CameraSetting::EXPOSURE) == 100);
             }
         }
 
