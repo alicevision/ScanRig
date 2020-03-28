@@ -152,11 +152,12 @@ namespace USBCam {
         }
 
         // Start stream
+        m_frame.format = cap;
         m_buffers = new MMapBuffers(m_fd);
         StartStreaming();
 
-        // Remove the two first frames as they are often corrupted
-        for (size_t i = 0; i < 3; i++) {
+        // Remove the first frames as they are often corrupted
+        for (size_t i = 0; i < 6; i++) {
             Wait();
             m_buffers->Dequeue();
             m_buffers->Queue();
@@ -275,7 +276,13 @@ namespace USBCam {
     }
 
     const ICamera::Frame& LinuxCamera::GetLastFrame() {
-        // TODO
+        Wait();
+        m_buffers->Dequeue();
+
+        m_frame.byteWidth = m_buffers->GetLength();
+        memcpy(m_frame.data, m_buffers->GetStart(), m_buffers->GetLength());
+
+        m_buffers->Queue();
         return m_frame;
     }
 

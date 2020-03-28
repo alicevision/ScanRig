@@ -67,6 +67,8 @@ namespace USBCam {
          */
         struct Frame {
             Format format;
+            unsigned int byteWidth = 0;
+            unsigned char* data = nullptr;
         };
 
         virtual ~ICamera() {};
