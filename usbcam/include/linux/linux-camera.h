@@ -55,6 +55,7 @@ namespace USBCam {
         unsigned int m_id;
         unsigned int m_frameCount;
         MMapBuffers* m_buffers;
+        Frame m_frame;
     };
 
 }

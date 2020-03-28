@@ -49,7 +49,9 @@ namespace USBCam {
         return ports;
     }
 
-    LinuxCamera::LinuxCamera(uint32_t portNumber) : m_fd(-1), m_id(portNumber), m_frameCount(0) {
+    LinuxCamera::LinuxCamera(uint32_t portNumber) 
+        : m_fd(-1), m_id(portNumber), m_frameCount(0), m_buffers(nullptr)
+    {
         const auto path = std::string("/dev/video") + std::to_string(portNumber);
         m_fd = open(path.c_str(), O_RDWR | O_NONBLOCK);
         if (m_fd == -1) {
@@ -60,16 +62,7 @@ namespace USBCam {
         auto format = GetFormat();
         format.encoding = ICamera::FrameEncoding::MJPG;
         SetFormat(format);
-
-        // Start stream
-        m_buffers = new MMapBuffers(m_fd, 1);
-        StartStreaming();
-
-        // Remove first frame as it is often corrupted
-        Wait();
-        m_buffers->Dequeue();
-        m_buffers->Queue();
-
+        
         // Create capture hierarchy
         mkdir("./capture", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
         const std::string savePath = "./capture/cam" + std::to_string(m_id);
@@ -145,6 +138,12 @@ namespace USBCam {
     }
 
     void LinuxCamera::SetFormat(const ICamera::Format& cap) {
+        // Stop stream
+        if (m_buffers != nullptr) {
+            StopStreaming();
+            delete m_buffers;
+        }
+        
         v4l2_format format;
         CLEAR(format);
         format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -154,6 +153,17 @@ namespace USBCam {
 
         if (ioctl(m_fd, VIDIOC_S_FMT, &format) == -1) {
             throw std::runtime_error("Cannot set camera default capture format : " + std::string(strerror(errno)));
+        }
+
+        // Start stream
+        m_buffers = new MMapBuffers(m_fd);
+        StartStreaming();
+
+        // Remove the two first frames as they are often corrupted
+        for (size_t i = 0; i < 3; i++) {
+            Wait();
+            m_buffers->Dequeue();
+            m_buffers->Queue();
         }
     }
 
@@ -225,8 +235,7 @@ namespace USBCam {
     }
 
     const ICamera::Frame& LinuxCamera::GetLastFrame() {
-        Frame myframe;
-        return myframe;
+        return m_frame;
     }
 
     ////////////////////////////////////////////////////////////////////
