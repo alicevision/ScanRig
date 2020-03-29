@@ -9,7 +9,8 @@ myCam0 = usbcam.CreateCamera(0)
 
 # Manipulate camera
 while(True):
-    frame = np.array(myCam0.GetLastFrame(), copy=False)
+    buffer = np.array(myCam0.GetLastFrame().data)
+    frame = cv2.imdecode(buffer, cv2.IMREAD_COLOR) # FIXME
     cv2.imshow('Example', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
