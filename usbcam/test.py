@@ -8,10 +8,10 @@ print(myList[0].name)
 myCam0 = usbcam.CreateCamera(0)
 
 # Manipulate camera
-frame = myCam0.GetLastFrame()
-cvFrame = np.array(frame, copy=False)
+while(True):
+    frame = np.array(myCam0.GetLastFrame(), copy=False)
+    cv2.imshow('Example', frame)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
 
-cv2.imshow('Example', cvFrame)
-
-cv2.waitKey(0)
 cv2.destroyAllWindows()
