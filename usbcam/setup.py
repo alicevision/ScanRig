@@ -58,8 +58,8 @@ class CMakeBuild(build_ext):
 
 setup(
     name = 'usbcam',
-    version = '0.0.1',
-    description = 'Use, modify and trigger multiple USB Cameras',
+    version = '1.0.0',
+    description = 'Control USB Cameras',
     long_description = '',
     ext_modules = [CMakeExtension('usbcam')],
     cmdclass = dict(build_ext=CMakeBuild),

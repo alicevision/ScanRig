@@ -44,4 +44,9 @@ TODO
 | Link | Description |
 | --- | --- |
 | [Windows Universal Camera samples](https://github.com/microsoft/Windows-universal-samples/tree/master/Samples/CameraStarterKit) | |
+| [Windows Camera samples](https://github.com/microsoft/Windows-Camera) | |
+| [Windows Media Capture Reference](https://docs.microsoft.com/en-us/uwp/api/windows.media.capture.mediacapture) | |
+| [Windows Camera Control sample](https://github.com/Microsoft/Windows-universal-samples/tree/master/Samples/CameraManualControls) | |
+| [Windows Camera Get preview Frame](https://github.com/microsoft/Windows-universal-samples/tree/master/Samples/CameraGetPreviewFrame) | |
 
+TODO check https://github.com/microsoft/Windows-universal-samples/blob/master/Samples/CameraGetPreviewFrame/cpp/MainPage.xaml.cpp

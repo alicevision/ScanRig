@@ -42,10 +42,21 @@ namespace USBCam {
         WinCamera(uint32_t portNumber);
         virtual ~WinCamera();
 
-        virtual std::vector<ICamera::Capabilities> GetCapabilities() const override;
-        virtual void SetFormat(const ICamera::Capabilities& cap) override;
-        virtual ICamera::Capabilities GetFormat() override;
-        virtual void TakeAndSavePicture() override;
+        // Getters and setters
+
+        virtual std::vector<Format> GetSupportedFormats() const override;
+        virtual void SetFormat(const Format& cap) override;
+        virtual Format GetFormat() const override;
+        
+        virtual std::vector<CameraSettingDetail> GetSupportedSettings() const override;
+        virtual bool SetSetting(CameraSetting setting, int value) override;
+        virtual int GetSetting(CameraSetting setting) const override;
+
+        // Control methods
+
+        virtual void SetSaveDirectory(std::string path) override;
+        virtual void SaveLastFrame() override;
+        virtual const Frame& GetLastFrame() override;
         
     private:
         FrameEncoding SubTypeToFrameEncoding(const std::string& subType) const;

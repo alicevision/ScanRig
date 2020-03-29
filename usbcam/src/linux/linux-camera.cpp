@@ -2,7 +2,7 @@
 
 #ifdef __linux__
 
-#include "capture-manager.h"
+#include "device-handling.h"
 
 #include <string>
 #include <cstring>
@@ -49,31 +49,20 @@ namespace USBCam {
         return ports;
     }
 
-    LinuxCamera::LinuxCamera(uint32_t portNumber) : m_fd(-1), m_id(portNumber), m_frameCount(0) {
+    LinuxCamera::LinuxCamera(uint32_t portNumber) 
+        : m_fd(-1), m_id(portNumber), m_frameCount(0), m_buffers(nullptr), m_savePath("./capture/")
+    {
         const auto path = std::string("/dev/video") + std::to_string(portNumber);
         m_fd = open(path.c_str(), O_RDWR | O_NONBLOCK);
         if (m_fd == -1) {
             throw std::invalid_argument("Camera does not exist at this port : " + std::to_string(portNumber) + " : " + std::string(strerror(errno)));
         }
 
-        // Set Default capture format
         auto format = GetFormat();
         format.encoding = ICamera::FrameEncoding::MJPG;
         SetFormat(format);
-
-        // Start stream
-        m_buffers = new MMapBuffers(m_fd, 1);
-        StartStreaming();
-
-        // Remove first frame as it is often corrupted
-        Wait();
-        m_buffers->Dequeue();
-        m_buffers->Queue();
-
-        // Create capture hierarchy
-        mkdir("./capture", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-        const std::string savePath = "./capture/cam" + std::to_string(m_id);
-        mkdir(savePath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        
+        CreateCaptureFolders();
     }
 
     LinuxCamera::~LinuxCamera() {
@@ -82,8 +71,8 @@ namespace USBCam {
         close(m_fd);
     }
 
-    std::vector<ICamera::Capabilities> LinuxCamera::GetCapabilities() const {
-        std::vector<ICamera::Capabilities> capabilities;
+    std::vector<ICamera::Format> LinuxCamera::GetSupportedFormats() const {
+        std::vector<ICamera::Format> capabilities;
         
         // Get supported frame encodings
         std::vector<unsigned int> encodings;
@@ -111,7 +100,7 @@ namespace USBCam {
             frameDesc.pixel_format = encoding;
             
             while (ioctl(m_fd, VIDIOC_ENUM_FRAMESIZES, &frameDesc) == 0) {
-                ICamera::Capabilities cap;
+                ICamera::Format cap;
                 cap.id = frameDesc.index;
                 cap.height = frameDesc.discrete.height;
                 cap.width = frameDesc.discrete.width;
@@ -144,7 +133,13 @@ namespace USBCam {
         return capabilities;
     }
 
-    void LinuxCamera::SetFormat(const ICamera::Capabilities& cap) {
+    void LinuxCamera::SetFormat(const ICamera::Format& cap) {
+        // Stop stream
+        if (m_buffers != nullptr) {
+            StopStreaming();
+            delete m_buffers;
+        }
+        
         v4l2_format format;
         CLEAR(format);
         format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -155,9 +150,24 @@ namespace USBCam {
         if (ioctl(m_fd, VIDIOC_S_FMT, &format) == -1) {
             throw std::runtime_error("Cannot set camera default capture format : " + std::string(strerror(errno)));
         }
+
+        // Start stream
+        m_buffers = new MMapBuffers(m_fd);
+        StartStreaming();
+
+        // Remove the first frames as they are often corrupted
+        for (size_t i = 0; i < 6; i++) {
+            Wait();
+            m_buffers->Dequeue();
+            m_buffers->Queue();
+        }
+
+        // Handle frame structure
+        m_frame.format = cap;
+        m_frame.data.resize(m_buffers->GetLength());
     }
 
-    ICamera::Capabilities LinuxCamera::GetFormat() {
+    ICamera::Format LinuxCamera::GetFormat() const {
         v4l2_format format;
         CLEAR(format);
         format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -166,18 +176,91 @@ namespace USBCam {
             throw std::runtime_error("Cannot get camera capture format : " + std::string(strerror(errno)));
         }
 
-        ICamera::Capabilities cap;
+        ICamera::Format cap;
         cap.encoding = PixelFormatToFrameEncoding(format.fmt.pix.pixelformat);
         cap.width = format.fmt.pix.width;
         cap.height = format.fmt.pix.height;
         return cap;
     }
 
-    void LinuxCamera::TakeAndSavePicture() {
+    std::vector<ICamera::CameraSettingDetail> LinuxCamera::GetSupportedSettings() const {
+        std::vector<ICamera::CameraSettingDetail> settings;
+
+        v4l2_queryctrl queryCtrl;
+        CLEAR(queryCtrl);
+        queryCtrl.id = V4L2_CTRL_FLAG_NEXT_CTRL | V4L2_CTRL_FLAG_NEXT_COMPOUND;
+
+        while (ioctl(m_fd, VIDIOC_QUERYCTRL, &queryCtrl) == 0) {
+            if (!(queryCtrl.flags & V4L2_CTRL_FLAG_DISABLED)) {
+                ICamera::CameraSettingDetail detail;
+                detail.type = ControlIdToCameraSetting(queryCtrl.id);
+                detail.max = queryCtrl.maximum;
+                detail.min = queryCtrl.minimum;
+
+                //if (queryCtrl.type == V4L2_CTRL_TYPE_MENU)
+                //    QueryControlMenuItems(queryCtrl.id, queryCtrl.minimum, queryCtrl.maximum);
+
+                if (detail.type == ICamera::CameraSetting::AUTO_EXPOSURE || 
+                    detail.type == ICamera::CameraSetting::AUTO_ISO ||
+                    detail.type == ICamera::CameraSetting::AUTO_WHITE_BALANCE) {
+                    detail.min = 0;
+                    detail.max = 1;
+                }
+
+                if (detail.type != ICamera::CameraSetting::_UNKNOWN)
+                    settings.push_back(detail);
+                else
+                    std::cerr << queryCtrl.name << " not supported by usbcam library" << std::endl;
+            }
+
+            queryCtrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL | V4L2_CTRL_FLAG_NEXT_COMPOUND;
+        }
+
+        return settings;
+    }
+
+    bool LinuxCamera::SetSetting(CameraSetting setting, int value) {
+        const int settingId = CameraSettingToControlId(setting);
+        v4l2_control control;
+        CLEAR(control);
+        control.id = settingId;
+        control.value = value;
+
+        // Additionnal controls to fix wrong values
+        switch (setting) {
+        case ICamera::CameraSetting::AUTO_EXPOSURE: 
+            control.value = (value == 0) ? V4L2_EXPOSURE_MANUAL : V4L2_EXPOSURE_AUTO; break;
+        case ICamera::CameraSetting::AUTO_WHITE_BALANCE:
+            control.value = (value == 0) ? V4L2_WHITE_BALANCE_MANUAL : V4L2_WHITE_BALANCE_AUTO; break;
+        case ICamera::CameraSetting::AUTO_ISO:
+            control.value = (value == 0) ? V4L2_ISO_SENSITIVITY_MANUAL : V4L2_ISO_SENSITIVITY_AUTO; break;
+        default: break;
+        }
+
+        if (ioctl(m_fd, VIDIOC_S_CTRL, &control) == -1) {
+            std::cerr << "Cannot set " << CameraSettingToString(setting) << " with value " << value << " : " << strerror(errno) << std::endl;
+            return false;
+        }
+        return true;
+    }
+
+    int LinuxCamera::GetSetting(CameraSetting setting) const {
+        const int settingId = CameraSettingToControlId(setting);
+        v4l2_control control;
+        CLEAR(control);
+        control.id = settingId;
+        if (ioctl(m_fd, VIDIOC_G_CTRL, &control) == -1) {
+            throw std::runtime_error("Cannot set setting" + CameraSettingToString(setting) + " : " + std::string(strerror(errno)));
+        }
+
+        return control.value;
+    }
+
+    void LinuxCamera::SaveLastFrame() {
         Wait();
         m_buffers->Dequeue();
 
-        const std::string filepath =  "./capture/cam" + std::to_string(m_id) + "/" + std::to_string(m_frameCount) + ".jpeg";
+        const std::string filepath =  m_savePath + "cam" + std::to_string(m_id) + "/" + std::to_string(m_frameCount) + ".jpeg";
         int imgFile = open(filepath.c_str(), O_WRONLY | O_CREAT, 0660);
         if (imgFile == -1) {
             throw std::runtime_error("Cannot create image at : " + imgFile);
@@ -186,7 +269,24 @@ namespace USBCam {
         write(imgFile, m_buffers->GetStart(), m_buffers->GetLength());
         close(imgFile);
 
+        m_frameCount++;
         m_buffers->Queue();
+    }
+
+    void LinuxCamera::SetSaveDirectory(std::string path) {
+        m_savePath = path;
+        CreateCaptureFolders();
+    }
+
+    const ICamera::Frame& LinuxCamera::GetLastFrame() {
+        Wait();
+        m_buffers->Dequeue();
+
+        m_frame.byteWidth = m_buffers->GetLength();
+        std::memcpy(m_frame.data.data(), m_buffers->GetStart(), m_buffers->GetLength());
+
+        m_buffers->Queue();
+        return m_frame;
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -219,6 +319,62 @@ namespace USBCam {
         }
     }
 
+    void LinuxCamera::QueryControlMenuItems(unsigned int controlId, int min, int max) const {
+        v4l2_querymenu queryMenu;
+        CLEAR(queryMenu);
+        queryMenu.id = controlId;
+
+        for (queryMenu.index = min; queryMenu.index <= max; queryMenu.index++) {
+            if (ioctl(m_fd, VIDIOC_QUERYMENU, &queryMenu) == 0) {
+                std::cout << queryMenu.name << std::endl;
+            }   
+        }
+    }
+
+    ICamera::CameraSetting LinuxCamera::ControlIdToCameraSetting(unsigned int controlId) const {
+        switch (controlId) {
+            case V4L2_CID_EXPOSURE_AUTO: return CameraSetting::AUTO_EXPOSURE;
+            case V4L2_CID_AUTO_WHITE_BALANCE: return CameraSetting::AUTO_WHITE_BALANCE;
+            case V4L2_CID_ISO_SENSITIVITY_AUTO: return CameraSetting::AUTO_ISO;
+            case V4L2_CID_BRIGHTNESS: return CameraSetting::BRIGHTNESS;
+            case V4L2_CID_CONTRAST: return CameraSetting::CONTRAST;
+            case V4L2_CID_EXPOSURE_ABSOLUTE: return CameraSetting::EXPOSURE;
+            case V4L2_CID_IMAGE_STABILIZATION: return CameraSetting::ENABLE_STABILIZATION;
+            case V4L2_CID_WIDE_DYNAMIC_RANGE: return CameraSetting::ENABLE_HDR;
+            case V4L2_CID_SATURATION: return CameraSetting::SATURATION;
+            case V4L2_CID_HUE: return CameraSetting::HUE;
+            case V4L2_CID_GAMMA: return CameraSetting::GAMMA;
+            case V4L2_CID_WHITE_BALANCE_TEMPERATURE: return CameraSetting::WHITE_BALANCE;
+            case V4L2_CID_GAIN: return CameraSetting::ISO;
+            case V4L2_CID_SHARPNESS: return CameraSetting::SHARPNESS;
+            default:
+                std::cerr << "Unknown control ID : " << controlId << std::endl;
+                return CameraSetting::_UNKNOWN;
+        }
+    }
+
+    unsigned int LinuxCamera::CameraSettingToControlId(ICamera::CameraSetting setting) const {
+        switch (setting) {
+            case CameraSetting::AUTO_WHITE_BALANCE: return V4L2_CID_AUTO_WHITE_BALANCE;
+            case CameraSetting::AUTO_EXPOSURE: return V4L2_CID_EXPOSURE_AUTO;
+            case CameraSetting::AUTO_ISO: return V4L2_CID_ISO_SENSITIVITY_AUTO;
+            case CameraSetting::BRIGHTNESS: return V4L2_CID_BRIGHTNESS;
+            case CameraSetting::CONTRAST: return V4L2_CID_CONTRAST;
+            case CameraSetting::EXPOSURE: return V4L2_CID_EXPOSURE_ABSOLUTE;
+            case CameraSetting::ENABLE_STABILIZATION: return V4L2_CID_IMAGE_STABILIZATION;
+            case CameraSetting::ENABLE_HDR: return V4L2_CID_WIDE_DYNAMIC_RANGE;
+            case CameraSetting::SATURATION: return V4L2_CID_SATURATION;
+            case CameraSetting::HUE: return V4L2_CID_HUE;
+            case CameraSetting::GAMMA: return V4L2_CID_GAMMA;
+            case CameraSetting::WHITE_BALANCE: return V4L2_CID_WHITE_BALANCE_TEMPERATURE;
+            case CameraSetting::ISO: return V4L2_CID_ISO_SENSITIVITY;
+            case CameraSetting::SHARPNESS: return V4L2_CID_SHARPNESS;
+            default:
+                std::cerr << "Unknown camera setting !" << std::endl;
+                return 0;
+        }
+    }
+
     void LinuxCamera::StartStreaming() {
         int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         if (ioctl(m_fd, VIDIOC_STREAMON, &type) == -1) {
@@ -231,6 +387,12 @@ namespace USBCam {
         if (ioctl(m_fd, VIDIOC_STREAMOFF, &type) == -1) {
             throw std::runtime_error("Cannot stop streaming : " + std::string(strerror(errno)));
         }
+    }
+
+    void LinuxCamera::CreateCaptureFolders() {
+        mkdir(m_savePath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        const std::string path = m_savePath + "cam" + std::to_string(m_id);
+        mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     }
 }
 

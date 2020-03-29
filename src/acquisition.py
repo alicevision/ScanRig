@@ -203,8 +203,7 @@ class Acquisition(QObject):
             time.sleep(2)
             serialWrite(arduinoSer, "leftCaptureFull:60,15,45,45")
             # Read frame
-            self.captureDevices.grabFrames()
-            self.captureDevices.retrieveFrames()
+            self.captureDevices.readFrames()
         else:    
             GLOBAL_RUNNING[0] = False
 
@@ -220,8 +219,7 @@ class Acquisition(QObject):
             # When the motor reaches the step angle
             if line == b'Capture\r':
                 # Read frame
-                self.captureDevices.grabFrames()
-                self.captureDevices.retrieveFrames()
+                self.captureDevices.readFrames()
 
                 # Send frames to the saving buffer
                 self.captureDevices.saveFrames()
@@ -274,8 +272,7 @@ class Acquisition(QObject):
             if i > 50:
                 break
 
-            self.captureDevices.grabFrames()
-            self.captureDevices.retrieveFrames()
+            self.captureDevices.readFrames()
 
             if i % 10 == 0 :
                 self.captureDevices.saveFrames()

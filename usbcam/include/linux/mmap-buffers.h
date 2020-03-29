@@ -38,7 +38,8 @@ namespace USBCam {
         void Dequeue();
 
         /**
-         * @brief Get the length of the last dequeued buffer
+         * @brief Get the length of the last dequeued buffer in bytes
+         * @note It is the max size of the buffer, the payload might be smaller (see bytesused field)
          * 
          * @return unsigned int 
          */

@@ -24,7 +24,7 @@ namespace USBCam {
         /**
          * @brief Capture settings supported by the camera
          */
-        struct Capabilities {
+        struct Format {
             uint32_t id = 0;
             uint32_t frameRate = 0;
             uint32_t width = 0;
@@ -32,31 +32,134 @@ namespace USBCam {
             FrameEncoding encoding = FrameEncoding::_UNKNOWN;
         };
 
+        /**
+         * @brief Camera settings that can be set by the user
+         */
+        enum class CameraSetting {
+            _UNKNOWN,
+            AUTO_WHITE_BALANCE,
+            AUTO_EXPOSURE,
+            AUTO_ISO,
+            BRIGHTNESS,
+            CONTRAST,
+            EXPOSURE,
+            ENABLE_HDR,
+            ENABLE_STABILIZATION,
+            GAMMA,
+            HUE,
+            ISO,
+            SATURATION,
+            SHARPNESS,
+            WHITE_BALANCE
+        };
+
+        /**
+         * @brief Camera settings with possible values
+         */
+        struct CameraSettingDetail {
+            CameraSetting type = CameraSetting::_UNKNOWN;
+            int32_t min = 0;
+            int32_t max = 10000;
+        };
+
+        /**
+         * @brief Camera frame data structure
+         */
+        struct Frame {
+            Format format;
+            unsigned int byteWidth = 0;
+            std::vector<unsigned char> data;
+        };
+
         virtual ~ICamera() {};
 
         /**
          * @brief Get the record values supported by the camera
-         * @return std::vector<Capabilities> 
+         * @return std::vector<Format> 
          */
-        virtual std::vector<Capabilities> GetCapabilities() const = 0;
+        virtual std::vector<Format> GetSupportedFormats() const = 0;
 
         /**
          * @brief Set the capture setting of the camera
          * 
          * @param cap - Camera capability
          */
-        virtual void SetFormat(const Capabilities& cap) = 0;
+        virtual void SetFormat(const Format& cap) = 0;
 
         /**
          * @brief Get the Format used by the camera
          * 
-         * @return Capabilities 
+         * @return Format 
          */
-        virtual Capabilities GetFormat() = 0;
+        virtual Format GetFormat() const = 0;
 
         /**
-         * @brief Take a picture and save it in current working directory
+         * @brief Get the Supported Settings of the camera
+         * 
+         * @return std::vector<CameraSettingDetail> 
          */
-        virtual void TakeAndSavePicture() = 0;
+        virtual std::vector<CameraSettingDetail> GetSupportedSettings() const = 0;
+
+        /**
+         * @brief Set the Camera setting
+         * 
+         * @param setting 
+         * @param value 
+         * @return bool - True on success, False on error
+         */
+        virtual bool SetSetting(CameraSetting setting, int value) = 0;
+
+        /**
+         * @brief Get the setting value
+         * 
+         * @param setting 
+         * @return int 
+         */
+        virtual int GetSetting(CameraSetting setting) const = 0;
+
+        /**
+         * @brief Set the Save Directory for output images
+         * 
+         * @param path 
+         */
+        virtual void SetSaveDirectory(std::string path) = 0;
+
+        /**
+         * @brief Take a picture and save it the save directory
+         */
+        virtual void SaveLastFrame() = 0;
+
+        /**
+         * @brief Take a picture and give a const reference to its data
+         * 
+         * @return Frame&
+         */
+        virtual const Frame& GetLastFrame() = 0;
+
+        /**
+         * @brief Translates Camera Setting enum to string
+         * 
+         * @param setting 
+         * @return std::string 
+         */
+        static std::string CameraSettingToString(CameraSetting setting) {
+            switch (setting) {
+            case CameraSetting::BRIGHTNESS: return "Brightness";
+            case CameraSetting::CONTRAST: return "Constrast";
+            case CameraSetting::SATURATION: return "Saturation";
+            case CameraSetting::GAMMA: return "Gamma";
+            case CameraSetting::HUE: return "Hue";
+            case CameraSetting::WHITE_BALANCE: return "White balance";
+            case CameraSetting::AUTO_WHITE_BALANCE: return "Auto white balance";
+            case CameraSetting::AUTO_EXPOSURE: return "Auto exposure";
+            case CameraSetting::AUTO_ISO: return "Auto iso";
+            case CameraSetting::ISO: return "Iso";
+            case CameraSetting::SHARPNESS: return "Sharpness";
+            case CameraSetting::EXPOSURE: return "Exposure";
+            case CameraSetting::ENABLE_HDR: return "Enable High Dynamic Range";
+            case CameraSetting::ENABLE_STABILIZATION: return "Enable optic stabilization";
+            default: return "Unknown";
+            }
+        }
     };
 }
