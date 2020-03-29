@@ -29,10 +29,11 @@ SCENARIO("We should be able to create and control cameras connected by USB", "[c
 
             THEN("The size of the saved images should be changed") {
                 REQUIRE_NOTHROW(camera0->SetFormat(resolutions.at(0)));
-                REQUIRE_NOTHROW(camera0->SaveLastFrame());
+                auto frame0 = camera0->GetLastFrame();
                 REQUIRE_NOTHROW(camera0->SetFormat(resolutions.at(1)));
-                REQUIRE_NOTHROW(camera0->SaveLastFrame());
-                // Manual check required for now
+                auto frame1 = camera0->GetLastFrame();
+
+                REQUIRE(frame0.byteWidth != frame1.byteWidth);
             }
         }
 

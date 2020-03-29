@@ -68,6 +68,7 @@ namespace USBCam {
     LinuxCamera::~LinuxCamera() {
         StopStreaming();
         delete m_buffers;
+        free(m_frame.data);
         close(m_fd);
     }
 
@@ -152,7 +153,6 @@ namespace USBCam {
         }
 
         // Start stream
-        m_frame.format = cap;
         m_buffers = new MMapBuffers(m_fd);
         StartStreaming();
 
@@ -162,6 +162,13 @@ namespace USBCam {
             m_buffers->Dequeue();
             m_buffers->Queue();
         }
+
+        // Handle frame structure
+        m_frame.format = cap;
+        if (m_frame.data != nullptr) {
+            free(m_frame.data);
+        }
+        m_frame.data = malloc(m_buffers->GetLength());
     }
 
     ICamera::Format LinuxCamera::GetFormat() const {
