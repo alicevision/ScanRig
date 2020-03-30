@@ -52,10 +52,21 @@ namespace USBCam {
             .def_readonly("min", &ICamera::CameraSettingDetail::min)
             .def_readonly("max", &ICamera::CameraSettingDetail::max);
 
-        py::class_<ICamera::Frame>(m, "Frame")
-            .def_readonly("data", &ICamera::Frame::data)
+        py::class_<ICamera::Frame>(m, "Frame", py::buffer_protocol())
             .def_readonly("byteWidth", &ICamera::Frame::byteWidth)
-            .def_readonly("format", &ICamera::Frame::format);
+            .def_readonly("format", &ICamera::Frame::format)
+            .def_buffer([](ICamera::Frame& im) -> py::buffer_info {
+                py::buffer_info info;
+                info.ptr =  im.data.data();
+                info.size = im.byteWidth;
+                info.itemsize = sizeof(unsigned char);
+                info.format = py::format_descriptor<unsigned char>::format();
+                info.ndim = 1;
+                info.readonly = true;
+                info.shape = { im.byteWidth };
+                info.strides = { sizeof(unsigned char) };
+                return info;
+            });
 
         py::class_<ICamera>(m, "ICamera")
             .def("GetSupportedFormats", &ICamera::GetSupportedFormats)
