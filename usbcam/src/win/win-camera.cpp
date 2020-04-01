@@ -210,25 +210,23 @@ namespace USBCam {
     }
 
     const ICamera::Frame& WinCamera::GetLastFrame() {
-        auto frame = VideoFrame(BitmapPixelFormat::Bgra8, m_format.width, m_format.height);
-
         try {
-            auto asyncOp = m_capture.GetPreviewFrameAsync(frame).get();
-            /*
-            asyncOp.Completed([](auto&& result, auto&& status) {
-                // auto previewFrame = currentFrame.SoftwareBitmap();
-                std::cout << "Width : " << std::endl;
-            });
-            */
+            auto frame = m_reader.TryAcquireLatestFrame();
+            while (frame == nullptr) {
+                frame = m_reader.TryAcquireLatestFrame();
+                // TODO limit number of retry
+            }
+
+            auto& buffer = frame.BufferMediaFrame().Buffer();
+            m_frame.byteWidth = buffer.Length();
+
         } catch (const std::exception& e) {
-            std::cerr << e.what() << '\n';
+            std::cerr << "[GetLastFrame] " << e.what() << '\n';
         } catch (winrt::hresult_error const& ex) {
-            winrt::hresult hr = ex.to_abi();
             winrt::hstring message = ex.message();
-            std::string hMessage = std::system_category().message(hr);
-            std::cerr << to_string(message) << " : " << hMessage << std::endl;
+            std::cerr << "[GetLastFrame] " << to_string(message) << std::endl;
         } catch (...) {
-            std::cerr << "Unknown exception" << std::endl;
+            std::cerr << "[GetLastFrame] Unknown exception" << std::endl;
         }
         
         return m_frame;
