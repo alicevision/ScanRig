@@ -4,8 +4,10 @@
 
 #include <iostream>
 #include <filesystem>
+#include <system_error>
 
 #include "device-handling.h"
+
 
 namespace USBCam {
 
@@ -209,13 +211,26 @@ namespace USBCam {
 
     const ICamera::Frame& WinCamera::GetLastFrame() {
         auto frame = VideoFrame(BitmapPixelFormat::Bgra8, m_format.width, m_format.height);
-        auto asyncOp = m_capture.GetPreviewFrameAsync(frame);
-        
-        asyncOp.Completed([](auto&& result, auto&& status) {
-            // auto previewFrame = currentFrame.SoftwareBitmap();
-            std::cout << "Width : " << std::endl;
-        });
 
+        try {
+            auto asyncOp = m_capture.GetPreviewFrameAsync(frame).get();
+            /*
+            asyncOp.Completed([](auto&& result, auto&& status) {
+                // auto previewFrame = currentFrame.SoftwareBitmap();
+                std::cout << "Width : " << std::endl;
+            });
+            */
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << '\n';
+        } catch (winrt::hresult_error const& ex) {
+            winrt::hresult hr = ex.to_abi();
+            winrt::hstring message = ex.message();
+            std::string hMessage = std::system_category().message(hr);
+            std::cerr << to_string(message) << " : " << hMessage << std::endl;
+        } catch (...) {
+            std::cerr << "Unknown exception" << std::endl;
+        }
+        
         return m_frame;
     }
 

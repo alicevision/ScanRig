@@ -62,7 +62,6 @@ namespace USBCam {
                 info.itemsize = sizeof(unsigned char);
                 info.format = py::format_descriptor<unsigned char>::format();
                 info.ndim = 1;
-                info.readonly = true;
                 info.shape = { im.byteWidth };
                 info.strides = { sizeof(unsigned char) };
                 return info;

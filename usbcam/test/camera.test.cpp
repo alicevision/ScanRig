@@ -15,6 +15,7 @@ SCENARIO("We should be able to create and control cameras connected by USB", "[c
             }
         }
     }
+    */
 
     GIVEN("A plugged camera") {
         auto camera0 = USBCam::CreateCamera(0);
@@ -38,6 +39,7 @@ SCENARIO("We should be able to create and control cameras connected by USB", "[c
             }
         }
 
+/*
         WHEN("I change its settings") {
             auto settings = camera0->GetSupportedSettings();
             
@@ -60,9 +62,10 @@ SCENARIO("We should be able to create and control cameras connected by USB", "[c
                 REQUIRE(true); // Manual check needed
             }
         }
+        */
     }
-    */
 
+   /*
     GIVEN("3 cameras") {
         auto camera1 = USBCam::CreateCamera(1);
         auto camera2 = USBCam::CreateCamera(2);
@@ -83,4 +86,5 @@ SCENARIO("We should be able to create and control cameras connected by USB", "[c
             }
         }
     }
+    */
 }
