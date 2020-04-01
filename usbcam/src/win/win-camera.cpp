@@ -66,7 +66,7 @@ namespace USBCam {
     /////////////////////////////////////////////////////////////////////////
 
     WinCamera::WinCamera(uint32_t portNumber) 
-    : m_sourceGroups(nullptr), m_sourceInfo(nullptr), m_reader(nullptr), m_portNumber(portNumber) {
+    : m_sourceGroups(nullptr), m_sourceInfo(nullptr), m_reader(nullptr), m_portNumber(portNumber), m_savepath("./capture/") {
         // Get camera
         m_sourceGroups = MediaFrameSourceGroup::FindAllAsync().get();
         auto filteredGroups = GetFilteredSourceGroupList(m_sourceGroups);
@@ -123,11 +123,11 @@ namespace USBCam {
     }
 
     ICamera::Format WinCamera::GetFormat() const {
-        ICamera::Format cap;
-        return cap;
+        return m_format;
     }
 
     void WinCamera::SetFormat(const ICamera::Format& cap) {
+        m_format = cap;
         auto frameSource = m_capture.FrameSources().Lookup(m_sourceInfo.Id());
         frameSource.SetFormatAsync(frameSource.SupportedFormats().GetAt(cap.id)).get();
     }
@@ -193,22 +193,30 @@ namespace USBCam {
         }
     }
 
-    void WinCamera::SetSaveDirectory(std::string path) {
-
+    void WinCamera::SetSaveDirectory(const std::string& path) {
+        m_savepath = path;
     }
 
     void WinCamera::SaveLastFrame() {
         auto path = std::filesystem::current_path();
         auto folderRoot = Windows::Storage::StorageFolder::GetFolderFromPathAsync(path.c_str()).get();
-        auto folder = folderRoot.CreateFolderAsync(to_hstring(std::string("cam_") + std::to_string(m_portNumber)), CreationCollisionOption::OpenIfExists).get();
+        const auto savePath = m_savepath + "cam_" + std::to_string(m_portNumber);
+        auto folder = folderRoot.CreateFolderAsync(to_hstring(savePath), CreationCollisionOption::OpenIfExists).get();
         auto saveFile = folder.CreateFileAsync(L"01.png", CreationCollisionOption::GenerateUniqueName).get();
 
         m_capture.CapturePhotoToStorageFileAsync(ImageEncodingProperties::CreatePng(), saveFile).get();
     }
 
     const ICamera::Frame& WinCamera::GetLastFrame() {
-        ICamera::Frame myFrame;
-        return myFrame;
+        auto frame = VideoFrame(BitmapPixelFormat::Bgra8, m_format.width, m_format.height);
+        auto asyncOp = m_capture.GetPreviewFrameAsync(frame);
+        
+        asyncOp.Completed([](auto&& result, auto&& status) {
+            // auto previewFrame = currentFrame.SoftwareBitmap();
+            std::cout << "Width : " << std::endl;
+        });
+
+        return m_frame;
     }
 
     /////////////////////////////////////////////////////////////////////////

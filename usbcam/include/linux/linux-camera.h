@@ -28,7 +28,7 @@ namespace USBCam {
 
         // Control methods
 
-        virtual void SetSaveDirectory(std::string path) override;
+        virtual void SetSaveDirectory(const std::string& path) override;
         virtual void SaveLastFrame() override;
         virtual const Frame& GetLastFrame() override;
     

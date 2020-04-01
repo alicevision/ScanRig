@@ -122,7 +122,7 @@ namespace USBCam {
          * 
          * @param path 
          */
-        virtual void SetSaveDirectory(std::string path) = 0;
+        virtual void SetSaveDirectory(const std::string& path) = 0;
 
         /**
          * @brief Take a picture and save it the save directory

@@ -25,6 +25,7 @@
 #include <winrt\Windows.Storage.Streams.h>
 
 using namespace winrt;
+using namespace Windows::Media;
 using namespace Windows::Media::Capture;
 using namespace Windows::Media::MediaProperties;
 using namespace Windows::Media::Capture::Frames;
@@ -54,7 +55,7 @@ namespace USBCam {
 
         // Control methods
 
-        virtual void SetSaveDirectory(std::string path) override;
+        virtual void SetSaveDirectory(const std::string& path) override;
         virtual void SaveLastFrame() override;
         virtual const Frame& GetLastFrame() override;
         
@@ -69,6 +70,9 @@ namespace USBCam {
         MediaCapture m_capture;
         MediaFrameReader m_reader;
         uint32_t m_portNumber;
+        std::string m_savepath;
+        ICamera::Frame m_frame;
+        ICamera::Format m_format;
     };
 }
 

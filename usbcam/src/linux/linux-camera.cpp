@@ -273,7 +273,7 @@ namespace USBCam {
         m_buffers->Queue();
     }
 
-    void LinuxCamera::SetSaveDirectory(std::string path) {
+    void LinuxCamera::SetSaveDirectory(const std::string& path) {
         m_savePath = path;
         CreateCaptureFolders();
     }
