@@ -72,7 +72,6 @@ namespace USBCam {
         uint32_t m_portNumber;
         std::string m_savepath;
         ICamera::Frame m_frame;
-        ICamera::Format m_format;
     };
 }
 

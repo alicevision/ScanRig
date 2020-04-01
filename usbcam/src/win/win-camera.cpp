@@ -4,10 +4,8 @@
 
 #include <iostream>
 #include <filesystem>
-#include <system_error>
 
 #include "device-handling.h"
-
 
 namespace USBCam {
 
@@ -125,11 +123,11 @@ namespace USBCam {
     }
 
     ICamera::Format WinCamera::GetFormat() const {
-        return m_format;
+        return m_frame.format;
     }
 
     void WinCamera::SetFormat(const ICamera::Format& cap) {
-        m_format = cap;
+        m_frame.format = cap;
         auto frameSource = m_capture.FrameSources().Lookup(m_sourceInfo.Id());
         frameSource.SetFormatAsync(frameSource.SupportedFormats().GetAt(cap.id)).get();
     }
@@ -210,25 +208,23 @@ namespace USBCam {
     }
 
     const ICamera::Frame& WinCamera::GetLastFrame() {
-        try {
-            auto frame = m_reader.TryAcquireLatestFrame();
-            while (frame == nullptr) {
-                frame = m_reader.TryAcquireLatestFrame();
-                // TODO limit number of retry
+        auto frame = m_reader.TryAcquireLatestFrame();
+
+        unsigned int i = 0;
+        while (frame == nullptr) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            frame = m_reader.TryAcquireLatestFrame();
+
+            if (i >= 20) {
+                m_frame.byteWidth = 0;
+                return m_frame;
             }
-
-            auto& buffer = frame.BufferMediaFrame().Buffer();
-            m_frame.byteWidth = buffer.Length();
-
-        } catch (const std::exception& e) {
-            std::cerr << "[GetLastFrame] " << e.what() << '\n';
-        } catch (winrt::hresult_error const& ex) {
-            winrt::hstring message = ex.message();
-            std::cerr << "[GetLastFrame] " << to_string(message) << std::endl;
-        } catch (...) {
-            std::cerr << "[GetLastFrame] Unknown exception" << std::endl;
         }
-        
+
+        auto& buffer = frame.BufferMediaFrame().Buffer();
+        m_frame.byteWidth = buffer.Length();
+        m_frame.data.resize(buffer.Length());
+        std::memcpy(m_frame.data.data(), buffer.data(), buffer.Length());
         return m_frame;
     }
 
