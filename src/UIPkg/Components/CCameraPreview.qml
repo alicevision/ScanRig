@@ -78,7 +78,7 @@ GroupBox {
                 // Using JS to add the AvailableDevices to the list
                 Component.onCompleted: {
                     // availableDevices is a list which comes from Python
-                    for(let uvcCamIndex in preview.getAvailableUvcCameras()) {
+                    for(let uvcCamIndex in preview.getAvailableOpencvCameras()) {
                         const txt = "UVC: " + uvcCamIndex.toString()
                         availableDevicesList.append({text: txt})
                     }
@@ -116,7 +116,7 @@ GroupBox {
                 id: draftResolution
                 Layout.preferredHeight: 25
                 Layout.preferredWidth: 100
-                displayText: preview.cameraDraftResolution
+                displayText: preview.cameraFormat
                 contentItem: CCenteredText { text: parent.displayText }
 
                 model: ListModel {
@@ -129,7 +129,7 @@ GroupBox {
                 }
 
                 onActivated: {
-                    preview.setCameraDraftResolution(currentText)
+                    preview.setCameraFormat(currentText)
                 }
 
                 function updateResolutionsList() {

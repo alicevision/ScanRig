@@ -1,127 +1,74 @@
 from abc import ABC, abstractmethod
+from enum import Enum, auto
+
+class CameraSetting(Enum):
+    _UNKNOWN = auto()
+    AUTO_WHITE_BALANCE = auto()
+    AUTO_EXPOSURE = auto()
+    AUTO_ISO = auto()
+    BRIGHTNESS = auto()
+    CONTRAST = auto()
+    EXPOSURE = auto()
+    ENABLE_HDR = auto()
+    ENABLE_STABILIZATION = auto()
+    GAMMA = auto()
+    HUE = auto()
+    ISO = auto()
+    SATURATION = auto()
+    SHARPNESS = auto()
+    WHITE_BALANCE  = auto()
+
 
 class IUvcCamera(ABC):
 
-    # ------------------- Control Methods ----------------- #
-
     @abstractmethod
-    def getLastFrame(self):
-        """Returns last frame data"""
+    def getCameraId(self):
+        """Returns the camera ID"""
         pass
 
     @abstractmethod
-    def saveLastFrame(self):
-        """Save last frame to a file"""
-        pass
-
-    # ------------------- Getters & Setters ----------------- #
-    
-    @abstractmethod
-    def setDefaultSettings(self):
-        """Set all setters to their respective defaults"""
+    def getSupportedFormats(self):
+        """Returns the available formats for this device"""
         pass
 
     @abstractmethod
-    def capabilities(self):
-        """Returns the resolution & encoding capabilities of the camera"""
+    def setFormat(self, format):
+        """Set current width & height"""
         pass
 
-    @property
     @abstractmethod
-    def format(self):
+    def getFormat(self):
         """Returns the current capability used"""
         pass
 
-    @format.setter
+
     @abstractmethod
-    def setFormat(self, capability):
-        """Set width, height & encoding"""
+    def getSupportedSettings(self):
+        """Returns the available settings for this device"""
         pass
 
-    @property
     @abstractmethod
-    def brightness(self):
-        pass
+    def setSetting(self, setting, value):
+        """Set a specific setting"""
+        pass  
 
-    @brightness.setter
     @abstractmethod
-    def setBrightness(self, value):
-        """Change camera brightness, from 0 to 10 000"""
-        pass
+    def getSetting(self, setting):
+        """Returns the value of a specific setting"""
+        pass  
 
-    @property
-    @abstractmethod
-    def contrast(self):
-        pass
 
-    @contrast.setter
     @abstractmethod
-    def setContrast(self, value):
-        """Change camera constrast, from ? to ?"""
-        pass
+    def setSaveDirectory(self, path):
+        """Set the saving directory"""
+        pass  
 
-    @property
     @abstractmethod
-    def saturation(self):
-        pass
-    
-    @saturation.setter
-    @abstractmethod
-    def setSaturation(self, value):
-        """Change camera saturation, from ? to ?"""
-        pass
+    def saveLastFrame(self):
+        """Save the frame into the specified directory"""
+        pass  
 
-    @property
     @abstractmethod
-    def whiteBalance(self):
-        pass
-
-    @whiteBalance.setter
-    @abstractmethod
-    def setWhiteBalance(self, value):
-        """Change camera white balance, from ? to ?"""
-        pass
-
-    @property
-    @abstractmethod
-    def gamma(self):
-        pass
-
-    @gamma.setter
-    @abstractmethod
-    def setGamma(self, value):
-        """Change camera gamma, from ? to ?"""
-        pass
-
-    @property
-    @abstractmethod
-    def gain(self):
-        pass
-
-    @gain.setter
-    @abstractmethod
-    def setGain(self, value):
-        """Change camera gain, from ? to ?"""
-        pass
-
-    @property
-    @abstractmethod
-    def sharpness(self):
-        pass
-
-    @sharpness.setter
-    @abstractmethod
-    def setSharpness(self, value):
-        """Change camera sharpness, from ? to ?"""
-        pass
-
-    @property
-    @abstractmethod
-    def exposure(self):
-        pass
-
-    @exposure.setter
-    @abstractmethod
-    def setExposure(self, value):
-        """Change camera exposure, from ? to ?"""
-        pass
+    def getLastFrame(self):
+        """Returns the last frame taken"""
+        pass  

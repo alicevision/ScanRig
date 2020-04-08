@@ -25,7 +25,7 @@ GroupBox {
                 id: resolutionComboBox
                 Layout.preferredHeight: 25
                 Layout.preferredWidth: 100
-                displayText: preview.cameraResolution
+                displayText: preview.cameraFormat
                 contentItem: CCenteredText { text: parent.displayText }
 
                 model: ListModel {

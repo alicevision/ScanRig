@@ -2,7 +2,8 @@ from PySide2 import QtWidgets
 from PySide2.QtCore import QObject, Slot, Property, Signal
 
 from CameraPkg.capture_device_list import CaptureDeviceList
-from CameraPkg.uvc_camera import UvcCamera
+from CameraPkg.opencv_camera import OpencvCamera
+from CameraPkg.i_uvc_camera import CameraSetting
 from UIPkg.image_provider import ImageProvider
 
 import time
@@ -46,7 +47,7 @@ class CaptureDevicePreview(QObject):
         if self.currentId == -1 :
             self.runningPreview = False
             time.sleep(0.04)
-            self.previewDevices.stopDevices()
+            # self.previewDevices.stopDevices()
             self.previewDevices.emptyDevices()
 
             for sig in self.signals:
@@ -58,16 +59,16 @@ class CaptureDevicePreview(QObject):
 
         # Stop the preview for a moment
         self.runningPreview = False
-        self.previewDevices.stopDevices()
+        # self.previewDevices.stopDevices()
 
         if self.previewDevices.isEmpty() :
             if existingDevice:
                 print("existing device")
-                existingDevice.start()
-                existingDevice.changeResolution(draft=True)
+                # existingDevice.start()
+                # existingDevice.changeResolution(draft=True)
                 self.previewDevices.devices.append(existingDevice)
             else:
-                self.previewDevices.addUvcCamera(self.currentId)
+                self.previewDevices.addOpencvCamera(self.currentId)
 
         for sig in self.signals:
             sig.emit()
@@ -75,18 +76,18 @@ class CaptureDevicePreview(QObject):
         
 
     @Slot(result="QVariantList")
-    def getAvailableUvcCameras(self):
-        return self.previewDevices.availableUvcCameras()
+    def getAvailableOpencvCameras(self):
+        return self.previewDevices.availableOpencvCameras()
 
     @Slot(result="QStringList")
     def getAvailableUvcResolutions(self):
         if not self.previewDevices.isEmpty():   
             device = self.previewDevices.getDevice(0)
-            if isinstance(device, UvcCamera):
+            if isinstance(device, OpencvCamera):
                 printableResolutions = []
 
-                for elt in device.resolutions:
-                    txt = f'{elt[0]}x{elt[1]}'
+                for elt in device.formats:
+                    txt = f'{elt["width"]}x{elt["height"]}'
                     printableResolutions.append(txt)
 
                 return printableResolutions
@@ -131,30 +132,30 @@ class CaptureDevicePreview(QObject):
         signals.append(self.cameraGammaChanged)
         signals.append(self.cameraGainChanged)
         signals.append(self.cameraSharpnessChanged)
-        signals.append(self.cameraDraftResolutionChanged)
-        signals.append(self.cameraResolutionChanged)
+        signals.append(self.cameraFormatChanged)
+        signals.append(self.cameraAcquisitionFormatChanged)
 
         return signals
 
 
 
     @Slot(result=str)
-    def getCameraDraftResolution(self):
+    def getCameraFormat(self):
         if not self.previewDevices.isEmpty():   
             device = self.previewDevices.getDevice(0)
-            if isinstance(device, UvcCamera):
-                res = device.getDraftResolution()
-                return f'{res[0]}x{res[1]}'           
+            if isinstance(device, OpencvCamera):
+                res = device.getFormat()
+                return f'{res["width"]}x{res["height"]}'           
             else:
                 return ""
         else:
             return ""
 
     @Slot(str)
-    def setCameraDraftResolution(self, string):
+    def setCameraFormat(self, string):
         if not self.previewDevices.isEmpty(): 
             device = self.previewDevices.getDevice(0)
-            if isinstance(device, UvcCamera):
+            if isinstance(device, OpencvCamera):
                 # Stop the preview
                 self.runningPreview = False
                 time.sleep(0.1)
@@ -164,52 +165,51 @@ class CaptureDevicePreview(QObject):
                 w = int(res[0])
                 h = int(res[1])
                 # Set resolution
-                device.setDraftResolution(w, h)
-                device.changeResolution(draft=True)
+                device.setFormat({"width":w, "height":h})
 
                 # Run again the preview
                 self.runningPreview = True
-                self.cameraDraftResolutionChanged.emit()
+                self.cameraFormatChanged.emit()
 
-    cameraDraftResolutionChanged = Signal()
-    cameraDraftResolution = Property(str, getCameraDraftResolution, setCameraDraftResolution, notify=cameraDraftResolutionChanged)
+    cameraFormatChanged = Signal()
+    cameraFormat = Property(str, getCameraFormat, setCameraFormat, notify=cameraFormatChanged)
 
 
     @Slot(result=str)
-    def getCameraResolution(self):
+    def getCameraAcquisitionFormat(self):
         if not self.previewDevices.isEmpty():   
             device = self.previewDevices.getDevice(0)
-            if isinstance(device, UvcCamera):             
-                res = device.getResolution()
-                return f'{res[0]}x{res[1]}'
+            if isinstance(device, OpencvCamera):             
+                res = device.getAcquisitionFormat()
+                return f'{res["width"]}x{res["height"]}' 
             else:
                 return ""
         else:
             return ""
 
     @Slot(str)
-    def setCameraResolution(self, string):
+    def setCameraAcquisitionFormat(self, string):
         if not self.previewDevices.isEmpty(): 
             device = self.previewDevices.getDevice(0)
-            if isinstance(device, UvcCamera):
+            if isinstance(device, OpencvCamera):
                 # Get resolution from string
                 res = string.split("x")
                 w = int(res[0])
                 h = int(res[1])
-                # Set resolution in the dictionnary only (the preview is not affected)
-                device.setResolution(w, h)
-                self.cameraResolutionChanged.emit()
+                # Set acquisition format in the attribute only (the preview is not affected)
+                device.setAcquisitionFormat({"width":w, "height":h})
+                self.cameraAcquisitionFormatChanged.emit()
 
-    cameraResolutionChanged = Signal()
-    cameraResolution = Property(str, getCameraResolution, setCameraResolution, notify=cameraResolutionChanged)  
+    cameraAcquisitionFormatChanged = Signal()
+    cameraAcquisitionFormat = Property(str, getCameraAcquisitionFormat, setCameraAcquisitionFormat, notify=cameraAcquisitionFormatChanged)  
 
 
     @Slot()
     def getCameraExposure(self):
         if not self.previewDevices.isEmpty():   
             device = self.previewDevices.getDevice(0)
-            if isinstance(device, UvcCamera):                     
-                return device.settings["exposure"]
+            if isinstance(device, OpencvCamera):                  
+                return device.getSetting(CameraSetting.EXPOSURE)
             else:
                 return 0
         else:
@@ -219,8 +219,8 @@ class CaptureDevicePreview(QObject):
     def setCameraExposure(self, val):
         if not self.previewDevices.isEmpty(): 
             device = self.previewDevices.getDevice(0)
-            if isinstance(device, UvcCamera): 
-                device.setExposure(val)
+            if isinstance(device, OpencvCamera): 
+                device.setSetting(CameraSetting.EXPOSURE, val)
                 self.cameraExposureChanged.emit()
 
     cameraExposureChanged = Signal()
@@ -231,8 +231,8 @@ class CaptureDevicePreview(QObject):
     def getCameraBrightness(self):   
         if not self.previewDevices.isEmpty():   
             device = self.previewDevices.getDevice(0)
-            if isinstance(device, UvcCamera):                     
-                return device.settings["brightness"]
+            if isinstance(device, OpencvCamera):                     
+                return device.getSetting(CameraSetting.BRIGHTNESS)
             else:
                 return 0
         else:
@@ -242,8 +242,8 @@ class CaptureDevicePreview(QObject):
     def setCameraBrightness(self, val):
         if not self.previewDevices.isEmpty(): 
             device = self.previewDevices.getDevice(0)
-            if isinstance(device, UvcCamera): 
-                device.setBrightness(val)
+            if isinstance(device, OpencvCamera): 
+                device.setSetting(CameraSetting.BRIGHTNESS, val)
                 self.cameraBrightnessChanged.emit()
 
     cameraBrightnessChanged = Signal()
@@ -254,8 +254,8 @@ class CaptureDevicePreview(QObject):
     def getCameraContrast(self):  
         if not self.previewDevices.isEmpty():   
             device = self.previewDevices.getDevice(0)
-            if isinstance(device, UvcCamera):                     
-                return device.settings["contrast"]
+            if isinstance(device, OpencvCamera):                     
+                return device.getSetting(CameraSetting.CONTRAST)
             else:
                 return 0
         else:
@@ -265,8 +265,8 @@ class CaptureDevicePreview(QObject):
     def setCameraContrast(self, val):
         if not self.previewDevices.isEmpty(): 
             device = self.previewDevices.getDevice(0)
-            if isinstance(device, UvcCamera): 
-                device.setContrast(val)
+            if isinstance(device, OpencvCamera): 
+                device.setSetting(CameraSetting.CONTRAST, val)
                 self.cameraContrastChanged.emit()
 
     cameraContrastChanged = Signal()
@@ -277,8 +277,8 @@ class CaptureDevicePreview(QObject):
     def getCameraSaturation(self):   
         if not self.previewDevices.isEmpty():   
             device = self.previewDevices.getDevice(0)
-            if isinstance(device, UvcCamera):                     
-                return device.settings["saturation"]
+            if isinstance(device, OpencvCamera):                     
+                return device.getSetting(CameraSetting.SATURATION)
             else:
                 return 0
         else:
@@ -288,8 +288,8 @@ class CaptureDevicePreview(QObject):
     def setCameraSaturation(self, val):
         if not self.previewDevices.isEmpty(): 
             device = self.previewDevices.getDevice(0)
-            if isinstance(device, UvcCamera): 
-                device.setSaturation(val)
+            if isinstance(device, OpencvCamera): 
+                device.setSetting(CameraSetting.SATURATION, val)
                 self.cameraSaturationChanged.emit()
 
     cameraSaturationChanged = Signal()
@@ -300,8 +300,8 @@ class CaptureDevicePreview(QObject):
     def getCameraWhiteBalance(self):  
         if not self.previewDevices.isEmpty():   
             device = self.previewDevices.getDevice(0)
-            if isinstance(device, UvcCamera):                     
-                return device.settings["tempWB"]
+            if isinstance(device, OpencvCamera):                     
+                return device.getSetting(CameraSetting.WHITE_BALANCE)
             else:
                 return 0
         else:
@@ -311,8 +311,8 @@ class CaptureDevicePreview(QObject):
     def setCameraWhiteBalance(self, val):
         if not self.previewDevices.isEmpty(): 
             device = self.previewDevices.getDevice(0)
-            if isinstance(device, UvcCamera): 
-                device.setTempWB(val)
+            if isinstance(device, OpencvCamera): 
+                device.setSetting(CameraSetting.WHITE_BALANCE, val)
                 self.cameraWhiteBalanceChanged.emit()
 
     cameraWhiteBalanceChanged = Signal()
@@ -323,8 +323,8 @@ class CaptureDevicePreview(QObject):
     def getCameraGamma(self):  
         if not self.previewDevices.isEmpty():   
             device = self.previewDevices.getDevice(0)
-            if isinstance(device, UvcCamera):                     
-                return device.settings["gamma"]
+            if isinstance(device, OpencvCamera):                     
+                return device.getSetting(CameraSetting.GAMMA)
             else:
                 return 0
         else:
@@ -334,8 +334,8 @@ class CaptureDevicePreview(QObject):
     def setCameraGamma(self, val):
         if not self.previewDevices.isEmpty(): 
             device = self.previewDevices.getDevice(0)
-            if isinstance(device, UvcCamera): 
-                device.setGamma(val)
+            if isinstance(device, OpencvCamera): 
+                device.setSetting(CameraSetting.GAMMA, val)
                 self.cameraGammaChanged.emit()
 
     cameraGammaChanged = Signal()
@@ -346,8 +346,8 @@ class CaptureDevicePreview(QObject):
     def getCameraGain(self):    
         if not self.previewDevices.isEmpty():   
             device = self.previewDevices.getDevice(0)
-            if isinstance(device, UvcCamera):                     
-                return device.settings["gain"]
+            if isinstance(device, OpencvCamera):                     
+                return device.getSetting(CameraSetting.ISO)
             else:
                 return 0
         else:
@@ -357,8 +357,8 @@ class CaptureDevicePreview(QObject):
     def setCameraGain(self, val):
         if not self.previewDevices.isEmpty(): 
             device = self.previewDevices.getDevice(0)
-            if isinstance(device, UvcCamera): 
-                device.setGain(val)
+            if isinstance(device, OpencvCamera): 
+                device.setSetting(CameraSetting.ISO, val)
                 self.cameraGainChanged.emit()
 
     cameraGainChanged = Signal()
@@ -369,8 +369,8 @@ class CaptureDevicePreview(QObject):
     def getCameraSharpness(self):   
         if not self.previewDevices.isEmpty():   
             device = self.previewDevices.getDevice(0)
-            if isinstance(device, UvcCamera):                     
-                return device.settings["sharpness"]
+            if isinstance(device, OpencvCamera):                     
+                return device.getSetting(CameraSetting.SHARPNESS)
             else:
                 return 0
         else:
@@ -380,8 +380,8 @@ class CaptureDevicePreview(QObject):
     def setCameraSharpness(self, val):
         if not self.previewDevices.isEmpty(): 
             device = self.previewDevices.getDevice(0)
-            if isinstance(device, UvcCamera): 
-                device.setSharpness(val)
+            if isinstance(device, OpencvCamera): 
+                device.setSetting(CameraSetting.SHARPNESS, val)
                 self.cameraSharpnessChanged.emit()
 
     cameraSharpnessChanged = Signal()

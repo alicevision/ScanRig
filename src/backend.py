@@ -76,7 +76,7 @@ class Backend(QObject):
         # Stop the Main Thread
         self.stopMainThread = True
         self.mainThread.join() # Make appear some QML Warnings but it does not really matter (seems like a bug)
-        self.preview.previewDevices.stopDevices()
+        # self.preview.previewDevices.stopDevices()
 
         print("EXIT APPLICATION")
         return True

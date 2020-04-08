@@ -1,13 +1,13 @@
 import cv2, logging
 import queue, os
 
-from .uvc_camera import UvcCamera
+from .opencv_camera import OpencvCamera
 from .dslr_camera import DslrCamera
 
 class CaptureDeviceList(object):
     def __init__(self):
         self.devices = []
-        self.savingFrames = queue.Queue()
+        # self.savingFrames = queue.Queue()
 
     #----------------------------------------- DEVICES
     def isEmpty(self):
@@ -25,13 +25,13 @@ class CaptureDeviceList(object):
     def getDevicesNames(self):
         names = []
         for device in self.devices:
-            if isinstance(device, UvcCamera):
+            if isinstance(device, OpencvCamera):
                 name = "UVC : " + str(device.indexCam)
                 names.append(name)
         return names
 
 
-    def availableUvcCameras(self):
+    def availableOpencvCameras(self):
         ids = []
         for id in range(20):
             if os.path.exists('/dev/video' + str(id)):
@@ -39,40 +39,40 @@ class CaptureDeviceList(object):
 
         return ids
 
-    def addUvcCamera(self, indexDevice):
-        device = UvcCamera(indexDevice, self.savingFrames)
+    def addOpencvCamera(self, idDevice):
+        device = OpencvCamera(idDevice, settings= None, saveDirectory= None)
         if device.capture.isOpened():
             self.devices.append(device)
         return
 
-    def getDevice(self, indexDevice):
-        return self.devices[indexDevice]
+    def getDevice(self, index):
+        return self.devices[index]
 
-    def getDeviceByCamId(self, camId):
+    def getDeviceByCamId(self, id):
         for device in self.devices:
-            if camId == device.indexCam:
+            if id == device.id:
                 return device
         return None
 
     def readFrames(self):
         for device in self.devices:
-            if isinstance(device, UvcCamera):
-                device.readFrame()
+            if isinstance(device, OpencvCamera):
+                frame = device.getLastFrame()
 
-    def setSavingFramesToDevices(self):
-        for device in self.devices:
-            if isinstance(device, UvcCamera):
-                device.setSavingFrames(self.savingFrames)
+    # def setSavingFramesToDevices(self):
+    #     for device in self.devices:
+    #         if isinstance(device, OpencvCamera):
+    #             device.setSavingFrames(self.savingFrames)
 
     def saveFrames(self):
         for device in self.devices:
-            if isinstance(device, UvcCamera):
-                device.saveFrame()
+            if isinstance(device, OpencvCamera):
+                device.saveLastFrame()
 
-    def stopDevices(self):
-        for device in self.devices:
-            if isinstance(device, UvcCamera):
-                device.stop()
+    # def stopDevices(self):
+    #     for device in self.devices:
+    #         if isinstance(device, OpencvCamera):
+    #             device.stop()
 
     def emptyDevices(self):
         for device in self.devices:

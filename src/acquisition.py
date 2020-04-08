@@ -10,7 +10,7 @@ from enum import Enum, auto
 import args_parser
 import CameraPkg
 from CameraPkg.capture_device_list import CaptureDeviceList
-from CameraPkg.uvc_camera import UvcCamera
+from CameraPkg.opencv_camera import OpencvCamera
 from CameraPkg.saving import SaveWatcher
 from MoteurPkg.serial_management import availablePorts, serialWrite, SerialReader, selectPort
 
@@ -255,7 +255,7 @@ class Acquisition(QObject):
 
         # Start UVC Cameras
         for device in self.captureDevices.devices:
-            if isinstance(device, UvcCamera):
+            if isinstance(device, OpencvCamera):
                 device.start()
         # Set the queue saving frames to every devices
         self.captureDevices.setSavingFramesToDevices()
