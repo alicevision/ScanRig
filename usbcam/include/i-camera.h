@@ -91,8 +91,8 @@ namespace USBCam {
          * 
          * @param cap - Camera capability
          */
-        void SetUnappliedFormat(const Format& cap) {
-            m_unappliedFormat = cap;
+        void SetAcquisitionFormat(const Format& cap) {
+            m_acquisitionFormat = cap;
         }
 
         /**
@@ -100,8 +100,8 @@ namespace USBCam {
          * 
          * @return Format
          */
-        Format GetUnappliedFormat() {
-            return m_unappliedFormat;
+        Format GetAcquisitionFormat() {
+            return m_acquisitionFormat;
         }
 
         /**
@@ -181,6 +181,6 @@ namespace USBCam {
         }
 
         private:
-            Format m_unappliedFormat;
+            Format m_acquisitionFormat;
     };
 }
