@@ -25,7 +25,7 @@ GroupBox {
                 id: resolutionComboBox
                 Layout.preferredHeight: 25
                 Layout.preferredWidth: 100
-                displayText: preview.cameraFormat
+                displayText: preview.cameraAcquisitionFormat
                 contentItem: CCenteredText { text: parent.displayText }
 
                 model: ListModel {
@@ -38,7 +38,7 @@ GroupBox {
                 }
 
                 onActivated: {
-                    preview.setCameraResolution(currentText)
+                    preview.setCameraAcquisitionFormat(currentText)
                 }
 
                 function updateResolutionsList() {

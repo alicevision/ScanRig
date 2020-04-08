@@ -7,7 +7,7 @@ from .dslr_camera import DslrCamera
 class CaptureDeviceList(object):
     def __init__(self):
         self.devices = []
-        # self.savingFrames = queue.Queue()
+        self.savingQueue = queue.Queue()
 
     #----------------------------------------- DEVICES
     def isEmpty(self):
@@ -26,7 +26,7 @@ class CaptureDeviceList(object):
         names = []
         for device in self.devices:
             if isinstance(device, OpencvCamera):
-                name = "UVC : " + str(device.indexCam)
+                name = "UVC : " + str(device.id)
                 names.append(name)
         return names
 
@@ -40,7 +40,7 @@ class CaptureDeviceList(object):
         return ids
 
     def addOpencvCamera(self, idDevice):
-        device = OpencvCamera(idDevice, settings= None, saveDirectory= None)
+        device = OpencvCamera(idDevice, settings=None)
         if device.capture.isOpened():
             self.devices.append(device)
         return
@@ -59,20 +59,17 @@ class CaptureDeviceList(object):
             if isinstance(device, OpencvCamera):
                 frame = device.getLastFrame()
 
-    # def setSavingFramesToDevices(self):
-    #     for device in self.devices:
-    #         if isinstance(device, OpencvCamera):
-    #             device.setSavingFrames(self.savingFrames)
-
     def saveFrames(self):
         for device in self.devices:
             if isinstance(device, OpencvCamera):
                 device.saveLastFrame()
 
-    # def stopDevices(self):
-    #     for device in self.devices:
-    #         if isinstance(device, OpencvCamera):
-    #             device.stop()
+    # ONLY FOR OPENCV API
+    def setSavingToOpencvCameras(self, rootDirectory):
+        for device in self.devices:
+            if isinstance(device, OpencvCamera):
+                device.setSavingQueue(self.savingQueue)
+                device.setSaveDirectory(rootDirectory)
 
     def emptyDevices(self):
         for device in self.devices:

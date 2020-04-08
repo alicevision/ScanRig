@@ -47,7 +47,6 @@ class CaptureDevicePreview(QObject):
         if self.currentId == -1 :
             self.runningPreview = False
             time.sleep(0.04)
-            # self.previewDevices.stopDevices()
             self.previewDevices.emptyDevices()
 
             for sig in self.signals:
@@ -59,13 +58,10 @@ class CaptureDevicePreview(QObject):
 
         # Stop the preview for a moment
         self.runningPreview = False
-        # self.previewDevices.stopDevices()
 
         if self.previewDevices.isEmpty() :
             if existingDevice:
                 print("existing device")
-                # existingDevice.start()
-                # existingDevice.changeResolution(draft=True)
                 self.previewDevices.devices.append(existingDevice)
             else:
                 self.previewDevices.addOpencvCamera(self.currentId)

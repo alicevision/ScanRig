@@ -76,7 +76,6 @@ class Backend(QObject):
         # Stop the Main Thread
         self.stopMainThread = True
         self.mainThread.join() # Make appear some QML Warnings but it does not really matter (seems like a bug)
-        # self.preview.previewDevices.stopDevices()
 
         print("EXIT APPLICATION")
         return True
@@ -93,10 +92,9 @@ class Backend(QObject):
         if self.acquisition.captureDevices.isEmpty():
             return False
 
-        # STOP THE PREVIEW AND ALL THE DEVICES + EMPTY THE PREVIEW LIST
+        # STOP THE PREVIEW AND EMPTY THE PREVIEW LIST
         self.preview.runningPreview = False
         time.sleep(0.04)
-        self.preview.previewDevices.stopDevices()
         self.preview.previewDevices.emptyDevices()
 
         # Start acquisition

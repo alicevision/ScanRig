@@ -25,7 +25,7 @@ class Acquisition(QObject):
         super().__init__()
         self.captureDevices = CaptureDeviceList()
         self.runningAcquisition = AcquisitionState.OFF
-        self.savingDirectory = ""
+        self.savingRootDirectory = ""
         self.nbTakenImages = 0
         self.nbImagesToTake = 0
 
@@ -149,7 +149,13 @@ class Acquisition(QObject):
     def changeSavingDirectory(self, path) :
         directory = path.split("file://")[1]
         print(directory)
-        self.savingDirectory = directory
+        self.savingRootDirectory = directory
+
+    def createCaptureFolder(self):
+        root = self.savingRootDirectory
+        newFolder = os.path.join(root, "capture")
+        os.makedirs(newFolder, exist_ok=True)
+        self.savingRootDirectory = newFolder
 
     
     @Slot()
@@ -253,16 +259,17 @@ class Acquisition(QObject):
         self.setNbImagesToTake(6)
         i = 0
 
-        # Start UVC Cameras
+        # Set the acquisition format to each camera
         for device in self.captureDevices.devices:
-            if isinstance(device, OpencvCamera):
-                device.start()
-        # Set the queue saving frames to every devices
-        self.captureDevices.setSavingFramesToDevices()
+            device.setFormat(device.acquisitionFormat)
 
-        # Initialize and start saving thread
+        # Set the queue saving frames to every devices ONLY IF OPENCV CAMERAS (TO CHECK LATER)
+        self.createCaptureFolder()
+        self.captureDevices.setSavingToOpencvCameras(self.savingRootDirectory)
+
+        # Initialize and start saving thread ONLY IF OPENCV CAMERAS (TO CHECK LATER)
         stopSavingThread = [False]
-        savingThread = SaveWatcher(stopSavingThread, self.captureDevices.savingFrames, self.savingDirectory)
+        savingThread = SaveWatcher(stopSavingThread, self.captureDevices.savingQueue)
         savingThread.start()
 
         while True:
@@ -284,6 +291,6 @@ class Acquisition(QObject):
         stopSavingThread[0] = True
         savingThread.join()
 
-        self.captureDevices.stopDevices()
+        # self.captureDevices.stopDevices()
         logging.info("End of Acquisition")
         self.runningAcquisition = AcquisitionState.OVER

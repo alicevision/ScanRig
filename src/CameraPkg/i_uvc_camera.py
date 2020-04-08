@@ -32,7 +32,7 @@ class IUvcCamera(ABC):
         pass
 
     @abstractmethod
-    def setFormat(self, format):
+    def setFormat(self, form):
         """Set current width & height"""
         pass
 
