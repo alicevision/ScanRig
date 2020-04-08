@@ -87,6 +87,24 @@ namespace USBCam {
         virtual void SetFormat(const Format& cap) = 0;
 
         /**
+         * @brief Store a value for the format. Not applied to the camera
+         * 
+         * @param cap - Camera capability
+         */
+        void SetUnappliedFormat(const Format& cap) {
+            m_unappliedFormat = cap;
+        }
+
+        /**
+         * @brief Get the Unapplied stored format
+         * 
+         * @return Format
+         */
+        Format GetUnappliedFormat() {
+            return m_unappliedFormat;
+        }
+
+        /**
          * @brief Get the Format used by the camera
          * 
          * @return Format 
@@ -161,5 +179,8 @@ namespace USBCam {
             default: return "Unknown";
             }
         }
+
+        private:
+            Format m_unappliedFormat;
     };
 }

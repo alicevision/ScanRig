@@ -71,6 +71,8 @@ namespace USBCam {
             .def("GetSupportedFormats", &ICamera::GetSupportedFormats)
             .def("SetFormat", &ICamera::SetFormat)
             .def("GetFormat", &ICamera::GetFormat)
+            .def("SetUnappliedFormat", &ICamera::SetUnappliedFormat)
+            .def("GetUnappliedFormat", &ICamera::GetUnappliedFormat)
             .def("GetSupportedSettings", &ICamera::GetSupportedSettings)
             .def("SetSetting", &ICamera::SetSetting)
             .def("GetSetting", &ICamera::GetSetting)
