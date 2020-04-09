@@ -57,19 +57,19 @@ class CaptureDeviceList(object):
     def readFrames(self):
         for device in self.devices:
             if isinstance(device, OpencvCamera):
-                frame = device.getLastFrame()
+                frame = device.GetLastFrame()
 
     def saveFrames(self):
         for device in self.devices:
             if isinstance(device, OpencvCamera):
-                device.saveLastFrame()
+                device.SaveLastFrame()
 
     # ONLY FOR OPENCV API
     def setSavingToOpencvCameras(self, rootDirectory):
         for device in self.devices:
             if isinstance(device, OpencvCamera):
-                device.setSavingQueue(self.savingQueue)
-                device.setSaveDirectory(rootDirectory)
+                device.SetSavingQueue(self.savingQueue)
+                device.SetSaveDirectory(rootDirectory)
 
     def emptyDevices(self):
         for device in self.devices:

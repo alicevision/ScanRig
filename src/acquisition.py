@@ -261,7 +261,7 @@ class Acquisition(QObject):
 
         # Set the acquisition format to each camera
         for device in self.captureDevices.devices:
-            device.setFormat(device.acquisitionFormat)
+            device.SetFormat(device.acquisitionFormat)
 
         # Set the queue saving frames to every devices ONLY IF OPENCV CAMERAS (TO CHECK LATER)
         self.createCaptureFolder()

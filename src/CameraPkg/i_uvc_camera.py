@@ -22,53 +22,53 @@ class CameraSetting(Enum):
 class IUvcCamera(ABC):
 
     @abstractmethod
-    def getCameraId(self):
+    def GetCameraId(self):
         """Returns the camera ID"""
         pass
 
     @abstractmethod
-    def getSupportedFormats(self):
+    def GetSupportedFormats(self):
         """Returns the available formats for this device"""
         pass
 
     @abstractmethod
-    def setFormat(self, form):
+    def SetFormat(self, form):
         """Set current width & height"""
         pass
 
     @abstractmethod
-    def getFormat(self):
+    def GetFormat(self):
         """Returns the current capability used"""
         pass
 
 
     @abstractmethod
-    def getSupportedSettings(self):
+    def GetSupportedSettings(self):
         """Returns the available settings for this device"""
         pass
 
     @abstractmethod
-    def setSetting(self, setting, value):
+    def SetSetting(self, setting, value):
         """Set a specific setting"""
         pass  
 
     @abstractmethod
-    def getSetting(self, setting):
+    def GetSetting(self, setting):
         """Returns the value of a specific setting"""
         pass  
 
 
     @abstractmethod
-    def setSaveDirectory(self, path):
+    def SetSaveDirectory(self, path):
         """Set the saving directory"""
         pass  
 
     @abstractmethod
-    def saveLastFrame(self):
+    def SaveLastFrame(self):
         """Save the frame into the specified directory"""
         pass  
 
     @abstractmethod
-    def getLastFrame(self):
+    def GetLastFrame(self):
         """Returns the last frame taken"""
         pass  

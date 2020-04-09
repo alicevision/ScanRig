@@ -17,9 +17,9 @@ class OpencvCamera(IUvcCamera):
 
         self.capture = cv2.VideoCapture()
         self.__start()
-        self.formats = self.getSupportedFormats()
+        self.formats = self.GetSupportedFormats()
         print(self.formats)
-        self.setFormat(self.formats[0])
+        self.SetFormat(self.formats[0])
         self.acquisitionFormat = self.formats[0]
 
         self.saveDirectory = None
@@ -32,11 +32,11 @@ class OpencvCamera(IUvcCamera):
 
 
 
-    def getCameraId(self):
+    def GetCameraId(self):
         """Returns the camera ID"""
         return self.id
 
-    def getSupportedFormats(self):
+    def GetSupportedFormats(self):
         """Returns the available formats for this device"""
         formats = []
         toTest = [(4208, 3120), (4096, 2160), (3840, 2160), (2880, 2160), (1920, 1440), (1920, 1080), (1280, 960), (1280, 720), (640,480)]
@@ -53,33 +53,33 @@ class OpencvCamera(IUvcCamera):
 
         return formats
 
-    def setFormat(self, form):
+    def SetFormat(self, form):
         """Set current width & height"""
         self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, form.get("width"))
         self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, form.get("height"))
         
         self.__fillBuffer()
 
-    def getFormat(self):
+    def GetFormat(self):
         """Returns the current capability used"""
         w = self.capture.get(cv2.CAP_PROP_FRAME_WIDTH)
         h = self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
 
         return {"width": int(w), "height": int(h)}
 
-    def setAcquisitionFormat(self, form):
+    def SetAcquisitionFormat(self, form):
         """Set the Acquisition width & height"""
         self.acquisitionFormat = form
 
-    def getAcquisitionFormat(self):
+    def GetAcquisitionFormat(self):
         """Returns the Acquisition format"""
         return self.acquisitionFormat
 
-    def getSupportedSettings(self):
+    def GetSupportedSettings(self):
         """Does nothing"""
         pass
 
-    def setSetting(self, setting, value):
+    def SetSetting(self, setting, value):
         """Set a specific setting"""
         if setting == CameraSetting.BRIGHTNESS:
             self.capture.set(cv2.CAP_PROP_BRIGHTNESS, value)
@@ -102,7 +102,7 @@ class OpencvCamera(IUvcCamera):
         elif setting == CameraSetting.AUTO_EXPOSURE:
             self.capture.set(cv2.CAP_PROP_AUTO_EXPOSURE, value)
 
-    def getSetting(self, setting):
+    def GetSetting(self, setting):
         """Returns the value of a specific setting"""
         if setting == CameraSetting.BRIGHTNESS:
             return self.capture.get(cv2.CAP_PROP_BRIGHTNESS)
@@ -125,20 +125,20 @@ class OpencvCamera(IUvcCamera):
         elif setting == CameraSetting.AUTO_EXPOSURE:
             return self.capture.get(cv2.CAP_PROP_AUTO_EXPOSURE)
 
-    def setSaveDirectory(self, rootDirectory):
+    def SetSaveDirectory(self, rootDirectory):
         """Set the saving directory"""
         path = os.path.join(rootDirectory, f"cam_{self.id}")
         print("save balbal " + path)
         os.makedirs(path, exist_ok=True)
         self.saveDirectory = path
 
-    def saveLastFrame(self):
+    def SaveLastFrame(self):
         """Save the frame into the specified directory"""
         if self.savingQueue:
             self.savingQueue.put((self.id, self.frameCount, self.frame, self.saveDirectory))
             self.frameCount += 1
 
-    def getLastFrame(self):
+    def GetLastFrame(self):
         """Returns the last frame taken"""
         self.status, self.frame = self.capture.read()
         if not self.status:
@@ -149,7 +149,7 @@ class OpencvCamera(IUvcCamera):
 
 #---------- METHOD ONLY FOR THIS CLASS (NOT HERITED FROM INTERFACE)
 
-    def setSavingQueue(self, savingQueue):
+    def SetSavingQueue(self, savingQueue):
         self.savingQueue = savingQueue
 
 #---------- PRIVATE METHODS
@@ -172,7 +172,7 @@ class OpencvCamera(IUvcCamera):
 
     def __fillBuffer(self):
         for i in range(int(self.capture.get(cv2.CAP_PROP_BUFFERSIZE)) + 1):
-            self.getLastFrame()
+            self.GetLastFrame()
 
     def __initSettings(self):
         settings = {
