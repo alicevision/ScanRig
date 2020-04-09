@@ -5,14 +5,16 @@ from CameraPkg.capture_device_list import CaptureDeviceList
 from CameraPkg.opencv_camera import OpencvCamera
 from CameraPkg.i_uvc_camera import CameraSetting
 from UIPkg.image_provider import ImageProvider
+from streaming_api import StreamingAPI
 
 import time
 
 
 # ONLY ONE CAMERA IN PREVIEW AT A TIME
 class CaptureDevicePreview(QObject):
-    def __init__(self, acquisitionDevices):
+    def __init__(self, acquisitionDevices, streamingAPI):
         super().__init__()
+        self.streamingAPI = streamingAPI
         self.previewDevices = CaptureDeviceList() # We have to use a list for the imageProvider even if we only have one camera
         self.runningPreview = False
         self.currentId = -1

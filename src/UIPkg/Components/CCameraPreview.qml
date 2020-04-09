@@ -4,7 +4,7 @@ import QtQuick.Controls 2.14
 import QtQuick.Controls.Styles 1.4
 
 GroupBox {
-    title: qsTr("Camera Preview")
+    title: qsTr("Camera Preview - Streaming API : " + backend.streamingAPIName)
     id: root
     signal changedAcquisition()
     signal changedDevice()

@@ -6,14 +6,16 @@ import threading
 from acquisition import Acquisition, AcquisitionState
 from capture_device_preview import CaptureDevicePreview
 from UIPkg.image_provider import ImageProvider
+from streaming_api import StreamingAPI
 
 import time
 
 class Backend(QObject):
-    def __init__(self):
+    def __init__(self, streamingAPI):
         super().__init__()
-        self.acquisition = Acquisition()
-        self.preview = CaptureDevicePreview(self.acquisition.captureDevices)
+        self.streamingAPI = streamingAPI
+        self.acquisition = Acquisition(self.streamingAPI)
+        self.preview = CaptureDevicePreview(self.acquisition.captureDevices, self.streamingAPI)
         self.mainLayout = True
         self.readyForAcquisition = False
 
@@ -64,6 +66,19 @@ class Backend(QObject):
 
     mainLayoutChanged = Signal()
     mainLayoutEnabled = Property(bool, getMainLayout, setMainLayout, notify=mainLayoutChanged)
+
+
+    @Slot()
+    def getAPI(self):
+        if self.streamingAPI == StreamingAPI.USBCAM:
+            return "usbcam"
+        elif self.streamingAPI == StreamingAPI.OPENCV:
+            return "opencv"
+        else:
+            return "no API"                                                                      
+    
+    streamingAPINameChanged = Signal()
+    streamingAPIName = Property(str, getAPI, notify=streamingAPINameChanged)  
 
 
     #---------- APPLICATION

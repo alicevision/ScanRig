@@ -7,12 +7,12 @@ import os
 
 from enum import Enum, auto
 
-import args_parser
 import CameraPkg
 from CameraPkg.capture_device_list import CaptureDeviceList
 from CameraPkg.opencv_camera import OpencvCamera
 from CameraPkg.saving import SaveWatcher
 from MoteurPkg.serial_management import availablePorts, serialWrite, SerialReader, selectPort
+from streaming_api import StreamingAPI
 
 
 class AcquisitionState(Enum):
@@ -21,8 +21,9 @@ class AcquisitionState(Enum):
     OVER = auto()
 
 class Acquisition(QObject):
-    def __init__(self):
+    def __init__(self, streamingAPI):
         super().__init__()
+        self.streamingAPI = streamingAPI
         self.captureDevices = CaptureDeviceList()
         self.runningAcquisition = AcquisitionState.OFF
         self.savingRootDirectory = ""
