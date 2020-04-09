@@ -99,6 +99,10 @@ namespace USBCam {
         m_capture = nullptr;
     }
 
+    unsigned int WinCamera::GetCameraId() const {
+        return m_portNumber;
+    }
+
     std::vector<ICamera::Format> WinCamera::GetSupportedFormats() const {
         std::vector<ICamera::Format> capabilities;
         auto mediaDescriptionIter = m_sourceInfo.VideoProfileMediaDescription().First();

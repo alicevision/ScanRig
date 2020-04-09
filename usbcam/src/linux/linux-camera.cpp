@@ -71,6 +71,10 @@ namespace USBCam {
         close(m_fd);
     }
 
+    unsigned int LinuxCamera::GetCameraId() const {
+        return m_id;
+    }
+
     std::vector<ICamera::Format> LinuxCamera::GetSupportedFormats() const {
         std::vector<ICamera::Format> capabilities;
         
