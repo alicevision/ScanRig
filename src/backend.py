@@ -6,7 +6,7 @@ import threading
 from acquisition import Acquisition, AcquisitionState
 from capture_device_preview import CaptureDevicePreview
 from UIPkg.image_provider import ImageProvider
-from streaming_api import StreamingAPI
+from CameraPkg.streaming_api import StreamingAPI
 
 import time
 
@@ -15,7 +15,7 @@ class Backend(QObject):
         super().__init__()
         self.streamingAPI = streamingAPI
         self.acquisition = Acquisition(self.streamingAPI)
-        self.preview = CaptureDevicePreview(self.acquisition.captureDevices, self.streamingAPI)
+        self.preview = CaptureDevicePreview(self.acquisition.captureDevices, self.acquisition.savingRootDirectory, self.streamingAPI)
         self.mainLayout = True
         self.readyForAcquisition = False
 
@@ -33,9 +33,6 @@ class Backend(QObject):
         while True:
             if stop():
                 break
-
-            if self.preview.runningPreview:
-                self.preview.previewDevices.readFrames()
 
             if self.acquisition.runningAcquisition == AcquisitionState.OVER:
                 self.acquisition.runningAcquisition = AcquisitionState.OFF # STOP Acquisition

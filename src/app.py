@@ -3,7 +3,7 @@ import threading
 import time
 import os
 import logging
-from streaming_api import getStreamingAPI
+from CameraPkg.streaming_api import CHOSEN_STREAMING_API
 from UIPkg.image_provider import ImageProvider
 from UIPkg.palette import Palette
 from backend import Backend
@@ -57,9 +57,9 @@ class MessageHandler(object):
 
 class App():
     def __init__(self):
-        streamingAPI = getStreamingAPI()
+        self.streamingAPI = CHOSEN_STREAMING_API
 
-        print(streamingAPI)
+        print(self.streamingAPI)
 
         QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
         sys_argv = sys.argv
@@ -81,7 +81,7 @@ class App():
         ctx = self.engine.rootContext()
 
         # Create a Backend object to communicate with QML
-        self.backend = Backend(streamingAPI)
+        self.backend = Backend(self.streamingAPI)
         ctx.setContextProperty("backend", self.backend)
         ctx.setContextProperty("preview", self.backend.preview)
         ctx.setContextProperty("acquisition", self.backend.acquisition)

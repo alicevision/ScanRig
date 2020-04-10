@@ -4,7 +4,7 @@ import threading, logging, cv2
 from .i_uvc_camera import CameraSetting, IUvcCamera
 
 class OpencvCamera(IUvcCamera):
-    def __init__(self, id, settings=None, savingQueue=None):
+    def __init__(self, id, settings=None, savingQueue=None, saveDirectory=""):
         self.id = id
         (self.status, self.frame) = (None, None)
         self.frameCount = 0
@@ -22,7 +22,7 @@ class OpencvCamera(IUvcCamera):
         self.SetFormat(self.formats[0])
         self.acquisitionFormat = self.formats[0]
 
-        self.saveDirectory = None
+        self.saveDirectory = saveDirectory
         self.savingQueue = savingQueue
 
     
@@ -35,6 +35,10 @@ class OpencvCamera(IUvcCamera):
     def GetCameraId(self):
         """Returns the camera ID"""
         return self.id
+
+    def GetCameraName(self):
+        """Returns the camera name"""
+        return "UVC: " + str(self.id)
 
     def GetSupportedFormats(self):
         """Returns the available formats for this device"""
@@ -81,54 +85,53 @@ class OpencvCamera(IUvcCamera):
 
     def SetSetting(self, setting, value):
         """Set a specific setting"""
-        if setting == CameraSetting.BRIGHTNESS:
+        if setting == CameraSetting.Brightness:
             self.capture.set(cv2.CAP_PROP_BRIGHTNESS, value)
-        elif setting == CameraSetting.CONTRAST:
+        elif setting == CameraSetting.Contrast:
             self.capture.set(cv2.CAP_PROP_CONTRAST, value)
-        elif setting == CameraSetting.SATURATION:
+        elif setting == CameraSetting.Saturation:
             self.capture.set(cv2.CAP_PROP_SATURATION, value)
-        elif setting == CameraSetting.WHITE_BALANCE:
+        elif setting == CameraSetting.White_Balance:
             self.capture.set(cv2.CAP_PROP_WB_TEMPERATURE, value)
-        elif setting == CameraSetting.AUTO_WHITE_BALANCE:
+        elif setting == CameraSetting.Auto_White_Balance:
             self.capture.set(cv2.CAP_PROP_AUTO_WB, value)
-        elif setting == CameraSetting.GAMMA:
+        elif setting == CameraSetting.Gamma:
             self.capture.set(cv2.CAP_PROP_GAMMA, value)
-        elif setting == CameraSetting.ISO:
+        elif setting == CameraSetting.Iso:
             self.capture.set(cv2.CAP_PROP_GAIN, value)
-        elif setting == CameraSetting.SHARPNESS:
+        elif setting == CameraSetting.Sharpness:
             self.capture.set(cv2.CAP_PROP_SHARPNESS, value)
-        elif setting == CameraSetting.EXPOSURE:
+        elif setting == CameraSetting.Exposure:
             self.capture.set(cv2.CAP_PROP_EXPOSURE, value)
-        elif setting == CameraSetting.AUTO_EXPOSURE:
+        elif setting == CameraSetting.Auto_Exposure:
             self.capture.set(cv2.CAP_PROP_AUTO_EXPOSURE, value)
 
     def GetSetting(self, setting):
         """Returns the value of a specific setting"""
-        if setting == CameraSetting.BRIGHTNESS:
+        if setting == CameraSetting.Brightness:
             return self.capture.get(cv2.CAP_PROP_BRIGHTNESS)
-        elif setting == CameraSetting.CONTRAST:
+        elif setting == CameraSetting.Contrast:
             return self.capture.get(cv2.CAP_PROP_CONTRAST)
-        elif setting == CameraSetting.SATURATION:
+        elif setting == CameraSetting.Saturation:
             return self.capture.get(cv2.CAP_PROP_SATURATION)
-        elif setting == CameraSetting.WHITE_BALANCE:
+        elif setting == CameraSetting.White_Balance:
             return self.capture.get(cv2.CAP_PROP_WB_TEMPERATURE)
-        elif setting == CameraSetting.AUTO_WHITE_BALANCE:
+        elif setting == CameraSetting.Auto_White_Balance:
             return self.capture.get(cv2.CAP_PROP_AUTO_WB)
-        elif setting == CameraSetting.GAMMA:
+        elif setting == CameraSetting.Gamma:
             return self.capture.get(cv2.CAP_PROP_GAMMA)
-        elif setting == CameraSetting.ISO:
+        elif setting == CameraSetting.Iso:
             return self.capture.get(cv2.CAP_PROP_GAIN)
-        elif setting == CameraSetting.SHARPNESS:
+        elif setting == CameraSetting.Sharpness:
             return self.capture.get(cv2.CAP_PROP_SHARPNESS)
-        elif setting == CameraSetting.EXPOSURE:
+        elif setting == CameraSetting.Exposure:
             return self.capture.get(cv2.CAP_PROP_EXPOSURE)
-        elif setting == CameraSetting.AUTO_EXPOSURE:
+        elif setting == CameraSetting.Auto_Exposure:
             return self.capture.get(cv2.CAP_PROP_AUTO_EXPOSURE)
 
     def SetSaveDirectory(self, rootDirectory):
         """Set the saving directory"""
         path = os.path.join(rootDirectory, f"cam_{self.id}")
-        print("save balbal " + path)
         os.makedirs(path, exist_ok=True)
         self.saveDirectory = path
 

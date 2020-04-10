@@ -2,21 +2,20 @@ from abc import ABC, abstractmethod
 from enum import Enum, auto
 
 class CameraSetting(Enum):
-    _UNKNOWN = auto()
-    AUTO_WHITE_BALANCE = auto()
-    AUTO_EXPOSURE = auto()
-    AUTO_ISO = auto()
-    BRIGHTNESS = auto()
-    CONTRAST = auto()
-    EXPOSURE = auto()
-    ENABLE_HDR = auto()
-    ENABLE_STABILIZATION = auto()
-    GAMMA = auto()
-    HUE = auto()
-    ISO = auto()
-    SATURATION = auto()
-    SHARPNESS = auto()
-    WHITE_BALANCE  = auto()
+    Auto_White_Balance = auto()
+    Auto_Exposure = auto()
+    Auto_Iso = auto()
+    Brightness = auto()
+    Contrast = auto()
+    Exposure = auto()
+    Enable_HDR = auto()
+    Enable_Stabilization = auto()
+    Gamma = auto()
+    Hue = auto()
+    Iso = auto()
+    Saturation = auto()
+    Sharpness = auto()
+    White_Balance  = auto()
 
 
 class IUvcCamera(ABC):
@@ -24,6 +23,11 @@ class IUvcCamera(ABC):
     @abstractmethod
     def GetCameraId(self):
         """Returns the camera ID"""
+        pass
+
+    @abstractmethod
+    def GetCameraName(self):
+        """Returns the camera name"""
         pass
 
     @abstractmethod

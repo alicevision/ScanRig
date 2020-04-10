@@ -18,3 +18,7 @@ def getStreamingAPI():
         return StreamingAPI.USBCAM
     elif args.api == 'opencv':
         return StreamingAPI.OPENCV
+
+
+
+CHOSEN_STREAMING_API = getStreamingAPI()

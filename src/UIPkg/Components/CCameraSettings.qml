@@ -24,7 +24,7 @@ GroupBox {
             ComboBox {
                 id: resolutionComboBox
                 Layout.preferredHeight: 25
-                Layout.preferredWidth: 100
+                Layout.preferredWidth: 150
                 displayText: preview.cameraAcquisitionFormat
                 contentItem: CCenteredText { text: parent.displayText }
 
@@ -43,7 +43,7 @@ GroupBox {
 
                 function updateResolutionsList() {
                     availableResolutionsList.clear()
-                    const resolutions = preview.getAvailableUvcResolutions()
+                    const resolutions = preview.getAvailableResolutions()
 
                     for(let i = 0; i < resolutions.length; ++i) {
                         const txt = resolutions[i].toString()

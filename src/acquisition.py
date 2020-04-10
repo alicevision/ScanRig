@@ -12,7 +12,7 @@ from CameraPkg.capture_device_list import CaptureDeviceList
 from CameraPkg.opencv_camera import OpencvCamera
 from CameraPkg.saving import SaveWatcher
 from MoteurPkg.serial_management import availablePorts, serialWrite, SerialReader, selectPort
-from streaming_api import StreamingAPI
+from CameraPkg.streaming_api import StreamingAPI
 
 
 class AcquisitionState(Enum):
@@ -266,7 +266,7 @@ class Acquisition(QObject):
 
         # Set the queue saving frames to every devices ONLY IF OPENCV CAMERAS (TO CHECK LATER)
         self.createCaptureFolder()
-        self.captureDevices.setSavingToOpencvCameras(self.savingRootDirectory)
+        self.captureDevices.setSavingToCameras(self.savingRootDirectory)
 
         # Initialize and start saving thread ONLY IF OPENCV CAMERAS (TO CHECK LATER)
         stopSavingThread = [False]
