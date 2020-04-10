@@ -81,6 +81,13 @@ namespace USBCam {
         virtual unsigned int GetCameraId() const = 0;
 
         /**
+         * @brief Get the Camera Name
+         * 
+         * @return std::string 
+         */
+        virtual std::string GetCameraName() const = 0;
+
+        /**
          * @brief Get the record values supported by the camera
          * @return std::vector<Format> 
          */

@@ -69,6 +69,7 @@ namespace USBCam {
 
         py::class_<ICamera>(m, "ICamera")
             .def("GetCameraId", &ICamera::GetCameraId)
+            .def("GetCameraName", &ICamera::GetCameraName)
             .def("GetSupportedFormats", &ICamera::GetSupportedFormats)
             .def("SetFormat", &ICamera::SetFormat)
             .def("GetFormat", &ICamera::GetFormat)

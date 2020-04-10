@@ -75,6 +75,15 @@ namespace USBCam {
         return m_id;
     }
 
+    std::string LinuxCamera::GetCameraName() const {
+        v4l2_capability cap;
+        if (ioctl(m_fd, VIDIOC_QUERYCAP, &cap) != -1) {
+            return std::string(reinterpret_cast<char*>(cap.card));
+        } else {
+            return "Unknown";
+        }
+    }
+
     std::vector<ICamera::Format> LinuxCamera::GetSupportedFormats() const {
         std::vector<ICamera::Format> capabilities;
         
