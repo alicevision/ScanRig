@@ -40,7 +40,7 @@ namespace USBCam {
 
     class WinCamera : public ICamera {
     public:
-        WinCamera(uint32_t portNumber);
+        WinCamera(uint32_t portNumber, std::string saveDirectory = "./capture");
         virtual ~WinCamera();
 
         // Getters and setters

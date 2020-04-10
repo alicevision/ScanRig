@@ -102,6 +102,7 @@ namespace USBCam {
             m_lastDequeued++;
         }
         
+        // TODO check if einbusy, if so retry a few times
         if (ioctl(m_fd, VIDIOC_DQBUF, &m_buffers.at(m_lastDequeued).info) == -1) {
             throw std::runtime_error("Cannot dequeue buffer : " + std::string(strerror(errno)));
         }

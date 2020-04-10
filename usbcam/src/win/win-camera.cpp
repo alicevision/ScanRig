@@ -65,8 +65,8 @@ namespace USBCam {
     ////////////////////////////// Public Methods ///////////////////////////
     /////////////////////////////////////////////////////////////////////////
 
-    WinCamera::WinCamera(uint32_t portNumber) 
-    : m_sourceGroups(nullptr), m_sourceInfo(nullptr), m_reader(nullptr), m_portNumber(portNumber), m_savepath("./capture/") {
+    WinCamera::WinCamera(uint32_t portNumber, std::string saveDirectory) 
+    : m_sourceGroups(nullptr), m_sourceInfo(nullptr), m_reader(nullptr), m_portNumber(portNumber), m_savepath(saveDirectory) {
         // Get camera
         m_sourceGroups = MediaFrameSourceGroup::FindAllAsync().get();
         auto filteredGroups = GetFilteredSourceGroupList(m_sourceGroups);
@@ -204,7 +204,7 @@ namespace USBCam {
     void WinCamera::SaveLastFrame() {
         auto path = std::filesystem::current_path();
         auto folderRoot = Windows::Storage::StorageFolder::GetFolderFromPathAsync(path.c_str()).get();
-        const auto savePath = m_savepath + "cam_" + std::to_string(m_portNumber);
+        const auto savePath = m_savepath + "/cam_" + std::to_string(m_portNumber); // TODO check if / before adding one
         auto folder = folderRoot.CreateFolderAsync(to_hstring(savePath), CreationCollisionOption::OpenIfExists).get();
         auto saveFile = folder.CreateFileAsync(L"01.png", CreationCollisionOption::GenerateUniqueName).get();
 

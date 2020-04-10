@@ -49,8 +49,8 @@ namespace USBCam {
         return ports;
     }
 
-    LinuxCamera::LinuxCamera(uint32_t portNumber) 
-        : m_fd(-1), m_id(portNumber), m_frameCount(0), m_buffers(nullptr), m_savePath("./capture/")
+    LinuxCamera::LinuxCamera(uint32_t portNumber, std::string saveDirectory) 
+        : m_fd(-1), m_id(portNumber), m_frameCount(0), m_buffers(nullptr), m_savePath(saveDirectory)
     {
         const auto path = std::string("/dev/video") + std::to_string(portNumber);
         m_fd = open(path.c_str(), O_RDWR | O_NONBLOCK);
@@ -394,6 +394,7 @@ namespace USBCam {
     }
 
     void LinuxCamera::CreateCaptureFolders() {
+        m_savePath += "/"; // TODO check before adding if last character / exist
         mkdir(m_savePath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
         const std::string path = m_savePath + "cam" + std::to_string(m_id);
         mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);

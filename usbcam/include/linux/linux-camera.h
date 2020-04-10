@@ -13,7 +13,7 @@
 namespace USBCam {
     class LinuxCamera : public ICamera {
     public:
-        LinuxCamera(uint32_t portNumber);
+        LinuxCamera(uint32_t portNumber, std::string saveDirectory = "./capture");
         virtual ~LinuxCamera();
 
         // Getters and setters
