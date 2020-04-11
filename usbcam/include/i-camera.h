@@ -60,6 +60,7 @@ namespace USBCam {
             CameraSetting type = CameraSetting::_UNKNOWN;
             int32_t min = 0;
             int32_t max = 10000;
+            int32_t default = 0;
         };
 
         /**
