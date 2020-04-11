@@ -4,16 +4,13 @@ import threading, logging, cv2
 from .i_uvc_camera import CameraSetting, IUvcCamera
 
 class OpencvCamera(IUvcCamera):
-    def __init__(self, id, saveDirectory, settings=None):
+    def __init__(self, id, saveDirectory):
         self.id = id
         (self.status, self.frame) = (None, None)
         self.frameCount = 0
 
         # Initialize settings for the camera
-        if settings:
-            self.settings = settings
-        else:
-            self.settings = self.__initSettings()
+        self.settings = self.__initSettings()
 
         self.capture = cv2.VideoCapture()
         self.__start()

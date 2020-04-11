@@ -4,13 +4,16 @@ import queue, os
 from .streaming_api import CHOSEN_STREAMING_API, StreamingAPI
 
 if CHOSEN_STREAMING_API == StreamingAPI.OPENCV:
-    from .opencv_camera import OpencvCamera
+    from CameraPkg.opencv_camera import OpencvCamera
+    from CameraPkg.i_uvc_camera import CameraSetting as CameraSetting
 elif CHOSEN_STREAMING_API == StreamingAPI.USBCAM:
     import usbcam
+    from usbcam import CameraSetting as CameraSetting
 
 class CaptureDeviceList(object):
     def __init__(self):
         self.devices = []
+        self.defaultSettings =  None
 
         if CHOSEN_STREAMING_API == StreamingAPI.OPENCV:
             self.savingQueue = queue.Queue()
@@ -61,7 +64,7 @@ class CaptureDeviceList(object):
             os.makedirs(path, exist_ok=True)
 
         if CHOSEN_STREAMING_API == StreamingAPI.OPENCV:
-            device = OpencvCamera(idDevice, path, settings=None)
+            device = OpencvCamera(idDevice, path)
             if device.capture.isOpened():
                 self.devices.append(device)
         
@@ -71,6 +74,9 @@ class CaptureDeviceList(object):
             device.SetAcquisitionFormat(device.GetFormat()) 
             self.devices.append(device)
         
+        if self.defaultSettings:
+            self.applySettingsToOneDevice(self.devices[-1], self.defaultSettings) # Apply default settings to the camera recently created
+
         return
 
     def getDevice(self, index):
@@ -99,3 +105,22 @@ class CaptureDeviceList(object):
     def emptyDevices(self):
         for device in self.devices:
             self.devices.remove(device)
+
+    def applySettingsToAll(self, settings):
+        for device in self.devices:
+            self.applySettingsToOneDevice(device, settings)
+
+    def applyAsDefaultSettings(self, settings):
+        self.defaultSettings = settings
+
+    def applySettingsToOneDevice(self, device, settings):
+        device.SetSetting(CameraSetting.Brightness, settings.get("brightness"))
+        device.SetSetting(CameraSetting.Contrast, settings.get("contrast"))
+        device.SetSetting(CameraSetting.Saturation, settings.get("saturation"))
+        device.SetSetting(CameraSetting.White_Balance, settings.get("tempWB"))
+        device.SetSetting(CameraSetting.Gamma, settings.get("gamma"))
+        device.SetSetting(CameraSetting.Iso, settings.get("gain"))
+        device.SetSetting(CameraSetting.Sharpness, settings.get("sharpness"))
+        device.SetSetting(CameraSetting.Exposure, settings.get("exposure"))
+        device.SetFormat(settings.get("format"))
+        device.SetAcquisitionFormat(settings.get("format"))

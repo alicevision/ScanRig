@@ -23,6 +23,7 @@ class CaptureDevicePreview(QObject):
         self.previewDevices = CaptureDeviceList() # We have to use a list for the imageProvider even if we only have one camera
         self.runningPreview = False
         self.currentId = -1
+        self.applyToAllBtn = True
         self.imageProvider = ImageProvider(self.previewDevices)
         self.acquisitionInstance = acquisition # Reference to the Acquisition Object to make interaction
         self.signals = self.initSignals()
@@ -38,6 +39,37 @@ class CaptureDevicePreview(QObject):
 
     currentIdChanged = Signal()
     currentIdProperty = Property(int, getCurrentId, setCurrentId, notify=currentIdChanged)
+
+
+    def changeApplyToAllBtnState(self, boolean):
+        self.applyToAllBtn = boolean
+        self.applyToAllBtnChanged.emit()
+
+    @Slot(result=bool)
+    def getApplyToAllBtn(self):   
+        return self.applyToAllBtn                                        
+    
+    @Slot()
+    def setApplyToAllBtn(self):
+        settings = {
+            "brightness" : self.getCameraSettingGeneric(CameraSetting.Brightness),
+            "contrast" : self.getCameraSettingGeneric(CameraSetting.Contrast),
+            "saturation" : self.getCameraSettingGeneric(CameraSetting.Saturation),
+            "tempWB" : self.getCameraSettingGeneric(CameraSetting.White_Balance),
+            "gamma" : self.getCameraSettingGeneric(CameraSetting.Gamma),
+            "gain" : self.getCameraSettingGeneric(CameraSetting.Iso),
+            "sharpness" : self.getCameraSettingGeneric(CameraSetting.Sharpness),
+            "exposure" : self.getCameraSettingGeneric(CameraSetting.Exposure),
+            "format" : self.previewDevices.getDevice(0).GetAcquisitionFormat()
+        }
+        
+        self.previewDevices.applyAsDefaultSettings(settings) # Make these settings be default for next created cameras
+        self.acquisitionInstance.captureDevices.applySettingsToAll(settings) # Apply these settings to every camera already inside the acquisition list
+
+        self.changeApplyToAllBtnState(False)
+
+    applyToAllBtnChanged = Signal()
+    applyToAllBtnProperty = Property(int, getApplyToAllBtn, setApplyToAllBtn, notify=applyToAllBtnChanged)
 
 
     @Slot(result=bool)
@@ -213,6 +245,7 @@ class CaptureDevicePreview(QObject):
                         device.SetFormat(f)
                     elif mode == "acquisition":
                         device.SetAcquisitionFormat(f)
+                        self.changeApplyToAllBtnState(True)
                     break
 
         # Run again the preview
@@ -240,6 +273,8 @@ class CaptureDevicePreview(QObject):
 
         device = self.previewDevices.getDevice(0)
         device.SetSetting(setting, val)
+
+        self.changeApplyToAllBtnState(True)
         return True
 
 

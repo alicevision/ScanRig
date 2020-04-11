@@ -62,6 +62,13 @@ GroupBox {
         CSlider { id: gain; text: "Gain"; from: 0; to: 100; stepSize: 1; value: preview.cameraGain; onMoved: preview.setCameraGain(newValue) }
         CSlider { id: sharpness; text: "Sharpness"; from: 0; to: 10; stepSize: 1; value: preview.cameraSharpness; onMoved: preview.setCameraSharpness(newValue) }
 
+        CButton { 
+            text: "Apply To All"
+            enabled: preview.applyToAllBtnProperty
+            opacity: enabled ? 1 : 0.3
+            onClicked: { preview.setApplyToAllBtn() }
+        }
+
         RowLayout {
             Layout.fillWidth: true
 
