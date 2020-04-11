@@ -15,7 +15,7 @@ class Backend(QObject):
         super().__init__()
         self.streamingAPI = streamingAPI
         self.acquisition = Acquisition(self.streamingAPI)
-        self.preview = CaptureDevicePreview(self.acquisition.captureDevices, self.acquisition.savingRootDirectory, self.streamingAPI)
+        self.preview = CaptureDevicePreview(self.acquisition, self.streamingAPI)
         self.mainLayout = True
         self.readyForAcquisition = False
 

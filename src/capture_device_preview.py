@@ -1,4 +1,5 @@
 import time
+import logging
 from PySide2 import QtWidgets
 from PySide2.QtCore import QObject, Slot, Property, Signal
 
@@ -16,15 +17,14 @@ elif CHOSEN_STREAMING_API == StreamingAPI.USBCAM:
 
 # ONLY ONE CAMERA IN PREVIEW AT A TIME
 class CaptureDevicePreview(QObject):
-    def __init__(self, acquisitionDevices, acquisitionSavingRootDirectory, streamingAPI):
+    def __init__(self, acquisition, streamingAPI):
         super().__init__()
         self.streamingAPI = streamingAPI
         self.previewDevices = CaptureDeviceList() # We have to use a list for the imageProvider even if we only have one camera
         self.runningPreview = False
         self.currentId = -1
         self.imageProvider = ImageProvider(self.previewDevices)
-        self.acquisitionDevices = acquisitionDevices # Reference to the acquisition devices list
-        self.acquisitionSavingRootDirectory = acquisitionSavingRootDirectory # Reference to the acquisition saving directory
+        self.acquisitionInstance = acquisition # Reference to the Acquisition Object to make interaction
         self.signals = self.initSignals()
 
     @Slot()
@@ -61,7 +61,7 @@ class CaptureDevicePreview(QObject):
             return
 
         # Check if the device is already in the acquisition list
-        existingDevice = self.acquisitionDevices.getDeviceByCamId(self.currentId)
+        existingDevice = self.acquisitionInstance.captureDevices.getDeviceByCamId(self.currentId)
 
         # Stop the preview for a moment
         self.runningPreview = False
@@ -71,7 +71,7 @@ class CaptureDevicePreview(QObject):
                 print("existing device")
                 self.previewDevices.devices.append(existingDevice)
             else:
-                self.previewDevices.addCamera(self.currentId, self.acquisitionSavingRootDirectory)
+                self.previewDevices.addCamera(self.currentId, self.acquisitionInstance.savingRootDirectory)
 
         for sig in self.signals:
             sig.emit()
@@ -118,11 +118,11 @@ class CaptureDevicePreview(QObject):
             
         device = self.previewDevices.getDevice(0)
 
-        if device in self.acquisitionDevices.devices:
-            self.acquisitionDevices.devices.remove(device)
+        if device in self.acquisitionInstance.captureDevices.devices:
+            self.acquisitionInstance.captureDevices.devices.remove(device)
             print("Device removed from the Acquisition Process")
         else:
-            self.acquisitionDevices.devices.append(device)
+            self.acquisitionInstance.captureDevices.devices.append(device)
             print("Device added to Acquisition Process")
 
     @Slot(result=bool)
@@ -130,11 +130,11 @@ class CaptureDevicePreview(QObject):
         if self.currentId == -1:
             return False
         else:
-            return self.acquisitionDevices.isDeviceIn(self.currentId)
+            return self.acquisitionInstance.captureDevices.isDeviceIn(self.currentId)
 
     @Slot(result="QVariantList")
     def getDevicesInAcquisition(self):
-        return self.acquisitionDevices.getDevicesNames()
+        return self.acquisitionInstance.captureDevices.getDevicesNames()
 
 
 
@@ -224,8 +224,15 @@ class CaptureDevicePreview(QObject):
         if self.previewDevices.isEmpty():
             return 0
 
-        device = self.previewDevices.getDevice(0)   
-        return device.GetSetting(setting)
+        device = self.previewDevices.getDevice(0)
+
+        try:
+            val = device.GetSetting(setting)
+        except RuntimeError:
+            logging.warning(f"The setting {setting} cannot be read. Value is 0, by default.") # TODO: Make this a better way by checking if the setting is usabled or not (and so on, enable/disable it on the UI to avoid issues)
+            val = 0
+
+        return val
 
     def setCameraSettingGeneric(self, setting, val):
         if self.previewDevices.isEmpty():

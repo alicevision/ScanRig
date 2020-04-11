@@ -26,7 +26,7 @@ class Acquisition(QObject):
         self.streamingAPI = streamingAPI
         self.captureDevices = CaptureDeviceList()
         self.runningAcquisition = AcquisitionState.OFF
-        self.savingRootDirectory = ""
+        self.savingRootDirectory = os.path.dirname(__file__)
         self.nbTakenImages = 0
         self.nbImagesToTake = 0
 
@@ -257,27 +257,27 @@ class Acquisition(QObject):
     def start(self, stop):
         self.runningAcquisition = AcquisitionState.ON
         self.setNbTakenImages(0)
-        self.setNbImagesToTake(6)
+        self.setNbImagesToTake(11)
         i = 0
 
         # Set the acquisition format to each camera
         for device in self.captureDevices.devices:
-            device.SetFormat(device.acquisitionFormat)
+            device.SetFormat(device.GetAcquisitionFormat())
 
-        # Set the queue saving frames to every devices ONLY IF OPENCV CAMERAS (TO CHECK LATER)
-        self.createCaptureFolder()
+        # Set the saving parameters to cameras (and the saving queue for OPENCV API)
         self.captureDevices.setSavingToCameras(self.savingRootDirectory)
 
-        # Initialize and start saving thread ONLY IF OPENCV CAMERAS (TO CHECK LATER)
-        stopSavingThread = [False]
-        savingThread = SaveWatcher(stopSavingThread, self.captureDevices.savingQueue)
-        savingThread.start()
+        # Initialize and start saving thread ONLY IF OPENCV CAMERAS
+        if self.streamingAPI == StreamingAPI.OPENCV:
+            stopSavingThread = [False]
+            savingThread = SaveWatcher(stopSavingThread, self.captureDevices.savingQueue)
+            savingThread.start()
 
         while True:
             if stop():
                 break
 
-            if i > 50:
+            if i > 100:
                 break
 
             self.captureDevices.readFrames()
@@ -288,10 +288,10 @@ class Acquisition(QObject):
 
             i += 1
 
-        # Wait the end of saving thread
-        stopSavingThread[0] = True
-        savingThread.join()
+        # Wait the end of saving thread (ONLY FOR OPENCV API)
+        if self.streamingAPI == StreamingAPI.OPENCV:        
+            stopSavingThread[0] = True
+            savingThread.join()
 
-        # self.captureDevices.stopDevices()
         logging.info("End of Acquisition")
         self.runningAcquisition = AcquisitionState.OVER

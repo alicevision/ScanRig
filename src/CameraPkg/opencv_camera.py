@@ -4,7 +4,7 @@ import threading, logging, cv2
 from .i_uvc_camera import CameraSetting, IUvcCamera
 
 class OpencvCamera(IUvcCamera):
-    def __init__(self, id, settings=None, savingQueue=None, saveDirectory=""):
+    def __init__(self, id, saveDirectory, settings=None):
         self.id = id
         (self.status, self.frame) = (None, None)
         self.frameCount = 0
@@ -23,7 +23,8 @@ class OpencvCamera(IUvcCamera):
         self.acquisitionFormat = self.formats[0]
 
         self.saveDirectory = saveDirectory
-        self.savingQueue = savingQueue
+        self.SetSaveDirectory(saveDirectory)
+        self.savingQueue = None
 
     
     def __del__(self):

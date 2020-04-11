@@ -33,8 +33,8 @@ class CaptureDeviceList(object):
         for device in self.devices:
             name = device.GetCameraName()
 
-            if CHOSEN_STREAMING_API == StreamingAPI.OPENCV:
-                name.append(" | UVC: " + str(device.GetCameraId()))
+            if CHOSEN_STREAMING_API == StreamingAPI.USBCAM:
+                name += " | UVC: " + str(device.GetCameraId())
 
             names.append(name)
         return names
@@ -55,19 +55,18 @@ class CaptureDeviceList(object):
         return cameras
 
     def addCamera(self, idDevice, path=""):
+        if not path:
+            projectDir = os.path.dirname(os.path.dirname(__file__))
+            path = os.path.join(projectDir, "capture")
+            os.makedirs(path, exist_ok=True)
+
         if CHOSEN_STREAMING_API == StreamingAPI.OPENCV:
-            if path:
-                device = OpencvCamera(idDevice, settings=None, path=path)
-            else:
-                device = OpencvCamera(idDevice, settings=None)
+            device = OpencvCamera(idDevice, path, settings=None)
             if device.capture.isOpened():
                 self.devices.append(device)
         
         elif CHOSEN_STREAMING_API == StreamingAPI.USBCAM:
-            if path:
-                device = usbcam.CreateCamera(idDevice, path)
-            else:
-               device = usbcam.CreateCamera(idDevice)
+            device = usbcam.CreateCamera(idDevice, path)
 
             device.SetAcquisitionFormat(device.GetFormat()) 
             self.devices.append(device)
@@ -93,7 +92,7 @@ class CaptureDeviceList(object):
 
     def setSavingToCameras(self, rootDirectory):
         for device in self.devices:
-            if isinstance(device, OpencvCamera):
+            if CHOSEN_STREAMING_API == StreamingAPI.OPENCV and isinstance(device, OpencvCamera):
                 device.SetSavingQueue(self.savingQueue)
             device.SetSaveDirectory(rootDirectory)
 
