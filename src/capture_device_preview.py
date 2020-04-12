@@ -97,6 +97,7 @@ class CaptureDevicePreview(QObject):
 
         # Stop the preview for a moment
         self.runningPreview = False
+        self.previewDevices.emptyDevices()
 
         if self.previewDevices.isEmpty() :
             if existingDevice:
