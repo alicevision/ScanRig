@@ -209,7 +209,7 @@ namespace USBCam {
                 detail.type = ControlIdToCameraSetting(queryCtrl.id);
                 detail.max = queryCtrl.maximum;
                 detail.min = queryCtrl.minimum;
-                detail.defaultValue = 0; // TODO
+                detail.defaultValue = queryCtrl.default_value;
 
                 //if (queryCtrl.type == V4L2_CTRL_TYPE_MENU)
                 //    QueryControlMenuItems(queryCtrl.id, queryCtrl.minimum, queryCtrl.maximum);
