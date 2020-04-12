@@ -18,6 +18,15 @@ class ImageProvider(QQuickImageProvider):
         if self.previewDevices.isEmpty():
             return
 
-        frame = self.previewDevices.getDevice(0).frame # Because we only have one device
-        qImg = QImage(frame, frame.shape[1], frame.shape[0], QImage.Format_RGB888).rgbSwapped()
+        device = self.previewDevices.getDevice(0)
+
+        frame = device.GetLastFrame() # Because we only have one device
+
+        try: # OPENCV API
+            qImg = QImage(frame, frame.shape[1], frame.shape[0], QImage.Format_RGB888).rgbSwapped()
+        except AttributeError: # Happened with USBCAM API (we should make an if statement instead but we have a package issue)
+            buffer = np.array(frame, copy=False)
+            buffer = cv2.imdecode(buffer, cv2.IMREAD_COLOR)
+            qImg = QImage(buffer, buffer.shape[1], buffer.shape[0], QImage.Format_RGB888).rgbSwapped()
+
         return QPixmap.fromImage(qImg)

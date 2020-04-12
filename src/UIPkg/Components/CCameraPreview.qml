@@ -4,7 +4,7 @@ import QtQuick.Controls 2.14
 import QtQuick.Controls.Styles 1.4
 
 GroupBox {
-    title: qsTr("Camera Preview")
+    title: qsTr("Camera Preview - Streaming API : " + backend.streamingAPIName)
     id: root
     signal changedAcquisition()
     signal changedDevice()
@@ -78,19 +78,18 @@ GroupBox {
                 // Using JS to add the AvailableDevices to the list
                 Component.onCompleted: {
                     // availableDevices is a list which comes from Python
-                    for(let uvcCamIndex in preview.getAvailableUvcCameras()) {
-                        const txt = "UVC: " + uvcCamIndex.toString()
-                        availableDevicesList.append({text: txt})
+                    const cameraList = preview.getAvailableCameras()
+                    for(let desc of cameraList) {
+                        availableDevicesList.append({text: desc})
                     }
                 }
 
                 onActivated: {
                     const txt = currentText
                     let camera;
-                    if(txt.startsWith("UVC:")) {
+                    if(txt !== "No Device Selected") {
                         camera = parseInt(txt.split("UVC: ")[1])
                     }
-
 
                     if (txt === "No Device Selected") {
                         preview.changePreview(-1)
@@ -115,8 +114,8 @@ GroupBox {
             ComboBox {
                 id: draftResolution
                 Layout.preferredHeight: 25
-                Layout.preferredWidth: 100
-                displayText: preview.cameraDraftResolution
+                Layout.preferredWidth: 150
+                displayText: preview.cameraFormat
                 contentItem: CCenteredText { text: parent.displayText }
 
                 model: ListModel {
@@ -129,12 +128,12 @@ GroupBox {
                 }
 
                 onActivated: {
-                    preview.setCameraDraftResolution(currentText)
+                    preview.setCameraFormat(currentText)
                 }
 
                 function updateResolutionsList() {
                     availableResolutionsList.clear()
-                    const resolutions = preview.getAvailableUvcResolutions()
+                    const resolutions = preview.getAvailableResolutions()
 
                     for(let i = 0; i < resolutions.length; ++i) {
                         const txt = resolutions[i].toString()

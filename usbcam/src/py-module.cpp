@@ -50,7 +50,8 @@ namespace USBCam {
         py::class_<ICamera::CameraSettingDetail>(m, "CameraSettingDetail")
             .def_readonly("type", &ICamera::CameraSettingDetail::type)
             .def_readonly("min", &ICamera::CameraSettingDetail::min)
-            .def_readonly("max", &ICamera::CameraSettingDetail::max);
+            .def_readonly("max", &ICamera::CameraSettingDetail::max)
+            .def_readonly("defaultValue", &ICamera::CameraSettingDetail::defaultValue);
 
         py::class_<ICamera::Frame>(m, "Frame", py::buffer_protocol())
             .def_readonly("byteWidth", &ICamera::Frame::byteWidth)
@@ -62,16 +63,19 @@ namespace USBCam {
                 info.itemsize = sizeof(unsigned char);
                 info.format = py::format_descriptor<unsigned char>::format();
                 info.ndim = 1;
-                info.readonly = true;
                 info.shape = { im.byteWidth };
                 info.strides = { sizeof(unsigned char) };
                 return info;
             });
 
         py::class_<ICamera>(m, "ICamera")
+            .def("GetCameraId", &ICamera::GetCameraId)
+            .def("GetCameraName", &ICamera::GetCameraName)
             .def("GetSupportedFormats", &ICamera::GetSupportedFormats)
             .def("SetFormat", &ICamera::SetFormat)
             .def("GetFormat", &ICamera::GetFormat)
+            .def("SetAcquisitionFormat", &ICamera::SetAcquisitionFormat)
+            .def("GetAcquisitionFormat", &ICamera::GetAcquisitionFormat)
             .def("GetSupportedSettings", &ICamera::GetSupportedSettings)
             .def("SetSetting", &ICamera::SetSetting)
             .def("GetSetting", &ICamera::GetSetting)

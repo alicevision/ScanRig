@@ -13,10 +13,13 @@
 namespace USBCam {
     class LinuxCamera : public ICamera {
     public:
-        LinuxCamera(uint32_t portNumber);
+        LinuxCamera(uint32_t portNumber, std::string saveDirectory = "./capture");
         virtual ~LinuxCamera();
 
         // Getters and setters
+
+        virtual unsigned int GetCameraId() const override;
+        virtual std::string GetCameraName() const override;
 
         virtual std::vector<Format> GetSupportedFormats() const override;
         virtual void SetFormat(const Format& cap) override;
@@ -28,7 +31,7 @@ namespace USBCam {
 
         // Control methods
 
-        virtual void SetSaveDirectory(std::string path) override;
+        virtual void SetSaveDirectory(const std::string& path) override;
         virtual void SaveLastFrame() override;
         virtual const Frame& GetLastFrame() override;
     

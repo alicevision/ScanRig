@@ -65,8 +65,8 @@ namespace USBCam {
     ////////////////////////////// Public Methods ///////////////////////////
     /////////////////////////////////////////////////////////////////////////
 
-    WinCamera::WinCamera(uint32_t portNumber) 
-    : m_sourceGroups(nullptr), m_sourceInfo(nullptr), m_reader(nullptr), m_portNumber(portNumber) {
+    WinCamera::WinCamera(uint32_t portNumber, std::string saveDirectory) 
+    : m_sourceGroups(nullptr), m_sourceInfo(nullptr), m_reader(nullptr), m_portNumber(portNumber), m_savepath(saveDirectory) {
         // Get camera
         m_sourceGroups = MediaFrameSourceGroup::FindAllAsync().get();
         auto filteredGroups = GetFilteredSourceGroupList(m_sourceGroups);
@@ -99,6 +99,14 @@ namespace USBCam {
         m_capture = nullptr;
     }
 
+    unsigned int WinCamera::GetCameraId() const {
+        return m_portNumber;
+    }
+
+    std::string WinCamera::GetCameraName() const {
+        return ""; // TODO
+    }
+
     std::vector<ICamera::Format> WinCamera::GetSupportedFormats() const {
         std::vector<ICamera::Format> capabilities;
         auto mediaDescriptionIter = m_sourceInfo.VideoProfileMediaDescription().First();
@@ -123,11 +131,11 @@ namespace USBCam {
     }
 
     ICamera::Format WinCamera::GetFormat() const {
-        ICamera::Format cap;
-        return cap;
+        return m_frame.format;
     }
 
     void WinCamera::SetFormat(const ICamera::Format& cap) {
+        m_frame.format = cap;
         auto frameSource = m_capture.FrameSources().Lookup(m_sourceInfo.Id());
         frameSource.SetFormatAsync(frameSource.SupportedFormats().GetAt(cap.id)).get();
     }
@@ -193,22 +201,39 @@ namespace USBCam {
         }
     }
 
-    void WinCamera::SetSaveDirectory(std::string path) {
-
+    void WinCamera::SetSaveDirectory(const std::string& path) {
+        m_savepath = path;
     }
 
     void WinCamera::SaveLastFrame() {
         auto path = std::filesystem::current_path();
         auto folderRoot = Windows::Storage::StorageFolder::GetFolderFromPathAsync(path.c_str()).get();
-        auto folder = folderRoot.CreateFolderAsync(to_hstring(std::string("cam_") + std::to_string(m_portNumber)), CreationCollisionOption::OpenIfExists).get();
+        const auto savePath = m_savepath + "/cam_" + std::to_string(m_portNumber); // TODO check if / before adding one
+        auto folder = folderRoot.CreateFolderAsync(to_hstring(savePath), CreationCollisionOption::OpenIfExists).get();
         auto saveFile = folder.CreateFileAsync(L"01.png", CreationCollisionOption::GenerateUniqueName).get();
 
         m_capture.CapturePhotoToStorageFileAsync(ImageEncodingProperties::CreatePng(), saveFile).get();
     }
 
     const ICamera::Frame& WinCamera::GetLastFrame() {
-        ICamera::Frame myFrame;
-        return myFrame;
+        auto frame = m_reader.TryAcquireLatestFrame();
+
+        unsigned int i = 0;
+        while (frame == nullptr) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            frame = m_reader.TryAcquireLatestFrame();
+
+            if (i >= 20) {
+                m_frame.byteWidth = 0;
+                return m_frame;
+            }
+        }
+
+        auto& buffer = frame.BufferMediaFrame().Buffer();
+        m_frame.byteWidth = buffer.Length();
+        m_frame.data.resize(buffer.Length());
+        std::memcpy(m_frame.data.data(), buffer.data(), buffer.Length());
+        return m_frame;
     }
 
     /////////////////////////////////////////////////////////////////////////

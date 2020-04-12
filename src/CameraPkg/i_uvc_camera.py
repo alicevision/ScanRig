@@ -1,127 +1,78 @@
 from abc import ABC, abstractmethod
+from enum import Enum, auto
+
+class CameraSetting(Enum):
+    Auto_White_Balance = auto()
+    Auto_Exposure = auto()
+    Auto_Iso = auto()
+    Brightness = auto()
+    Contrast = auto()
+    Exposure = auto()
+    Enable_HDR = auto()
+    Enable_Stabilization = auto()
+    Gamma = auto()
+    Hue = auto()
+    Iso = auto()
+    Saturation = auto()
+    Sharpness = auto()
+    White_Balance  = auto()
+
 
 class IUvcCamera(ABC):
 
-    # ------------------- Control Methods ----------------- #
-
     @abstractmethod
-    def getLastFrame(self):
-        """Returns last frame data"""
+    def GetCameraId(self):
+        """Returns the camera ID"""
         pass
 
     @abstractmethod
-    def saveLastFrame(self):
-        """Save last frame to a file"""
-        pass
-
-    # ------------------- Getters & Setters ----------------- #
-    
-    @abstractmethod
-    def setDefaultSettings(self):
-        """Set all setters to their respective defaults"""
+    def GetCameraName(self):
+        """Returns the camera name"""
         pass
 
     @abstractmethod
-    def capabilities(self):
-        """Returns the resolution & encoding capabilities of the camera"""
+    def GetSupportedFormats(self):
+        """Returns the available formats for this device"""
         pass
 
-    @property
     @abstractmethod
-    def format(self):
+    def SetFormat(self, form):
+        """Set current width & height"""
+        pass
+
+    @abstractmethod
+    def GetFormat(self):
         """Returns the current capability used"""
         pass
 
-    @format.setter
+
     @abstractmethod
-    def setFormat(self, capability):
-        """Set width, height & encoding"""
+    def GetSupportedSettings(self):
+        """Returns the available settings for this device"""
         pass
 
-    @property
     @abstractmethod
-    def brightness(self):
-        pass
+    def SetSetting(self, setting, value):
+        """Set a specific setting"""
+        pass  
 
-    @brightness.setter
     @abstractmethod
-    def setBrightness(self, value):
-        """Change camera brightness, from 0 to 10 000"""
-        pass
+    def GetSetting(self, setting):
+        """Returns the value of a specific setting"""
+        pass  
 
-    @property
-    @abstractmethod
-    def contrast(self):
-        pass
 
-    @contrast.setter
     @abstractmethod
-    def setContrast(self, value):
-        """Change camera constrast, from ? to ?"""
-        pass
+    def SetSaveDirectory(self, path):
+        """Set the saving directory"""
+        pass  
 
-    @property
     @abstractmethod
-    def saturation(self):
-        pass
-    
-    @saturation.setter
-    @abstractmethod
-    def setSaturation(self, value):
-        """Change camera saturation, from ? to ?"""
-        pass
+    def SaveLastFrame(self):
+        """Save the frame into the specified directory"""
+        pass  
 
-    @property
     @abstractmethod
-    def whiteBalance(self):
-        pass
-
-    @whiteBalance.setter
-    @abstractmethod
-    def setWhiteBalance(self, value):
-        """Change camera white balance, from ? to ?"""
-        pass
-
-    @property
-    @abstractmethod
-    def gamma(self):
-        pass
-
-    @gamma.setter
-    @abstractmethod
-    def setGamma(self, value):
-        """Change camera gamma, from ? to ?"""
-        pass
-
-    @property
-    @abstractmethod
-    def gain(self):
-        pass
-
-    @gain.setter
-    @abstractmethod
-    def setGain(self, value):
-        """Change camera gain, from ? to ?"""
-        pass
-
-    @property
-    @abstractmethod
-    def sharpness(self):
-        pass
-
-    @sharpness.setter
-    @abstractmethod
-    def setSharpness(self, value):
-        """Change camera sharpness, from ? to ?"""
-        pass
-
-    @property
-    @abstractmethod
-    def exposure(self):
-        pass
-
-    @exposure.setter
-    @abstractmethod
-    def setExposure(self, value):
-        """Change camera exposure, from ? to ?"""
-        pass
+    def GetLastFrame(self):
+        """Returns the last frame taken"""
+        pass  

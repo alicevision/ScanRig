@@ -6,14 +6,16 @@ import threading
 from acquisition import Acquisition, AcquisitionState
 from capture_device_preview import CaptureDevicePreview
 from UIPkg.image_provider import ImageProvider
+from CameraPkg.streaming_api import StreamingAPI
 
 import time
 
 class Backend(QObject):
-    def __init__(self):
+    def __init__(self, streamingAPI):
         super().__init__()
-        self.acquisition = Acquisition()
-        self.preview = CaptureDevicePreview(self.acquisition.captureDevices)
+        self.streamingAPI = streamingAPI
+        self.acquisition = Acquisition(self.streamingAPI)
+        self.preview = CaptureDevicePreview(self.acquisition, self.streamingAPI)
         self.mainLayout = True
         self.readyForAcquisition = False
 
@@ -31,9 +33,6 @@ class Backend(QObject):
         while True:
             if stop():
                 break
-
-            if self.preview.runningPreview:
-                self.preview.previewDevices.readFrames()
 
             if self.acquisition.runningAcquisition == AcquisitionState.OVER:
                 self.acquisition.runningAcquisition = AcquisitionState.OFF # STOP Acquisition
@@ -66,6 +65,19 @@ class Backend(QObject):
     mainLayoutEnabled = Property(bool, getMainLayout, setMainLayout, notify=mainLayoutChanged)
 
 
+    @Slot()
+    def getAPI(self):
+        if self.streamingAPI == StreamingAPI.USBCAM:
+            return "usbcam"
+        elif self.streamingAPI == StreamingAPI.OPENCV:
+            return "opencv"
+        else:
+            return "no API"                                                                      
+    
+    streamingAPINameChanged = Signal()
+    streamingAPIName = Property(str, getAPI, notify=streamingAPINameChanged)  
+
+
     #---------- APPLICATION
     @Slot(result=bool)
     def exitApplication(self):
@@ -76,7 +88,6 @@ class Backend(QObject):
         # Stop the Main Thread
         self.stopMainThread = True
         self.mainThread.join() # Make appear some QML Warnings but it does not really matter (seems like a bug)
-        self.preview.previewDevices.stopDevices()
 
         print("EXIT APPLICATION")
         return True
@@ -93,10 +104,9 @@ class Backend(QObject):
         if self.acquisition.captureDevices.isEmpty():
             return False
 
-        # STOP THE PREVIEW AND ALL THE DEVICES + EMPTY THE PREVIEW LIST
+        # STOP THE PREVIEW AND EMPTY THE PREVIEW LIST
         self.preview.runningPreview = False
         time.sleep(0.04)
-        self.preview.previewDevices.stopDevices()
         self.preview.previewDevices.emptyDevices()
 
         # Start acquisition

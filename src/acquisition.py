@@ -7,12 +7,12 @@ import os
 
 from enum import Enum, auto
 
-import args_parser
 import CameraPkg
 from CameraPkg.capture_device_list import CaptureDeviceList
-from CameraPkg.uvc_camera import UvcCamera
+from CameraPkg.opencv_camera import OpencvCamera
 from CameraPkg.saving import SaveWatcher
 from MoteurPkg.serial_management import availablePorts, serialWrite, SerialReader, selectPort
+from CameraPkg.streaming_api import StreamingAPI
 
 
 class AcquisitionState(Enum):
@@ -21,11 +21,12 @@ class AcquisitionState(Enum):
     OVER = auto()
 
 class Acquisition(QObject):
-    def __init__(self):
+    def __init__(self, streamingAPI):
         super().__init__()
+        self.streamingAPI = streamingAPI
         self.captureDevices = CaptureDeviceList()
         self.runningAcquisition = AcquisitionState.OFF
-        self.savingDirectory = ""
+        self.savingRootDirectory = os.path.dirname(__file__)
         self.nbTakenImages = 0
         self.nbImagesToTake = 0
 
@@ -149,7 +150,13 @@ class Acquisition(QObject):
     def changeSavingDirectory(self, path) :
         directory = path.split("file://")[1]
         print(directory)
-        self.savingDirectory = directory
+        self.savingRootDirectory = directory
+
+    def createCaptureFolder(self):
+        root = self.savingRootDirectory
+        newFolder = os.path.join(root, "capture")
+        os.makedirs(newFolder, exist_ok=True)
+        self.savingRootDirectory = newFolder
 
     
     @Slot()
@@ -250,26 +257,27 @@ class Acquisition(QObject):
     def start(self, stop):
         self.runningAcquisition = AcquisitionState.ON
         self.setNbTakenImages(0)
-        self.setNbImagesToTake(6)
+        self.setNbImagesToTake(11)
         i = 0
 
-        # Start UVC Cameras
+        # Set the acquisition format to each camera
         for device in self.captureDevices.devices:
-            if isinstance(device, UvcCamera):
-                device.start()
-        # Set the queue saving frames to every devices
-        self.captureDevices.setSavingFramesToDevices()
+            device.SetFormat(device.GetAcquisitionFormat())
 
-        # Initialize and start saving thread
-        stopSavingThread = [False]
-        savingThread = SaveWatcher(stopSavingThread, self.captureDevices.savingFrames, self.savingDirectory)
-        savingThread.start()
+        # Set the saving parameters to cameras (and the saving queue for OPENCV API)
+        self.captureDevices.setSavingToCameras(self.savingRootDirectory)
+
+        # Initialize and start saving thread ONLY IF OPENCV CAMERAS
+        if self.streamingAPI == StreamingAPI.OPENCV:
+            stopSavingThread = [False]
+            savingThread = SaveWatcher(stopSavingThread, self.captureDevices.savingQueue)
+            savingThread.start()
 
         while True:
             if stop():
                 break
 
-            if i > 50:
+            if i > 100:
                 break
 
             self.captureDevices.readFrames()
@@ -280,10 +288,10 @@ class Acquisition(QObject):
 
             i += 1
 
-        # Wait the end of saving thread
-        stopSavingThread[0] = True
-        savingThread.join()
+        # Wait the end of saving thread (ONLY FOR OPENCV API)
+        if self.streamingAPI == StreamingAPI.OPENCV:        
+            stopSavingThread[0] = True
+            savingThread.join()
 
-        self.captureDevices.stopDevices()
         logging.info("End of Acquisition")
         self.runningAcquisition = AcquisitionState.OVER

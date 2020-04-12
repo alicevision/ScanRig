@@ -49,8 +49,8 @@ namespace USBCam {
         return ports;
     }
 
-    LinuxCamera::LinuxCamera(uint32_t portNumber) 
-        : m_fd(-1), m_id(portNumber), m_frameCount(0), m_buffers(nullptr), m_savePath("./capture/")
+    LinuxCamera::LinuxCamera(uint32_t portNumber, std::string saveDirectory) 
+        : m_fd(-1), m_id(portNumber), m_frameCount(0), m_buffers(nullptr), m_savePath(saveDirectory)
     {
         const auto path = std::string("/dev/video") + std::to_string(portNumber);
         m_fd = open(path.c_str(), O_RDWR | O_NONBLOCK);
@@ -69,6 +69,19 @@ namespace USBCam {
         StopStreaming();
         delete m_buffers;
         close(m_fd);
+    }
+
+    unsigned int LinuxCamera::GetCameraId() const {
+        return m_id;
+    }
+
+    std::string LinuxCamera::GetCameraName() const {
+        v4l2_capability cap;
+        if (ioctl(m_fd, VIDIOC_QUERYCAP, &cap) != -1) {
+            return std::string(reinterpret_cast<char*>(cap.card));
+        } else {
+            return "Unknown";
+        }
     }
 
     std::vector<ICamera::Format> LinuxCamera::GetSupportedFormats() const {
@@ -196,6 +209,7 @@ namespace USBCam {
                 detail.type = ControlIdToCameraSetting(queryCtrl.id);
                 detail.max = queryCtrl.maximum;
                 detail.min = queryCtrl.minimum;
+                detail.defaultValue = queryCtrl.default_value;
 
                 //if (queryCtrl.type == V4L2_CTRL_TYPE_MENU)
                 //    QueryControlMenuItems(queryCtrl.id, queryCtrl.minimum, queryCtrl.maximum);
@@ -205,6 +219,7 @@ namespace USBCam {
                     detail.type == ICamera::CameraSetting::AUTO_WHITE_BALANCE) {
                     detail.min = 0;
                     detail.max = 1;
+                    detail.defaultValue = 0;
                 }
 
                 if (detail.type != ICamera::CameraSetting::_UNKNOWN)
@@ -273,7 +288,7 @@ namespace USBCam {
         m_buffers->Queue();
     }
 
-    void LinuxCamera::SetSaveDirectory(std::string path) {
+    void LinuxCamera::SetSaveDirectory(const std::string& path) {
         m_savePath = path;
         CreateCaptureFolders();
     }
@@ -390,6 +405,7 @@ namespace USBCam {
     }
 
     void LinuxCamera::CreateCaptureFolders() {
+        m_savePath += "/"; // TODO check before adding if last character / exist
         mkdir(m_savePath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
         const std::string path = m_savePath + "cam" + std::to_string(m_id);
         mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);

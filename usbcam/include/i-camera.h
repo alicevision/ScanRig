@@ -60,6 +60,7 @@ namespace USBCam {
             CameraSetting type = CameraSetting::_UNKNOWN;
             int32_t min = 0;
             int32_t max = 10000;
+            int32_t defaultValue = 0;
         };
 
         /**
@@ -74,6 +75,20 @@ namespace USBCam {
         virtual ~ICamera() {};
 
         /**
+         * @brief Get the Camera Id
+         * 
+         * @return unsigned int 
+         */
+        virtual unsigned int GetCameraId() const = 0;
+
+        /**
+         * @brief Get the Camera Name
+         * 
+         * @return std::string 
+         */
+        virtual std::string GetCameraName() const = 0;
+
+        /**
          * @brief Get the record values supported by the camera
          * @return std::vector<Format> 
          */
@@ -85,6 +100,24 @@ namespace USBCam {
          * @param cap - Camera capability
          */
         virtual void SetFormat(const Format& cap) = 0;
+
+        /**
+         * @brief Store a value for the format. Not applied to the camera
+         * 
+         * @param cap - Camera capability
+         */
+        void SetAcquisitionFormat(const Format& cap) {
+            m_acquisitionFormat = cap;
+        }
+
+        /**
+         * @brief Get the Unapplied stored format
+         * 
+         * @return Format
+         */
+        Format GetAcquisitionFormat() {
+            return m_acquisitionFormat;
+        }
 
         /**
          * @brief Get the Format used by the camera
@@ -122,7 +155,7 @@ namespace USBCam {
          * 
          * @param path 
          */
-        virtual void SetSaveDirectory(std::string path) = 0;
+        virtual void SetSaveDirectory(const std::string& path) = 0;
 
         /**
          * @brief Take a picture and save it the save directory
@@ -161,5 +194,8 @@ namespace USBCam {
             default: return "Unknown";
             }
         }
+
+        private:
+            Format m_acquisitionFormat;
     };
 }

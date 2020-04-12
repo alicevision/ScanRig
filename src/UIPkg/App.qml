@@ -6,8 +6,8 @@ import "Components"
 ApplicationWindow {
     title: qsTr("ScanRig App")
     visible: true
-    height: 700
-    width: 700 * 1.7
+    height: 800
+    width: 800 * 1.7
 
     minimumHeight: 700
     minimumWidth: minimumHeight * 1.7

@@ -24,8 +24,8 @@ GroupBox {
             ComboBox {
                 id: resolutionComboBox
                 Layout.preferredHeight: 25
-                Layout.preferredWidth: 100
-                displayText: preview.cameraResolution
+                Layout.preferredWidth: 150
+                displayText: preview.cameraAcquisitionFormat
                 contentItem: CCenteredText { text: parent.displayText }
 
                 model: ListModel {
@@ -38,12 +38,12 @@ GroupBox {
                 }
 
                 onActivated: {
-                    preview.setCameraResolution(currentText)
+                    preview.setCameraAcquisitionFormat(currentText)
                 }
 
                 function updateResolutionsList() {
                     availableResolutionsList.clear()
-                    const resolutions = preview.getAvailableUvcResolutions()
+                    const resolutions = preview.getAvailableResolutions()
 
                     for(let i = 0; i < resolutions.length; ++i) {
                         const txt = resolutions[i].toString()
@@ -61,6 +61,13 @@ GroupBox {
         CSlider { id: gamma; text: "Gamma"; from: 0; to: 1000; stepSize: 10; value: preview.cameraGamma; onMoved: preview.setCameraGamma(newValue) }
         CSlider { id: gain; text: "Gain"; from: 0; to: 100; stepSize: 1; value: preview.cameraGain; onMoved: preview.setCameraGain(newValue) }
         CSlider { id: sharpness; text: "Sharpness"; from: 0; to: 10; stepSize: 1; value: preview.cameraSharpness; onMoved: preview.setCameraSharpness(newValue) }
+
+        CButton { 
+            text: "Apply To All"
+            enabled: preview.applyToAllBtnProperty
+            opacity: enabled ? 1 : 0.3
+            onClicked: { preview.setApplyToAllBtn() }
+        }
 
         RowLayout {
             Layout.fillWidth: true

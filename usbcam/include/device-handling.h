@@ -27,5 +27,5 @@ namespace USBCam {
      * @param portNumber 
      * @return std::unique_ptr<ICamera>
      */
-    std::unique_ptr<ICamera> CreateCamera(uint32_t portNumber);
+    std::unique_ptr<ICamera> CreateCamera(uint32_t portNumber, std::string saveDirectory = "./capture");
 }

@@ -33,8 +33,8 @@ Item {
                     selectedDevices.clear() //Clear the list
                     const pythonList = preview.getDevicesInAcquisition() //Get the devices inside the acquisition list
 
-                    for(let device in pythonList) {
-                        const txt = "UVC: " + device.toString()
+                    for(let device of pythonList) {
+                        const txt = device.toString()
                         selectedDevices.append({name: txt}) //'name' is the key to access the attribute 'txt'
                     }                    
                 }
