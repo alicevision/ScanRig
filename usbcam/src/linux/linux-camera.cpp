@@ -209,7 +209,7 @@ namespace USBCam {
                 detail.type = ControlIdToCameraSetting(queryCtrl.id);
                 detail.max = queryCtrl.maximum;
                 detail.min = queryCtrl.minimum;
-                detail.default = 0; // TODO
+                detail.defaultValue = 0; // TODO
 
                 //if (queryCtrl.type == V4L2_CTRL_TYPE_MENU)
                 //    QueryControlMenuItems(queryCtrl.id, queryCtrl.minimum, queryCtrl.maximum);
@@ -219,7 +219,7 @@ namespace USBCam {
                     detail.type == ICamera::CameraSetting::AUTO_WHITE_BALANCE) {
                     detail.min = 0;
                     detail.max = 1;
-                    detail.default = 0;
+                    detail.defaultValue = 0;
                 }
 
                 if (detail.type != ICamera::CameraSetting::_UNKNOWN)
