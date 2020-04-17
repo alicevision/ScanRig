@@ -43,8 +43,8 @@ class Acquisition(QObject):
             "direction": 0,
             "acceleration": 45,
             "timeSpeed": 50,
-            "bsgi": False,
-            "bsgiAngle": 45
+            "photometricStereo": False,
+            "photometricStereoAngle": 45
         }
         return settings
 
@@ -115,29 +115,29 @@ class Acquisition(QObject):
 
 
     @Slot()
-    def getEngineBSGI(self):                   
-        return self.engineSettings["bsgi"]
+    def getEnginePhotometricStereo(self):                   
+        return self.engineSettings["photometricStereo"]
                                          
     @Slot(bool)
-    def setEngineBSGI(self, val):
-        self.engineSettings["bsgi"] = val
-        self.engineBSGIChanged.emit()
+    def setEnginePhotometricStereo(self, val):
+        self.engineSettings["photometricStereo"] = val
+        self.enginePhotometricStereoChanged.emit()
 
-    engineBSGIChanged = Signal()
-    bsgi = Property(bool, getEngineBSGI, setEngineBSGI, notify=engineBSGIChanged)
+    enginePhotometricStereoChanged = Signal()
+    photometricStereo = Property(bool, getEnginePhotometricStereo, setEnginePhotometricStereo, notify=enginePhotometricStereoChanged)
 
 
     @Slot()
-    def getEngineBSGIAngle(self):                   
-        return self.engineSettings["bsgiAngle"]
+    def getEnginePhotometricStereoAngle(self):                   
+        return self.engineSettings["photometricStereoAngle"]
                                          
     @Slot(int)
-    def setEngineBSGIAngle(self, val):
-        self.engineSettings["bsgiAngle"] = val
-        self.engineBSGIAngleChanged.emit()
+    def setEnginePhotometricStereoAngle(self, val):
+        self.engineSettings["photometricStereoAngle"] = val
+        self.enginePhotometricStereoAngleChanged.emit()
 
-    engineBSGIAngleChanged = Signal()
-    bsgiAngle = Property(int, getEngineBSGIAngle, setEngineBSGIAngle, notify=engineBSGIAngleChanged)
+    enginePhotometricStereoAngleChanged = Signal()
+    photometricStereoAngle = Property(int, getEnginePhotometricStereoAngle, setEnginePhotometricStereoAngle, notify=enginePhotometricStereoAngleChanged)
 
 
     @Slot()

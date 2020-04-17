@@ -31,24 +31,24 @@ GroupBox {
             CSlider { id: acceleration; labelSize: 180; text: "Acceleration (°)"; from: 0; to: 90; stepSize: 1; value: acquisition.acceleration; onMoved: acquisition.setEngineAcceleration(newValue) }
             CSlider { id: timeSpeed; labelSize: 180; text: "Time for 360° (s)"; from: 25; to: 90; stepSize: 1; value: acquisition.timeSpeed; onMoved: acquisition.setEngineTimeSpeed(newValue) }
             CheckBox {
-                id: bsgi
-                text: qsTr("BSGI")
-                checked: acquisition.bsgi
+                id: photometricStereo
+                text: qsTr("Photometric Stereo")
+                checked: acquisition.photometricStereo
 
                 onToggled: {
-                    acquisition.setEngineBSGI(checked)
-                    bsgiAngle.enabled = !bsgiAngle.enabled
+                    acquisition.setEnginePhotometricStereo(checked)
+                    photometricStereoAngle.enabled = !photometricStereoAngle.enabled
                 }
             }
             CSlider { 
-                id: bsgiAngle
+                id: photometricStereoAngle
                 labelSize: 180
-                text: "BSGI Angle (°)"
+                text: "Photometric Stereo Angle (°)"
                 from: 45
                 to: 180
                 stepSize: 45
-                value: acquisition.bsgiAngle
-                onMoved: acquisition.setEngineBSGIAngle(newValue)
+                value: acquisition.photometricStereoAngle
+                onMoved: acquisition.setEnginePhotometricStereoAngle(newValue)
 
                 enabled : false
                 opacity: enabled ? 1 : 0.3
