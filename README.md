@@ -1,13 +1,17 @@
-# ScanRig
-
-Multi-Cameras/Lighting Acquisition Setup for Photogrammetry.
-See [Meshroom](https://github.com/alicevision/meshroom) for 3D Reconstruction.
-
+<div align="center">
+  <img src="https://github.com/alicevision/ScanRig/wiki/img/logo.png" alt="Logo" width="200px">
+  
+  > Multi-Cameras/Lighting Acquisition Setup for Photogrammetry.
+  > See [Meshroom](https://github.com/alicevision/meshroom) for 3D Reconstruction.
+  
+  [Wiki](https://github.com/alicevision/ScanRig/wiki) | [Supplies](https://github.com/alicevision/ScanRig/wiki/Supplies)
+  
+  <img src="https://github.com/alicevision/ScanRig/wiki/img/3d/full-rig.png" alt="Lighting stand" width="400px">
+</div>
 
 ## Status
 
 Early beginning of development.
-
 
 ## Install
 
