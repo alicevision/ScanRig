@@ -1,7 +1,6 @@
 <div align="center">
-  # <a href="https://alain.xyz/blog"><img src="https://github.com/alicevision/ScanRig/wiki/img/logo.png" alt="Logo" width="240px"></a>
-  
-  [![License][license-img]][license-url]
+
+<a href="https://github.com/alicevision/ScanRig/wiki"><img src="https://github.com/alicevision/ScanRig/wiki/img/logo.png" alt="Logo" width="240px"></a>
   
   > Multi-Cameras/Lighting Acquisition Setup for Photogrammetry.
   > See [Meshroom](https://github.com/alicevision/meshroom) for 3D Reconstruction.
