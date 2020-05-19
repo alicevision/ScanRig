@@ -73,7 +73,7 @@ ApplicationWindow {
             }
 
             // Loader {
-            //     source: "Views/Capture.qml"
+            //     source: "Views/MultiCamera.qml"
 
             //     Layout.preferredHeight: parent.height*0.9
             //     Layout.fillHeight: true
