@@ -1,5 +1,7 @@
 <div align="center">
-  <img src="https://github.com/alicevision/ScanRig/wiki/img/logo.png" alt="Logo" width="200px">
+  # <a href="https://alain.xyz/blog"><img src="https://github.com/alicevision/ScanRig/wiki/img/logo.png" alt="Logo" width="240px"></a>
+  
+  [![License][license-img]][license-url]
   
   > Multi-Cameras/Lighting Acquisition Setup for Photogrammetry.
   > See [Meshroom](https://github.com/alicevision/meshroom) for 3D Reconstruction.
@@ -9,28 +11,13 @@
   <img src="https://github.com/alicevision/ScanRig/wiki/img/3d/full-rig.png" alt="Lighting stand" width="400px">
 </div>
 
-## Status
+## Features
 
-Early beginning of development.
+Todo
 
-## Install
+## Getting Started
 
-```
-git clone https://github.com/alicevision/ScanRig.git
-# Create a dedicated virtual environment
-python -m venv ScanRigPyEnv
-# Install opencv in this environment
-ScanRigPyEnv/Scripts/pip install opencv-python
-```
-
-
-## Launch
-
-```
-# Launch the acquisition script in the newly created environment
-ScanRigPyEnv/Scripts/python ScanRig/bin/multiCameraCapture.py --help
-```
-
+Todo
 
 ## License
 
