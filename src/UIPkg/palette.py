@@ -3,7 +3,13 @@ from PySide2.QtGui import QPalette, QColor
 from PySide2.QtWidgets import QApplication
 
 class Palette(QObject):
+    """Class used to define a color palette"""
     def __init__(self, qmlEngine, parent=None):
+        """Palette constructor.
+
+        Args:
+            qmlEngine (QQmlApplicationEngine)
+        """
         super(Palette, self).__init__(parent)
         self.qmlEngine = qmlEngine
         darkPalette = QPalette()

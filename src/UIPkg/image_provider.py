@@ -7,11 +7,18 @@ from PySide2.QtQuick import QQuickImageProvider
 from PySide2.QtGui import QImage, QPixmap
 
 class ImageProvider(QQuickImageProvider):
+    """Class used to give the preview frame to QML"""
     def __init__(self, devices):
+        """ImageProvider constructor.
+
+        Args:
+            devices ([UvcCamera]): List of UvcCamera. Designed to contain only one device. (not optimal)
+        """
         super(ImageProvider, self).__init__(QQuickImageProvider.Pixmap)
         self.previewDevices = devices
 
     def requestPixmap(self, id, size, requestedSize):
+        """Method to send the frame to QML."""
         camId = int(id.split("/")[0])
         if camId == -1: 
             return
