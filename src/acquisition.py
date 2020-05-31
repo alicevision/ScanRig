@@ -16,12 +16,20 @@ from CameraPkg.streaming_api import StreamingAPI
 
 
 class AcquisitionState(Enum):
+    """Enum for the Acquisiton State."""
     ON = auto()
     OFF = auto()
     OVER = auto()
 
 class Acquisition(QObject):
+    """Class used to control the acquistion process."""
+
     def __init__(self, streamingAPI):
+        """Acquisition constructor
+
+        Args:
+            streamingAPI (StreamingAPI): Enum used to know the StreamingAPI (USBCam or OpenCV) specified in the terminal
+        """
         super().__init__()
         self.streamingAPI = streamingAPI
         self.captureDevices = CaptureDeviceList()
@@ -37,6 +45,11 @@ class Acquisition(QObject):
 
 #-------------------------------------------- ENGINE SETTINGS
     def initEngineSettings(self):
+        """Method to init the engine settings.
+
+        Returns:
+            Object: Object containing all the engine settings.
+        """
         settings = {
             "totalAngle": 180,
             "stepAngle": 15,
@@ -50,11 +63,21 @@ class Acquisition(QObject):
 
 
     @Slot()
-    def getEngineTotalAngle(self):                   
+    def getEngineTotalAngle(self):
+        """Getter totalAngle: the number of degrees to be covered during acquisition.
+
+        Returns:
+            int: Value of totalAngle.
+        """
         return self.engineSettings["totalAngle"]
                                          
     @Slot(int)
     def setEngineTotalAngle(self, val):
+        """Setter totalAngle: the number of degrees to be covered during acquisition.
+
+        Args:
+            val (int): Value to set.
+        """
         self.engineSettings["totalAngle"] = val
         self.engineTotalAngleChanged.emit()
 
@@ -63,11 +86,21 @@ class Acquisition(QObject):
 
 
     @Slot()
-    def getEngineStepAngle(self):                   
+    def getEngineStepAngle(self): 
+        """Getter stepAngle: the number of degrees which separates two consecutive captures.
+
+        Returns:
+            int: Value of stepAngle.
+        """                  
         return self.engineSettings["stepAngle"]
                                          
     @Slot(int)
     def setEngineStepAngle(self, val):
+        """Setter stepAngle: the number of degrees which separates two consecutive captures.
+
+        Args:
+            val (int): Value to set.
+        """
         self.engineSettings["stepAngle"] = val
         self.engineStepAngleChanged.emit()
 
@@ -76,11 +109,21 @@ class Acquisition(QObject):
 
 
     @Slot()
-    def getEngineDirection(self):                   
+    def getEngineDirection(self):
+        """Getter direction: clockwise or counterclockwise direction.
+
+        Returns:
+            int: O for left, 1 for right.
+        """                          
         return self.engineSettings["direction"]
                                          
     @Slot(int)
     def setEngineDirection(self, val):
+        """Setter direction: clockwise or counterclockwise direction.
+
+        Args:
+            val (int): Value to set. 0 for left, 1 for right.
+        """                
         self.engineSettings["direction"] = val
         self.engineDirectionChanged.emit()
 
@@ -89,11 +132,21 @@ class Acquisition(QObject):
 
 
     @Slot()
-    def getEngineAcceleration(self):                   
+    def getEngineAcceleration(self): 
+        """Getter acceleration: the number of degrees used by the arm to accelerate before starting the acquisition.
+
+        Returns:
+            int: Value of acceleration.
+        """                        
         return self.engineSettings["acceleration"]
                                          
     @Slot(int)
     def setEngineAcceleration(self, val):
+        """Setter acceleration: the number of degrees used by the arm to accelerate before starting the acquisition.
+
+        Args:
+            val (int): Value to set.
+        """   
         self.engineSettings["acceleration"] = val
         self.engineAccelerationChanged.emit()
 
@@ -102,11 +155,21 @@ class Acquisition(QObject):
 
 
     @Slot()
-    def getEngineTimeSpeed(self):                   
+    def getEngineTimeSpeed(self):  
+        """Getter timeSpeed: this is actually the speed of the rotation. This value (in seconds) is the required time for a complete revolution.
+
+        Returns:
+            int: Value of timeSpeed.
+        """                   
         return self.engineSettings["timeSpeed"]
                                          
     @Slot(int)
     def setEngineTimeSpeed(self, val):
+        """Setter timeSpeed: this is actually the speed of the rotation. This value (in seconds) is the required time for a complete revolution.
+
+        Args:
+            val (int): Value to set.
+        """  
         self.engineSettings["timeSpeed"] = val
         self.engineTimeSpeedChanged.emit()
 
@@ -115,11 +178,21 @@ class Acquisition(QObject):
 
 
     @Slot()
-    def getEnginePhotometricStereo(self):                   
+    def getEnginePhotometricStereo(self):  
+        """Getter photometricStereo
+
+        Returns:
+            bool: If True, 'Photometric Stereo' is enabled. If False, it is not.
+        """                       
         return self.engineSettings["photometricStereo"]
                                          
     @Slot(bool)
     def setEnginePhotometricStereo(self, val):
+        """Setter photometricStereo
+
+        Args:
+            val (bool): If True, enable 'Photometric Stereo'. If False, disable it.
+        """
         self.engineSettings["photometricStereo"] = val
         self.enginePhotometricStereoChanged.emit()
 
@@ -128,11 +201,21 @@ class Acquisition(QObject):
 
 
     @Slot()
-    def getEnginePhotometricStereoAngle(self):                   
+    def getEnginePhotometricStereoAngle(self):  
+        """Getter photometricStereoAngle: the number of degrees which separates two consecutive Photometric Stereo captures.
+
+        Returns:
+            int: Value of photometricStereoAngle.
+        """                   
         return self.engineSettings["photometricStereoAngle"]
                                          
     @Slot(int)
     def setEnginePhotometricStereoAngle(self, val):
+        """Setter photometricStereoAngle: the number of degrees which separates two consecutive Photometric Stereo captures.
+
+        Args:
+            val (int): Value to set.
+        """       
         self.engineSettings["photometricStereoAngle"] = val
         self.enginePhotometricStereoAngleChanged.emit()
 
@@ -142,17 +225,24 @@ class Acquisition(QObject):
 
     @Slot()
     def startEngine(self):
+        # Todo + Documentation !!!!!
         print("Starting Engine")
 
 
 #-------------------------------------------- IMAGES
     @Slot(str)
     def changeSavingDirectory(self, path) :
+        """Method to change the image saving directory path. Used in combination with QML.
+
+        Args:
+            path (str): Directory path coming from QML.
+        """
         directory = path.split("file://")[1]
         print(directory)
         self.savingRootDirectory = directory
 
     def createCaptureFolder(self):
+        """Method to create a capture folder inside of the saving directory path."""
         root = self.savingRootDirectory
         newFolder = os.path.join(root, "capture")
         os.makedirs(newFolder, exist_ok=True)
@@ -160,11 +250,21 @@ class Acquisition(QObject):
 
     
     @Slot()
-    def getNbTakenImages(self):                   
+    def getNbTakenImages(self):
+        """Getter nbTakenImages
+
+        Returns:
+            int: number of pictures already taken.
+        """
         return self.nbTakenImages
                                          
     @Slot(int)
     def setNbTakenImages(self, val):
+        """Setter nbTakenImages: not a normal setter.
+
+        Args:
+            val (int): 0 will set the attribute to 0. 1 will increment the attribute by 1.
+        """
         if val == 0:
             self.nbTakenImages = 0
         if val == 1:
@@ -176,11 +276,21 @@ class Acquisition(QObject):
 
 
     @Slot()
-    def getNbImagesToTake(self):                   
+    def getNbImagesToTake(self):
+        """Getter nbImagesToTake
+
+        Returns:
+            int: number of pictures each camera has to take.
+        """          
         return self.nbImagesToTake
                                          
     @Slot(int)
     def setNbImagesToTake(self, val):
+        """Setter nbImagesToTake
+
+        Args:
+            val (int): number of pictures each camera has to take.
+        """
         self.nbImagesToTake = val
         self.nbImagesToTakeChanged.emit()
 
@@ -255,6 +365,11 @@ class Acquisition(QObject):
 
 
     def start(self, stop):
+        """Method to launch the acquisition process.
+
+        Args:
+            stop (lambda): lambda function used with a boolean to stop the thread if it is necessary.
+        """
         self.runningAcquisition = AcquisitionState.ON
         self.setNbTakenImages(0)
         self.setNbImagesToTake(11)

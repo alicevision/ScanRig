@@ -11,7 +11,14 @@ from CameraPkg.streaming_api import StreamingAPI
 import time
 
 class Backend(QObject):
+    """Class used to control the backend of the application."""
+
     def __init__(self, streamingAPI):
+        """Backend constructor
+
+        Args:
+            streamingAPI (StreamingAPI): Enum used to know the StreamingAPI (USBCam or OpenCV) specified in the terminal
+        """
         super().__init__()
         self.streamingAPI = streamingAPI
         self.acquisition = Acquisition(self.streamingAPI)
@@ -30,6 +37,11 @@ class Backend(QObject):
 
     #---------- MAIN THREAD
     def runMainThread(self, stop):
+        """Method used to run the main thread of the application.
+
+        Args:
+            stop (lambda): lambda function used with a boolean to stop the thread when it will be necessary.
+        """
         while True:
             if stop():
                 break
@@ -53,11 +65,21 @@ class Backend(QObject):
 
     #---------- LAYOUT
     @Slot()
-    def getMainLayout(self):                         
+    def getMainLayout(self):    
+        """Getter mainLayout
+
+        Returns:
+            bool: If True, the 'Main Layout' of the UI is enabled. If False, it is not.
+        """                  
         return self.mainLayout                                              
     
     @Slot(bool)
     def setMainLayout(self, boolean):
+        """Setter mainLayout
+
+        Args:
+            boolean (bool): If True, enable the 'Main Layout' of the UI. If False, disable it.
+        """
         self.mainLayout = boolean
         self.mainLayoutChanged.emit()
 
@@ -67,6 +89,11 @@ class Backend(QObject):
 
     @Slot()
     def getAPI(self):
+        """Method to return the current Streaming API running by the application.
+
+        Returns:
+            str: Name of the Streaming API.
+        """
         if self.streamingAPI == StreamingAPI.USBCAM:
             return "usbcam"
         elif self.streamingAPI == StreamingAPI.OPENCV:
@@ -81,6 +108,11 @@ class Backend(QObject):
     #---------- APPLICATION
     @Slot(result=bool)
     def exitApplication(self):
+        """Method called when the application is going to close.
+
+        Returns:
+            bool: If True, the application can close. If False, the application cannot.
+        """
         # Reject exit if the acquisition process is not over
         if self.acquisition.runningAcquisition == AcquisitionState.ON:
             return False
@@ -95,12 +127,18 @@ class Backend(QObject):
 
     #---------- ACQUISITION
     def createAcquisitionThread(self):
+        """Method to create the acquisition thread"""
         self.stopAcquisitionThread = False
         self.acquisitionThread = threading.Thread(target=self.acquisition.start, args=(lambda: self.stopAcquisitionThread,))
 
 
     @Slot(result=bool)
     def startAcquisition(self):
+        """Method to start the acquisition. Stop the preview and then, start the acquisition thread.
+
+        Returns:
+            bool: If True, the acquisition thread is started. If False, it is not.
+        """
         if self.acquisition.captureDevices.isEmpty():
             return False
 
@@ -115,6 +153,11 @@ class Backend(QObject):
 
     @Slot(result=bool)
     def stopAcquisition(self):
+        """Method to stop the acquisition.
+
+        Returns:
+            bool: If True, the acquisition thread is stopped. If False, nothing happened.
+        """
         if self.acquisition.runningAcquisition == AcquisitionState.ON:
             self.stopAcquisitionThread = True
             return True
@@ -124,10 +167,20 @@ class Backend(QObject):
     #---------- QLM Property
     @Slot(result=bool)
     def getReadyForAcquisition(self):
+        """Getter readyForAcquisition
+
+        Returns:
+            bool: If True, the application is ready to start the acquisition. If False, it is not.
+        """
         return self.readyForAcquisition                                     
     
     @Slot(bool)
     def setReadyForAcquisition(self, boolean):
+        """Setter readyForAcquisition
+
+        Args:
+            bool: If True, the application is ready to start the acquisition. If False, it is not.
+        """
         self.readyForAcquisition = boolean
         self.readyForAcquisitionChanged.emit()
 

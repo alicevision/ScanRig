@@ -56,7 +56,10 @@ class MessageHandler(object):
 
 
 class App():
+    """Class used to initiate the Application instance."""
+
     def __init__(self):
+        """App constructor"""
         self.streamingAPI = CHOSEN_STREAMING_API
 
         print(self.streamingAPI)
