@@ -4,7 +4,14 @@ import threading, logging, cv2
 from .i_uvc_camera import CameraSetting, IUvcCamera
 
 class OpencvCamera(IUvcCamera):
+    """Class used for UVC Cameras working with the OpenCV API."""
     def __init__(self, id, saveDirectory):
+        """OpencvCamera constructor.
+
+        Args:
+            id (int): ID of the camera.
+            saveDirectory (str): Path used to store the images taken by this camera.
+        """
         self.id = id
         (self.status, self.frame) = (None, None)
         self.frameCount = 0
@@ -25,21 +32,34 @@ class OpencvCamera(IUvcCamera):
 
     
     def __del__(self):
+        """OpencvCamera destructor."""
         self.__stop()
         print(f"Camera {self.id} is self-desctructed")
 
 
 
     def GetCameraId(self):
-        """Returns the camera ID"""
+        """"Getter id
+
+        Returns:
+            int: ID of the camera.
+        """
         return self.id
 
     def GetCameraName(self):
-        """Returns the camera name"""
+        """Method to return the camera name.
+
+        Returns:
+            str: Name of the camera.
+        """
         return "UVC: " + str(self.id)
 
     def GetSupportedFormats(self):
-        """Returns the available formats for this device"""
+        """Method to return supported resolutions/formats by the camera.
+
+        Returns:
+            [Object]: List of Object describing supported resolutions/formats.
+        """
         formats = []
         toTest = [(4208, 3120), (4096, 2160), (3840, 2160), (2880, 2160), (1920, 1440), (1920, 1080), (1280, 960), (1280, 720), (640,480)]
 
@@ -56,25 +76,41 @@ class OpencvCamera(IUvcCamera):
         return formats
 
     def SetFormat(self, form):
-        """Set current width & height"""
+        """Method to set the current resolution/format.
+
+        Args:
+            form (Object): Object describing the resolution/format.
+        """
         self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, form.get("width"))
         self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, form.get("height"))
         
         self.__fillBuffer()
 
     def GetFormat(self):
-        """Returns the current capability used"""
+        """Method to return the current resolution/format.
+
+        Returns:
+            Object: Object describing the resolution/format.
+        """
         w = self.capture.get(cv2.CAP_PROP_FRAME_WIDTH)
         h = self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
 
         return {"width": int(w), "height": int(h)}
 
     def SetAcquisitionFormat(self, form):
-        """Set the Acquisition width & height"""
+        """Setter acquisitionFormat: resolution/format used during the acquisition only.
+
+        Args:
+            form (Object): Object describing the resolution/format.
+        """
         self.acquisitionFormat = form
 
     def GetAcquisitionFormat(self):
-        """Returns the Acquisition format"""
+        """Getter acquisitionFormat: resolution/format used during the acquisition only.
+
+        Returns:
+            Object: Object describing the acquisition resolution/format.
+        """
         return self.acquisitionFormat
 
     def GetSupportedSettings(self):
@@ -82,7 +118,12 @@ class OpencvCamera(IUvcCamera):
         pass
 
     def SetSetting(self, setting, value):
-        """Set a specific setting"""
+        """Method to set a specific setting to the camera.
+
+        Args:
+            setting (CameraSetting): Enum representing a camera setting.
+            value (int): Value to set.
+        """
         if setting == CameraSetting.Brightness:
             self.capture.set(cv2.CAP_PROP_BRIGHTNESS, value)
         elif setting == CameraSetting.Contrast:
@@ -105,7 +146,14 @@ class OpencvCamera(IUvcCamera):
             self.capture.set(cv2.CAP_PROP_AUTO_EXPOSURE, value)
 
     def GetSetting(self, setting):
-        """Returns the value of a specific setting"""
+        """Method to return the value of a specific setting.
+
+        Args:
+            setting (CameraSetting): Enum representing a camera setting.
+
+        Returns:
+            int: Value of the setting.
+        """
         if setting == CameraSetting.Brightness:
             return self.capture.get(cv2.CAP_PROP_BRIGHTNESS)
         elif setting == CameraSetting.Contrast:
@@ -128,20 +176,29 @@ class OpencvCamera(IUvcCamera):
             return self.capture.get(cv2.CAP_PROP_AUTO_EXPOSURE)
 
     def SetSaveDirectory(self, rootDirectory):
-        """Set the saving directory"""
+        """Method to set the saving directory path to this camera.
+
+        Args:
+            rootDirectory (str): Path to the root directory where we want to save pictures.
+        """
         path = os.path.join(rootDirectory, f"cam_{self.id}")
         os.makedirs(path, exist_ok=True)
         self.saveDirectory = path
 
     def SaveLastFrame(self):
-        """Save the frame into the specified directory"""
+        """Method to save the frame into the specified directory"""
         if self.savingQueue:
             self.savingQueue.put((self.id, self.frameCount, self.frame, self.saveDirectory))
             self.frameCount += 1
 
     def GetLastFrame(self):
-        """Returns the last frame taken"""
+        """Method to get and return the lasr frame.
+
+        Returns:
+            numpy.ndarray: Array describing the image.
+        """
         self.status, self.frame = self.capture.read()
+        print(type(self.frame))
         if not self.status:
             logging.warning("Image cannot be read")
         
@@ -151,11 +208,17 @@ class OpencvCamera(IUvcCamera):
 #---------- METHOD ONLY FOR THIS CLASS (NOT HERITED FROM INTERFACE)
 
     def SetSavingQueue(self, savingQueue):
+        """Setter savingQueue: used to send frame into another where they are saved.
+
+        Args:
+            savingQueue (Queue): Queue where the frames are storred.
+        """
         self.savingQueue = savingQueue
 
 #---------- PRIVATE METHODS
 
     def __start(self):
+        """Method to open the camera."""
         if not self.capture.isOpened():
             v = self.capture.open(self.id, apiPreference=cv2.CAP_V4L2)
             if v:
@@ -167,15 +230,22 @@ class OpencvCamera(IUvcCamera):
                 self.__stop()
 
     def __stop(self):
+        """Method to stop the camera."""
         self.capture.release()
         if not self.capture.isOpened():
             print(f"Device n°{self.id} closed")
 
     def __fillBuffer(self):
+        """Method to fill the camera buffer."""
         for i in range(int(self.capture.get(cv2.CAP_PROP_BUFFERSIZE)) + 1):
             self.GetLastFrame()
 
     def __initSettings(self):
+        """Method to init the default camera settings.
+
+        Returns:
+            Object: Object decribing the camera settings.
+        """
         settings = {
             "width" : 1280,
             "height" : 720,
@@ -195,6 +265,7 @@ class OpencvCamera(IUvcCamera):
         return settings
 
     def __setAllSettings(self):
+        """Method to set all the settings to the camera."""
         self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.settings.get("width"))
         self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.settings.get("height"))
         self.capture.set(cv2.CAP_PROP_BRIGHTNESS, self.settings.get("brightness"))

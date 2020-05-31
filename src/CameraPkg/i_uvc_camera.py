@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from enum import Enum, auto
 
 class CameraSetting(Enum):
+    """Enum for the Camera Settings."""
     Auto_White_Balance = auto()
     Auto_Exposure = auto()
     Auto_Iso = auto()
@@ -19,60 +20,60 @@ class CameraSetting(Enum):
 
 
 class IUvcCamera(ABC):
-
+    """Interface describing UVC Cameras implementations."""
     @abstractmethod
     def GetCameraId(self):
-        """Returns the camera ID"""
+        """Getter: camera ID"""
         pass
 
     @abstractmethod
     def GetCameraName(self):
-        """Returns the camera name"""
+        """Getter: camera name"""
         pass
 
     @abstractmethod
     def GetSupportedFormats(self):
-        """Returns the available formats for this device"""
+        """Getter: available formats for this device"""
         pass
 
     @abstractmethod
     def SetFormat(self, form):
-        """Set current width & height"""
+        """Setter: current width & height"""
         pass
 
     @abstractmethod
     def GetFormat(self):
-        """Returns the current capability used"""
+        """Getter: current capability used"""
         pass
 
 
     @abstractmethod
     def GetSupportedSettings(self):
-        """Returns the available settings for this device"""
+        """Getter: available settings for this device"""
         pass
 
     @abstractmethod
     def SetSetting(self, setting, value):
-        """Set a specific setting"""
+        """Setter: a specific setting"""
         pass  
 
     @abstractmethod
     def GetSetting(self, setting):
-        """Returns the value of a specific setting"""
+        """Getter: value of a specific setting"""
         pass  
 
 
     @abstractmethod
     def SetSaveDirectory(self, path):
-        """Set the saving directory"""
+        """Setter: the saving directory"""
         pass  
 
     @abstractmethod
     def SaveLastFrame(self):
-        """Save the frame into the specified directory"""
+        """Method to save the frame into the specified directory"""
         pass  
 
     @abstractmethod
     def GetLastFrame(self):
-        """Returns the last frame taken"""
+        """Getter: last frame taken"""
         pass  
