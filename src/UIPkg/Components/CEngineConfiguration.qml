@@ -25,10 +25,10 @@ GroupBox {
             enabled: false
             opacity: enabled ? 1 : 0.3
 
-            CSlider { id: totalAngle; labelSize: 180; text: "Total Angle (°)"; from: 0; to: 360; stepSize: 1; value: acquisition.totalAngle; onMoved: acquisition.setEngineTotalAngle(newValue) }
-            CSlider { id: stepAngle; labelSize: 180; text: "Step Angle (°)"; from: 0; to: 90; stepSize: 1; value: acquisition.stepAngle; onMoved: acquisition.setEngineStepAngle(newValue) }
+            CSlider { id: totalAngle; labelSize: 180; text: "Total Angle (°)"; from: 0; to: 360; stepSize: 10; value: acquisition.totalAngle; onMoved: acquisition.setEngineTotalAngle(newValue) }
+            CSlider { id: stepAngle; labelSize: 180; text: "Step Angle (°)"; from: 0; to: 90; stepSize: 10; value: acquisition.stepAngle; onMoved: acquisition.setEngineStepAngle(newValue) }
             CSlider { id: direction; labelSize: 180; text: "Direction (O = Left, 1 = Right)"; from: 0; to: 1; stepSize: 1; value: acquisition.direction; onMoved: acquisition.setEngineDirection(newValue)}
-            CSlider { id: acceleration; labelSize: 180; text: "Acceleration (°)"; from: 0; to: 90; stepSize: 1; value: acquisition.acceleration; onMoved: acquisition.setEngineAcceleration(newValue) }
+            CSlider { id: acceleration; labelSize: 180; text: "Acceleration (°)"; from: 0; to: 90; stepSize: 5; value: acquisition.acceleration; onMoved: acquisition.setEngineAcceleration(newValue) }
             CSlider { id: timeSpeed; labelSize: 180; text: "Time for 360° (s)"; from: 25; to: 90; stepSize: 1; value: acquisition.timeSpeed; onMoved: acquisition.setEngineTimeSpeed(newValue) }
             CheckBox {
                 id: photometricStereo

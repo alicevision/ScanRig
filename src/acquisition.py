@@ -225,7 +225,8 @@ class Acquisition(QObject):
 
     @Slot()
     def startEngine(self):
-        # Todo + Documentation !!!!!
+        # Useless for now. Can be useful if we want to switch on the engine and control it before launching the acquisition.
+        # Do not delete the method as it a slot for QML Button.
         print("Starting Engine")
 
 
@@ -299,71 +300,6 @@ class Acquisition(QObject):
 
 #-------------------------------------------- ACQUISITION
 
-    '''
-    def start(self):
-        GLOBAL_RUNNING = [True]
-
-        # Get arguments
-        args = args_parser.parse()CheckBox
-        # Initialize arduino
-        arduinoSer = selectPort()
-        # Init custom Serial reader to handle readLine correctly
-        serialReader = SerialReader(arduinoSer)
-
-        # Initialize and start saving thread
-        savingThread = CameraPkg.saving.SaveWatcher(GLOBAL_RUNNING, self.captureDevices.savingFrames, args)
-        savingThread.start()
-
-        # Check if cameras are running
-        if not self.captureDevices.isEmpty():
-            # Give the motor instructions - direction:totalAngle,stepAngle,transition,time
-            time.sleep(2)
-            serialWrite(arduinoSer, "leftCaptureFull:60,15,45,45")
-            # Read frame
-            self.captureDevices.readFrames()
-        else:    
-            GLOBAL_RUNNING[0] = False
-
-        # Main loop
-        while(GLOBAL_RUNNING[0]):
-
-            line = serialReader.readline()
-            # While the motor is rotating (before to arrive to a step angle)
-            while(line == b''):
-                line = serialReader.readline()
-                time.sleep(0.01)
-
-            # When the motor reaches the step angle
-            if line == b'Capture\r':
-                # Read frame
-                self.captureDevices.readFrames()
-
-                # Send frames to the saving buffer
-                self.captureDevices.saveFrames()
-
-            # When the motor reaches the end    
-            elif line == b'Success\r' :
-                print("Success!!!!")
-                GLOBAL_RUNNING[0] = False
-
-            # If there is an error with the motor, we stop the loop
-            elif line != b'':
-                print(line)
-                GLOBAL_RUNNING[0] = False
-
-
-        # Wait the end of saving thread
-        savingThread.join()
-
-        # When everything done, release the capture devices
-        self.captureDevices.stopDevices()
-
-        logging.info("End of Capture")
-
-        return
-        '''
-
-
     def start(self, stop):
         """Method to launch the acquisition process.
 
@@ -374,6 +310,8 @@ class Acquisition(QObject):
         self.setNbTakenImages(0)
         self.setNbImagesToTake(11)
         i = 0
+
+        print(self.engineSettings)
 
         # Set the acquisition format to each camera
         for device in self.captureDevices.devices:
@@ -410,3 +348,83 @@ class Acquisition(QObject):
 
         logging.info("End of Acquisition")
         self.runningAcquisition = AcquisitionState.OVER
+
+
+
+    # Real start method using the engine. Supposed to work. We cannot try for the moment.
+    """
+    def start(self, stop):
+        self.runningAcquisition = AcquisitionState.ON
+        self.setNbTakenImages(0) # Set the number of taken images to 0
+        self.setNbImagesToTake(self.engineSettings.get('totalAngle') / self.engineSettings.get('stepAngle')) # Set the number of images to take
+
+
+        # Set the acquisition format to each camera
+        for device in self.captureDevices.devices:
+            device.SetFormat(device.GetAcquisitionFormat())
+
+        # Set the saving parameters to cameras (and the saving queue for OPENCV API)
+        self.captureDevices.setSavingToCameras(self.savingRootDirectory)
+
+        # Initialize and start saving thread ONLY IF OPENCV CAMERAS
+        if self.streamingAPI == StreamingAPI.OPENCV:
+            stopSavingThread = [False]
+            savingThread = SaveWatcher(stopSavingThread, self.captureDevices.savingQueue)
+            savingThread.start()
+
+
+        # Initialize arduino
+        arduinoSer = selectPort()
+        # Init custom Serial reader to handle readLine correctly
+        serialReader = SerialReader(arduinoSer)
+
+        # Get the engine configuration
+        totalAngle = self.engineSettings.get('totalAngle')
+        stepAngle = self.engineSettings.get('stepAngle')
+        direction = 'left' if self.engineSettings.get('direction') == 0 else 'right'
+        acceleration = self.engineSettings.get('acceleration')
+        timeSpeed = self.engineSettings.get('timeSpeed')
+        
+        # Give instruction to the engine to launch it
+        serialWrite(arduinoSer, f'{direction}CaptureFull:{totalAngle},{stepAngle},{acceleration},{timeSpeed}')
+
+
+        # Main loop
+        while True:
+            if stop():
+                break
+
+            line = serialReader.readline()
+            # While the motor is rotating (before to arrive to a step angle)
+            while(line == b''):
+                line = serialReader.readline()
+                time.sleep(0.01)
+
+            # When the motor reaches the step angle
+            if line == b'Capture\r':
+                # Read frame
+                self.captureDevices.readFrames()
+
+                # Save frame + Increment number
+                self.captureDevices.saveFrames()
+                self.setNbTakenImages(1)
+
+            # When the motor reaches the end    
+            elif line == b'Success\r' :
+                print("Success!!!!")
+                break
+
+            # If there is an error with the motor, we stop the loop
+            elif line != b'':
+                print(line)
+                break
+
+
+        # Wait the end of saving thread (ONLY FOR OPENCV API)
+        if self.streamingAPI == StreamingAPI.OPENCV:        
+            stopSavingThread[0] = True
+            savingThread.join()
+
+        logging.info("End of Acquisition")
+        self.runningAcquisition = AcquisitionState.OVER
+        """
