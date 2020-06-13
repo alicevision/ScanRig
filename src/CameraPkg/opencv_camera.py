@@ -198,7 +198,6 @@ class OpencvCamera(IUvcCamera):
             numpy.ndarray: Array describing the image.
         """
         self.status, self.frame = self.capture.read()
-        print(type(self.frame))
         if not self.status:
             logging.warning("Image cannot be read")
         

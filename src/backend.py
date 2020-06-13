@@ -6,23 +6,18 @@ import threading
 from acquisition import Acquisition, AcquisitionState
 from capture_device_preview import CaptureDevicePreview
 from UIPkg.image_provider import ImageProvider
-from CameraPkg.streaming_api import StreamingAPI
+from CameraPkg.streaming_api import StreamingAPI, CHOSEN_STREAMING_API
 
 import time
 
 class Backend(QObject):
     """Class used to control the backend of the application."""
 
-    def __init__(self, streamingAPI):
-        """Backend constructor
-
-        Args:
-            streamingAPI (StreamingAPI): Enum used to know the StreamingAPI (USBCam or OpenCV) specified in the terminal
-        """
+    def __init__(self):
+        """Backend constructor"""
         super().__init__()
-        self.streamingAPI = streamingAPI
-        self.acquisition = Acquisition(self.streamingAPI)
-        self.preview = CaptureDevicePreview(self.acquisition, self.streamingAPI)
+        self.acquisition = Acquisition()
+        self.preview = CaptureDevicePreview(self.acquisition)
         self.mainLayout = True
         self.readyForAcquisition = False
 
@@ -94,9 +89,9 @@ class Backend(QObject):
         Returns:
             str: Name of the Streaming API.
         """
-        if self.streamingAPI == StreamingAPI.USBCAM:
+        if CHOSEN_STREAMING_API == StreamingAPI.USBCAM:
             return "usbcam"
-        elif self.streamingAPI == StreamingAPI.OPENCV:
+        elif CHOSEN_STREAMING_API == StreamingAPI.OPENCV:
             return "opencv"
         else:
             return "no API"                                                                      

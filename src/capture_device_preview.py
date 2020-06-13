@@ -19,15 +19,13 @@ elif CHOSEN_STREAMING_API == StreamingAPI.USBCAM:
 class CaptureDevicePreview(QObject):
     """Class used to display the camera preview inside of the UI"""
 
-    def __init__(self, acquisition, streamingAPI):
+    def __init__(self, acquisition):
         """CaptureDevicePreview constructor
 
         Args:
             acquisition (Acquistion): reference to the Acquisition instance
-            streamingAPI (StreamingAPI): Enum used to know the StreamingAPI (USBCam or OpenCV) specified in the terminal
         """
         super().__init__()
-        self.streamingAPI = streamingAPI
         self.previewDevices = CaptureDeviceList() # We have to use a list for the imageProvider even if we only have one camera
         self.runningPreview = False
         self.currentId = -1

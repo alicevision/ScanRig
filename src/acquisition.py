@@ -12,7 +12,7 @@ from CameraPkg.capture_device_list import CaptureDeviceList
 from CameraPkg.opencv_camera import OpencvCamera
 from CameraPkg.saving import SaveWatcher
 from MoteurPkg.serial_management import availablePorts, serialWrite, SerialReader, selectPort
-from CameraPkg.streaming_api import StreamingAPI
+from CameraPkg.streaming_api import StreamingAPI, CHOSEN_STREAMING_API
 
 
 class AcquisitionState(Enum):
@@ -24,14 +24,9 @@ class AcquisitionState(Enum):
 class Acquisition(QObject):
     """Class used to control the acquistion process."""
 
-    def __init__(self, streamingAPI):
-        """Acquisition constructor
-
-        Args:
-            streamingAPI (StreamingAPI): Enum used to know the StreamingAPI (USBCam or OpenCV) specified in the terminal
-        """
+    def __init__(self):
+        """Acquisition constructor"""
         super().__init__()
-        self.streamingAPI = streamingAPI
         self.captureDevices = CaptureDeviceList()
         self.runningAcquisition = AcquisitionState.OFF
         self.savingRootDirectory = os.path.dirname(__file__)
@@ -321,7 +316,7 @@ class Acquisition(QObject):
         self.captureDevices.setSavingToCameras(self.savingRootDirectory)
 
         # Initialize and start saving thread ONLY IF OPENCV CAMERAS
-        if self.streamingAPI == StreamingAPI.OPENCV:
+        if CHOSEN_STREAMING_API == StreamingAPI.OPENCV:
             stopSavingThread = [False]
             savingThread = SaveWatcher(stopSavingThread, self.captureDevices.savingQueue)
             savingThread.start()
@@ -342,7 +337,7 @@ class Acquisition(QObject):
             i += 1
 
         # Wait the end of saving thread (ONLY FOR OPENCV API)
-        if self.streamingAPI == StreamingAPI.OPENCV:        
+        if CHOSEN_STREAMING_API == StreamingAPI.OPENCV:        
             stopSavingThread[0] = True
             savingThread.join()
 
@@ -367,7 +362,7 @@ class Acquisition(QObject):
         self.captureDevices.setSavingToCameras(self.savingRootDirectory)
 
         # Initialize and start saving thread ONLY IF OPENCV CAMERAS
-        if self.streamingAPI == StreamingAPI.OPENCV:
+        if CHOSEN_STREAMING_API == StreamingAPI.OPENCV:
             stopSavingThread = [False]
             savingThread = SaveWatcher(stopSavingThread, self.captureDevices.savingQueue)
             savingThread.start()
@@ -421,7 +416,7 @@ class Acquisition(QObject):
 
 
         # Wait the end of saving thread (ONLY FOR OPENCV API)
-        if self.streamingAPI == StreamingAPI.OPENCV:        
+        if CHOSEN_STREAMING_API == StreamingAPI.OPENCV:        
             stopSavingThread[0] = True
             savingThread.join()
 

@@ -84,7 +84,7 @@ class App():
         ctx = self.engine.rootContext()
 
         # Create a Backend object to communicate with QML
-        self.backend = Backend(self.streamingAPI)
+        self.backend = Backend()
         ctx.setContextProperty("backend", self.backend)
         ctx.setContextProperty("preview", self.backend.preview)
         ctx.setContextProperty("acquisition", self.backend.acquisition)
