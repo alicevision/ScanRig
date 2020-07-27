@@ -125,15 +125,17 @@ class SetupOperator(bpy.types.Operator):
             context.scene.collection.children.link(ScanRigProtectedCollection)
 
         #---------- Create cam ----------#
-        camMiddle = self.__createCam(context, "camMiddle", (self.camDistance,0,0), (90, 0, 90), 56)
-        camTop = self.__createCam(context, "camTop", (self.camDistance,0,0), (90, 0, 90), 56)
-        camBottom = self.__createCam(context, "camBottom", (self.camDistance,0,0), (90, 0, 90), 56)
+        cam = self.__createCam(camera, 56)
+        camMiddle = self.__createCameraObj(context, "camMiddle", cam, (self.camDistance, 0, 0), (90, 0, 90))
+        camTop = self.__createCameraObj(context, "camTop", cam, (self.camDistance, 0, 0), (90, 0, 90))
+        camBottom = self.__createCameraObj(context, "camBottom", cam, (self.camDistance, 0, 0), (90, 0, 90))
 
         #---------- Make the 30 degrees angle ----------#
         cameras = bpy.data.objects.new('cameras', None) # None for empty object
         cameras.location = (0,0,0)
         cameras.empty_display_type = 'PLAIN_AXES'
-        bpy.data.collections['ScanRigCollection'].objects.link(cameras) # Link to our collection
+
+        linkToScanRigCollection(cameras)
 
         # Top cam
         camTop.parent = cameras
@@ -156,25 +158,27 @@ class SetupOperator(bpy.types.Operator):
         camBottom.parent = camMiddle.parent = camTop.parent = cameras
 
         #---------- Create flash Light ----------#
-        self.__createFlashLight(context, "flashFront", (0, -self.flashDistance, 0))
-        self.__createFlashLight(context, "flashBack", (0, self.flashDistance, 0))
-        self.__createFlashLight(context, "flashLeft", (self.flashDistance, 0, 0))
-        self.__createFlashLight(context, "flashRight", (-self.flashDistance, 0, 0))
-        self.__createFlashLight(context, "flashTop", (0, 0, self.flashDistance))
-        self.__createFlashLight(context, "flashBottom", (0, 0, -self.flashDistance))
+        flashlight = self.__createFlashLight("flashlight")
+        self.__createLightObj(context, "flashFront", flashlight, (0, -self.flashDistance, 0))
+        self.__createLightObj(context, "flashBack", flashlight, (0, self.flashDistance, 0))
+        self.__createLightObj(context, "flashLeft", flashlight, (self.flashDistance, 0, 0))
+        self.__createLightObj(context, "flashRight", flashlight, (-self.flashDistance, 0, 0))
+        self.__createLightObj(context, "flashTop", flashlight, (0, 0, self.flashDistance))
+        self.__createLightObj(context, "flashBottom", flashlight, (0, 0, -self.flashDistance))
 
         #---------- Create Led light ----------#
-        LedFront = self.__createLedLight(context, "LedFront", (0, -self.ledDistance, 0), (90, 0, 0))
-        LedBack = self.__createLedLight(context, "LedBack", (0, self.ledDistance, 0), (-90, 0, 0))
-        LedLeft = self.__createLedLight(context, "LedLeft", (self.ledDistance, 0, 0), (0, 90, 0))
-        LedRight = self.__createLedLight(context, "LedRight", (-self.ledDistance, 0, 0), (0, -90, 0))
+        ledlight = self.__createledLight("ledlight")
+        LedFront = self.__createLightObj(context, "LedFront", ledlight, (0, -self.ledDistance, 0), (90, 0, 0))
+        LedBack = self.__createLightObj(context, "LedBack", ledlight, (0, self.ledDistance, 0), (-90, 0, 0))
+        LedLeft = self.__createLightObj(context, "LedLeft", ledlight, (self.ledDistance, 0, 0), (0, 90, 0))
+        LedRight = self.__createLightObj(context, "LedRight", ledlight, (-self.ledDistance, 0, 0), (0, -90, 0))
 
         #---------- Rotate Led light by 37.5 degrees ----------#
         ledLights = bpy.data.objects.new('ledLights', None) # None for empty object
         ledLights.location = (0,0,0)
         ledLights.empty_display_type = 'PLAIN_AXES'
-        bpy.data.collections['ScanRigCollection'].objects.link(ledLights) # Link to our collection
 
+        linkToScanRigCollection(ledLights)
         # Relinking
         LedFront.parent = LedBack.parent = LedLeft.parent = LedRight.parent = ledLights
         ledLights.rotation_euler[2] = math.radians(self.ledAngle)
@@ -183,43 +187,51 @@ class SetupOperator(bpy.types.Operator):
 
         return {'FINISHED'}
 
-    def __createCam(self, context, name, loc, rot, angle):      # private method
-        radiansRot = tuple([math.radians(a) for a in rot]) #convert angles in radians
-        # bpy.ops.object.camera_add(location=loc, rotation=radiansRot)
-        
-        cam = bpy.data.cameras.new(name) # set cam setting
+    def linkToScanRigCollection(self, obj):
+        bpy.data.collections['ScanRigCollection'].objects.link(obj) # Link to our collection
+
+    def __createCam(self, name, fov):
+        cam = bpy.data.cameras.new(name)
         cam.lens_unit = 'FOV'
-        cam.angle = math.radians(angle)
+        cam.angle = math.radians(fov)
+        return cam
 
-        obj = bpy.data.objects.new(name, cam) #set object setting 
+    def __createCameraObj(self, context, name, cam, loc = (0, 0, 0), rot = (0, 0, 0)):
+        radiansRot = tuple([math.radians(a) for a in rot]) # Convert angles in radians
+        obj = bpy.data.objects.new(name, cam)
         obj.location = loc
-        obj.rotation_euler=radiansRot
-        bpy.data.collections['ScanRigCollection'].objects.link(obj) # link to our collection
+        obj.rotation_euler = radiansRot
 
-        active = context.view_layer.objects.active # changer origin (could be improved)
+        linkToScanRigCollection(obj)
+
+        active = context.view_layer.objects.active # Move origin (could be improved)
         context.view_layer.objects.active  = obj
         bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN', center='MEDIAN')
         context.view_layer.objects.active = active
 
         return obj
 
-    def __createLight(self, context, name, type, radius, loc = (0, 0, 0), rot = (0, 0, 0)) :
-        radiansRot = tuple([math.radians(a) for a in rot]) #convert angles in radians
+    def __createLight(self, name, type, radius) :
         light = bpy.data.lights.new(name, type)
         light.shadow_soft_size = radius * 0.25
 
-        obj = bpy.data.objects.new(name, light) #set object setting 
-        obj.location = loc
-        obj.rotation_euler=radiansRot
+        return light
 
-        bpy.data.collections['ScanRigCollection'].objects.link(obj) # link to our collection
+    def __createLightObj(self, context, name, light, loc = (0, 0, 0), rot = (0, 0, 0)) :
+        radiansRot = tuple([math.radians(a) for a in rot]) # Convert angles in radians
+
+        obj = bpy.data.objects.new(name, light) # Set object setting 
+        obj.location = loc
+        obj.rotation_euler = radiansRot
+
+        linkToScanRigCollection(obj)
         return obj
 
-    def __createFlashLight(self, context, name, loc) :
-        return self.__createLight(context, name, 'POINT', 4, loc)
+    def __createFlashLight(self, name) :
+        return self.__createLight(name, 'POINT', 4)
 
-    def __createLedLight(self, context, name, loc, rot) :
-        return self.__createLight(context, name, 'AREA', 3, loc, rot)
+    def __createLedLight(self, name) :
+        return self.__createLight(name, 'AREA', 3)
 
 class RenderPropertyGroup(bpy.types.PropertyGroup):
 
