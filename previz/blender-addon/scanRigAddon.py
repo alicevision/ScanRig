@@ -1,8 +1,8 @@
 #---------- Informations concernant le plugin ----------#
 bl_info = {
-    "name" : "scanRig addon", 
+    "name" : "ScanRig Addon", 
     "author" : "Julien Haudegond & Enguerrand De smet",\
-    "description" : "script permettant de tester la capture du dispositif scanRig",
+    "description" : "Script used to test the capture of the scanRig device",
     "blender" : (2, 80, 0),
     "location" : "",
     "warning" : "",
@@ -21,7 +21,6 @@ class ScanRigPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "ScanRig"
-    # enum in [‘WINDOW’, ‘HEADER’, ‘CHANNELS’, ‘TEMPORARY’, ‘UI’, ‘TOOLS’, ‘TOOL_PROPS’, ‘PREVIEW’, ‘HUD’, ‘NAVIGATION_BAR’, ‘EXECUTE’, ‘FOOTER’, ‘TOOL_HEADER’], default ‘WINDOW’num in [‘WINDOW’, ‘HEADER’, ‘CHANNELS’, ‘TEMPORARY’, ‘UI’, ‘TOOLS’, ‘TOOL_PROPS’, ‘PREVIEW’, ‘HUD’, ‘NAVIGATION_BAR’, ‘EXECUTE’, ‘FOOTER’, ‘TOOL_HEADER’], default ‘WINDOW’
 
     def draw(self, context):
         layout = self.layout
@@ -57,7 +56,7 @@ class CleanSceneOperator(bpy.types.Operator):
         if bpy.data.collections.get("ScanRigCollection") is None:
             print("the ScanRigCollection does not exist ")
         else :
-            # select objs in our collection
+            # Select objects in our collection
             for obj in bpy.data.collections["ScanRigCollection"].objects :
                 bpy.data.objects.remove(obj, do_unlink=True)
 
@@ -70,12 +69,12 @@ class SettingsOperator(bpy.types.Operator):
     bl_label = "set project setting"
     bl_options = {'REGISTER', 'UNDO'}
 
-    tileSize: bpy.props.IntProperty(name="tiles size", default=256, min=64, max=1024, step=32) #in meters
-    renderSamplesNumber: bpy.props.IntProperty(name="number of sample for rendering", default=128, min=16, max=1024, step=16) #in meters
+    tileSize: bpy.props.IntProperty(name="tiles size", default=256, min=64, max=1024, step=32)
+    renderSamplesNumber: bpy.props.IntProperty(name="number of sample for rendering", default=128, min=16, max=1024, step=16)
 
     def execute(self, context):
 
-        #useful variables
+        # Useful variables
         rdr = context.scene.render
         cle = context.scene.cycles
 
@@ -92,7 +91,7 @@ class SettingsOperator(bpy.types.Operator):
         rdr.tile_x = self.tileSize
         rdr.tile_y = self.tileSize
 
-        #world setting
+        # World settings
         context.scene.world.use_nodes = False
         context.scene.world.color = (0, 0, 0)
 
@@ -103,21 +102,21 @@ class SetupOperator(bpy.types.Operator):
     bl_label = "setup the scene"
     bl_options = {'REGISTER', 'UNDO'}
 
-    camDistance: bpy.props.FloatProperty(name="camDistance", default=0.5, min=0.1, max=1) #in meters
-    flashDistance: bpy.props.FloatProperty(name="flashDistance", default=1, min=0.1, max=2) #in meters
-    ledDistance: bpy.props.FloatProperty(name="ledDistance", default=1, min=0.1, max=2) #in meters
-    ledAngle: bpy.props.FloatProperty(name="ledDistance", default=37.5, min=0, max=45) #in degrees
+    camDistance: bpy.props.FloatProperty(name="camDistance", default=0.5, min=0.1, max=1) # In meters
+    flashDistance: bpy.props.FloatProperty(name="flashDistance", default=1, min=0.1, max=2) # In meters
+    ledDistance: bpy.props.FloatProperty(name="ledDistance", default=1, min=0.1, max=2) # In meters
+    ledAngle: bpy.props.FloatProperty(name="ledDistance", default=37.5, min=0, max=45) # In degrees
 
     def execute(self, context):
 
-        # delete objects in other collection exept ScanRigCollection
+        # Delete objects in other collection except ScanRigCollection
         for c in bpy.data.collections:
             if c.name != 'ScanRigProtectedCollection':
                 for obj in c.objects:
                     bpy.data.objects.remove(obj, do_unlink=True)
                 bpy.data.collections.remove(c, do_unlink=True)
 
-        # create our collections if needed
+        # Create our collections if needed
         if bpy.data.collections.get("ScanRigCollection") is None:
             ScanRigCollection = bpy.data.collections.new("ScanRigCollection")
             context.scene.collection.children.link(ScanRigCollection)
@@ -134,7 +133,7 @@ class SetupOperator(bpy.types.Operator):
         cameras = bpy.data.objects.new('cameras', None) # None for empty object
         cameras.location = (0,0,0)
         cameras.empty_display_type = 'PLAIN_AXES'
-        bpy.data.collections['ScanRigCollection'].objects.link(cameras) # link to our collection
+        bpy.data.collections['ScanRigCollection'].objects.link(cameras) # Link to our collection
 
         # Top cam
         camTop.parent = cameras
@@ -174,13 +173,13 @@ class SetupOperator(bpy.types.Operator):
         ledLights = bpy.data.objects.new('ledLights', None) # None for empty object
         ledLights.location = (0,0,0)
         ledLights.empty_display_type = 'PLAIN_AXES'
-        bpy.data.collections['ScanRigCollection'].objects.link(ledLights) # link to our collection
+        bpy.data.collections['ScanRigCollection'].objects.link(ledLights) # Link to our collection
 
         # Relinking
         LedFront.parent = LedBack.parent = LedLeft.parent = LedRight.parent = ledLights
         ledLights.rotation_euler[2] = math.radians(self.ledAngle)
 
-        context.scene.RenderPropertyGroup.renderReady = True #set renderring Ready
+        context.scene.RenderPropertyGroup.renderReady = True # Set renderring Ready
 
         return {'FINISHED'}
 
@@ -225,29 +224,27 @@ class SetupOperator(bpy.types.Operator):
 class RenderPropertyGroup(bpy.types.PropertyGroup):
 
     renderReady: bpy.props.BoolProperty(name="Toggle Option")
-    renderMode: bpy.props.EnumProperty( name='render mode', description='choose render mode', 
+    renderMode: bpy.props.EnumProperty(name='Render mode', description='Choose render mode', 
                                         items={
-                                            ('A', 'Ambiant', 'render with ambiant lights only'),
-                                            ('P', 'Photometry', 'render with Photometry lights only'),
-                                            ('AP', 'Ambiant & Photometry', 'render full light setup')
+                                            ('A', 'Ambiant', 'Render with ambiant lights only'),
+                                            ('P', 'Photometry', 'Render with Photometry lights only'),
+                                            ('AP', 'Ambiant & Photometry', 'Render full light setup')
                                         }, default='A')
-    rotAngle: bpy.props.IntProperty(name="angle of rotation", default=15, min=15, max=180, step=15) #in meters
-    stepDividerPhotometry: bpy.props.IntProperty(name="step Divider for photometry render", default=3, min=1, max=12, step=1) #in meters
+    rotAngle: bpy.props.IntProperty(name="Angle of rotation", default=15, min=15, max=180, step=15) #in degrees
+    stepDividerPhotometry: bpy.props.IntProperty(name="Step Divider for photometry render", default=3, min=1, max=12, step=1)
 
 class RenderOperator(bpy.types.Operator):
     bl_idname = "object.scanrig_render"
-    bl_label = "start Ambiant render"
+    bl_label = "Start Ambiant render"
     bl_options = {'REGISTER', 'UNDO'}
 
-    rotAngle: bpy.props.IntProperty(name="angle of rotation", default=15, min=15, max=180, step=15) #in meters
+    rotAngle: bpy.props.IntProperty(name="angle of rotation", default=15, min=15, max=180, step=15) #in degrees
 
     @classmethod
     def poll(cls, context):
         return context.scene.RenderPropertyGroup.renderReady == True
 
     def execute(self, context):
-
-        #----------- PREPARATION -----------#
 
         # Get the img folder path
         filePath = bpy.data.filepath
@@ -259,37 +256,36 @@ class RenderOperator(bpy.types.Operator):
 
         #----------- GET OBJECTS -----------#
 
-
         origin = bpy.context.scene.objects['cameras']
 
-        # link bras to origin if exist in ScanRigProtectedCollection
-        if bpy.data.collections['ScanRigProtectedCollection'].objects.get('BRAS') is not None:
-            bras = bpy.data.collections['ScanRigProtectedCollection'].objects['BRAS'] 
+        # link arm to origin if exist in ScanRigProtectedCollection
+        if bpy.data.collections['ScanRigProtectedCollection'].objects.get('arm') is not None:
+            arm = bpy.data.collections['ScanRigProtectedCollection'].objects['arm'] 
         else:
-            bras = None
+            arm = None
 
-        brasParent = None
-        if bras != None :
-            brasParent = bras.parent
-            bras.parent = origin
+        armParent = None
+        if arm != None :
+            armParent = arm.parent
+            arm.parent = origin
         else :
-            print("object BRAS not found")
+            print("object arm not found")
 
         camerasObjs = [context.scene.objects['camTop'], context.scene.objects['camMiddle'], context.scene.objects['camBottom']]
         flashLightsObjs = [context.scene.objects['flashFront'], context.scene.objects['flashBack'], context.scene.objects['flashLeft'], context.scene.objects['flashRight'], context.scene.objects['flashTop'], context.scene.objects['flashBottom']]
         ledLightsObjs = [context.scene.objects['LedFront'], context.scene.objects['LedBack'], context.scene.objects['LedLeft']]
 
-        print("---------- rendering start ----------")
+        print("---------- Rendering start ----------")
 
         #----------- PRE-RENDER -----------#
         origin.rotation_euler[2] = 0
 
-        # get render settings
+        # Get render settings
         rotAngle = context.scene.RenderPropertyGroup.rotAngle
         renderMode = context.scene.RenderPropertyGroup.renderMode
         stepDividerPhotometry= context.scene.RenderPropertyGroup.stepDividerPhotometry
 
-        # turn all flash
+        # Turn all flash lights
         for light in flashLightsObjs:
             light.data.energy = 0
         for light in ledLightsObjs:
@@ -323,9 +319,9 @@ class RenderOperator(bpy.types.Operator):
                 self.__breakMessage()
 
 
-        # unlink bras if needed
-        if bras != None :
-            bras.parent = brasParent
+        # Unlink arm if needed
+        if arm != None :
+            arm.parent = armParent
 
         return {'FINISHED'}
 
@@ -334,8 +330,7 @@ class RenderOperator(bpy.types.Operator):
             bpy.ops.render.render(write_still=True)
 
     def __breakMessage(self):
-            # MESSAGE DE CONFIRMATION
-            stop = int(input("Arreter ? OUI = 1 / NON = 0\n"))
+            stop = int(input("Stop ? YES = 1 / NO = 0\n"))
             if stop == 1:
                 raise Exception()
 
