@@ -31,7 +31,7 @@
 
 There are several buttons you can play with.
 
-- **Set Project Settings:** Set the Blender project to correspond to the FSCAM_CU135 specifications and to optimize the rendering (Cycles with GPU, etc).
+- **Set Project Settings:** Set the Blender project to correspond to the FSCAM_CU135 specifications and to optimize the rendering (Cycles with GPU, etc). On the bottom left of the 3D Viewer, you should see a *Set Project Settings* window you can expand. Inside, you can control different render settings.
 - **Clean The Scene:** Remove absolutely every object of the scene.
 - **Setup The Scene:** Create cameras and lights to correspond to a ScanRig model. When you press this button, several options will appear.
 
