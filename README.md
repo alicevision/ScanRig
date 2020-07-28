@@ -16,11 +16,13 @@
 
 ## Features
 
-Todo
+- Full control of USB Camera
+- A GUI to control camera and capture settings
+- Pilot a stepper-motor for the capture
 
 ## Getting Started
 
-Todo
+Our [wiki](https://github.com/alicevision/ScanRig/wiki/Application) contains instruction to run our app, and the supplies needed to build the rig.
 
 ## License
 
