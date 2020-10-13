@@ -8,7 +8,7 @@
 > Multi-Cameras/Lighting Acquisition Setup for Photogrammetry.
 > See [Meshroom](https://github.com/alicevision/meshroom) for 3D Reconstruction.
 
-[Wiki](https://github.com/alicevision/ScanRig/wiki) | [Supplies](https://github.com/alicevision/ScanRig/wiki/Supplies)
+[Wiki](https://github.com/alicevision/ScanRig/wiki) | [Supplies](https://github.com/alicevision/ScanRig/wiki/Supplies) | [Demo](https://vimeo.com/411076799)
 
 <img src="https://github.com/alicevision/ScanRig/wiki/img/3d/full-rig.png" alt="Lighting stand" width="400px">
 
