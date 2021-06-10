@@ -39,6 +39,8 @@ class ScanRigPanel(bpy.types.Panel):
             row.prop(context.scene.RenderPropertyGroup, "stepDividerPhotometry")
             row = layout.row()        
             row.prop(context.scene.RenderPropertyGroup, "renderMode")
+            row = layout.row()        
+            row.prop(context.scene.RenderPropertyGroup, "exportFolder")
             row = layout.row()
             row.operator('object.scanrig_render')
         else:
@@ -111,9 +113,12 @@ class SetupOperator(bpy.types.Operator):
     flashDistance: bpy.props.FloatProperty(name="Flash Distance", description="Distance (in meters) from the center of the world", default=1, min=0.1, max=2) # In meters
     ledDistance: bpy.props.FloatProperty(name="Led Distance", description="Distance (in meters) from the center of the world", default=1, min=0.1, max=2) # In meters
     ledAngle: bpy.props.FloatProperty(name="Led Angle", description="Angle (in degrees) around the center of the world", default=37.5, min=0, max=45) # In degrees
-
+    nbCamera: bpy.props.IntProperty(name="Number of Cameras", description="Number of cameras on one slice", default=3, min=1, max=25, step=1)
+    startAngle: bpy.props.FloatProperty(name="Starting Angle", description="Angle of start for the column of cameras", default=-30, min=-80, max=80)
+    stopAngle: bpy.props.FloatProperty(name="Stopping Angle", description="Stopping angle for the column of cameras", default=30, min=-80, max=80)
+    
     def execute(self, context):
-
+        self.nbCam = self.nbCamera
         # Create our collection if needed
         if bpy.data.collections.get("ScanRigCollection") is None:
             ScanRigCollection = bpy.data.collections.new("ScanRigCollection")
@@ -123,46 +128,50 @@ class SetupOperator(bpy.types.Operator):
         for o in bpy.data.collections.get("ScanRigCollection").objects:
             bpy.data.objects.remove(o, do_unlink=True)
 
-        #---------- Create cam ----------#
-        cam = self.__createCam("Camera", 56)
-        camMiddle = self.__createCameraObj(context, "CamMiddle", cam, (self.camDistance, 0, 0), (90, 0, 90))
-        camTop = self.__createCameraObj(context, "CamTop", cam, (self.camDistance, 0, 0), (90, 0, 90))
-        camBottom = self.__createCameraObj(context, "CamBottom", cam, (self.camDistance, 0, 0), (90, 0, 90))
-
-        #---------- Make the 30 degrees angle ----------#
+        # Creating cameras collection
         cameras = bpy.data.objects.new('Cameras', None) # None for empty object
         cameras.location = (0,0,0)
         cameras.empty_display_type = 'PLAIN_AXES'
-
         self.linkToScanRigCollection(cameras)
 
-        # Top cam
-        camTop.parent = cameras
-        cameras.rotation_euler[1] = math.radians(-30)
-        camTop.select_set(True)
+        # Computing the angle between cams
+        deltaAngle = (self.stopAngle - self.startAngle)/(self.nbCamera -1)
 
-        context.view_layer.objects.active  = camTop # (could be improved)
-        bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
+        #---------- Create cam ----------#
+        cam = self.__createCam("Camera", 56)
+        for i in range(self.nbCamera):
+            camName = f"Camera_{i}"
+            camAngle = self.startAngle + i*deltaAngle
+            current_cam = self.__createCameraObj(context, camName, cam, (self.camDistance, 0, 0), (90, 0, 90))
+            current_cam.parent = cameras
+            cameras.rotation_euler[1] = math.radians(camAngle)
+            current_cam.select_set(True)
+            context.view_layer.objects.active  = current_cam # (could be improved)
+            bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
 
-        # Bottom cam
-        camBottom.parent = cameras
-        cameras.rotation_euler[1] = math.radians(30)
-        camBottom.select_set(True)
-
-        context.view_layer.objects.active  = camBottom # (could be improved)
-        bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
-
-        # Relinking
         cameras.rotation_euler[1] = math.radians(0)
-        camBottom.parent = camMiddle.parent = camTop.parent = cameras
+        for i in range(self.nbCamera):
+            camName = f"Camera_{i}"
+            current_cam = context.scene.objects[camName]
+            current_cam.parent = cameras
 
         #---------- Create flash Light ----------#
-        self.__createLightObj(context, "FlashFront", self.__createFlashLight("FlashFront"), (0, -self.flashDistance, 0))
-        self.__createLightObj(context, "FlashBack", self.__createFlashLight("FlashBack"), (0, self.flashDistance, 0))
-        self.__createLightObj(context, "FlashLeft", self.__createFlashLight("FlashLeft"), (self.flashDistance, 0, 0))
-        self.__createLightObj(context, "FlashRight", self.__createFlashLight("FlashRight"), (-self.flashDistance, 0, 0))
-        self.__createLightObj(context, "FlashTop", self.__createFlashLight("FlashTop"), (0, 0, self.flashDistance))
-        self.__createLightObj(context, "FlashBottom", self.__createFlashLight("FlashBottom"), (0, 0, -self.flashDistance))
+        flashLight = self.__createFlashLight("FlashLight")
+        FlashFront = self.__createLightObj(context, "FlashFront", flashLight, (0, -self.flashDistance, 0))
+        FlashBack = self.__createLightObj(context, "FlashBack", flashLight, (0, self.flashDistance, 0))
+        FlashLeft = self.__createLightObj(context, "FlashLeft", flashLight, (self.flashDistance, 0, 0))
+        FlashRight = self.__createLightObj(context, "FlashRight", flashLight, (-self.flashDistance, 0, 0))
+        FlashTop = self.__createLightObj(context, "FlashTop", flashLight, (0, 0, self.flashDistance))
+        FlashBottom = self.__createLightObj(context, "FlashBottom", flashLight, (0, 0, -self.flashDistance))
+
+        #---------- Create Flash Light Collection ----------#
+        flashLights = bpy.data.objects.new('FlashLights', None) # None for empty object
+        flashLights.location = (0,0,0)
+        flashLights.empty_display_type = 'PLAIN_AXES'
+
+        self.linkToScanRigCollection(flashLights)
+        # Relinking
+        FlashFront.parent = FlashBack.parent = FlashLeft.parent = FlashRight.parent = FlashTop.parent = FlashBottom.parent = flashLights
 
         #---------- Create Led light ----------#
         ledlight = self.__createLedLight("Ledlight")
@@ -170,6 +179,8 @@ class SetupOperator(bpy.types.Operator):
         LedBack = self.__createLightObj(context, "LedBack", ledlight, (0, self.ledDistance, 0), (-90, 0, 0))
         LedLeft = self.__createLightObj(context, "LedLeft", ledlight, (self.ledDistance, 0, 0), (0, 90, 0))
         LedRight = self.__createLightObj(context, "LedRight", ledlight, (-self.ledDistance, 0, 0), (0, -90, 0))
+        LedTop = self.__createLightObj(context, "LedTop", ledlight, (0, 0, self.ledDistance), (0, 0, 0))
+        LedBottom = self.__createLightObj(context, "LedBottom", ledlight, (0, 0, -self.ledDistance), (180, 0, 0))
 
         #---------- Rotate Led light by 37.5 degrees ----------#
         ledLights = bpy.data.objects.new('LedLights', None) # None for empty object
@@ -178,9 +189,10 @@ class SetupOperator(bpy.types.Operator):
 
         self.linkToScanRigCollection(ledLights)
         # Relinking
-        LedFront.parent = LedBack.parent = LedLeft.parent = LedRight.parent = ledLights
+        LedFront.parent = LedBack.parent = LedLeft.parent = LedRight.parent = LedTop.parent = LedBottom.parent = ledLights
         ledLights.rotation_euler[2] = math.radians(self.ledAngle)
 
+        context.scene.RenderPropertyGroup.nbCam = self.nbCamera
         context.scene.RenderPropertyGroup.renderReady = True # Set rendering Ready
 
         return {'FINISHED'}
@@ -243,6 +255,8 @@ class RenderPropertyGroup(bpy.types.PropertyGroup):
                                         }, default='A')
     rotAngle: bpy.props.IntProperty(name="Rotation Angle", description="Angle (in degrees) separating the take of two consecutive pictures", default=15, min=15, max=180, step=15) # In degrees
     stepDividerPhotometry: bpy.props.IntProperty(name="Photometry Step Divider", description="If 1, photometry will be done on each rotation step. If 2, it will be done one step out of 2, etc", default=3, min=1, max=12, step=1)
+    nbCam: bpy.props.IntProperty()
+    exportFolder: bpy.props.StringProperty(name="Export Folder", description="RElative export folder", default="img")
 
 class RenderOperator(bpy.types.Operator):
     bl_idname = "object.scanrig_render"
@@ -259,7 +273,7 @@ class RenderOperator(bpy.types.Operator):
         # Get the img folder path
         filePath = bpy.data.filepath
         curDir = os.path.dirname(filePath)
-        imgDir = os.path.join(curDir, "img")
+        imgDir = os.path.join(curDir, context.scene.RenderPropertyGroup.exportFolder)
 
         # Create the img folder if it does not exist
         os.makedirs(imgDir, exist_ok=True)
@@ -267,10 +281,10 @@ class RenderOperator(bpy.types.Operator):
         #----------- GET OBJECTS -----------#
 
         origin = bpy.context.scene.objects['Cameras']
-
-        camerasObjs = [context.scene.objects['CamTop'], context.scene.objects['CamMiddle'], context.scene.objects['CamBottom']]
+        
+        camerasObjs = [context.scene.objects[f'Camera_{nCam}'] for nCam in range(context.scene.RenderPropertyGroup.nbCam)]
         flashLightsObjs = [context.scene.objects['FlashFront'], context.scene.objects['FlashBack'], context.scene.objects['FlashLeft'], context.scene.objects['FlashRight'], context.scene.objects['FlashTop'], context.scene.objects['FlashBottom']]
-        ledLightsObjs = [context.scene.objects['LedFront'], context.scene.objects['LedBack'], context.scene.objects['LedLeft']]
+        ledLightsObjs = [context.scene.objects['LedFront'], context.scene.objects['LedBack'], context.scene.objects['LedLeft'], context.scene.objects['LedRight'], context.scene.objects['LedTop'], context.scene.objects['LedBottom']]
 
         print("---------- Rendering start ----------")
 
@@ -299,7 +313,7 @@ class RenderOperator(bpy.types.Operator):
                 for step in range(0, int(360/rotAngle)):
                     origin.rotation_euler[2] = math.radians(step * rotAngle) # Rotate the origin on each step of the process
                     self.__startRender(imgDir, f"{cam.name}_{int(math.degrees(origin.rotation_euler[2]))}_ambiant")
-                self.__breakMessage()
+                # self.__breakMessage()
 
                 for light in ledLightsObjs:
                     light.data.energy = 0
@@ -313,7 +327,7 @@ class RenderOperator(bpy.types.Operator):
                         light.data.energy = 100
                         self.__startRender(imgDir, f"{cam.name}_{int(math.degrees(origin.rotation_euler[2]))}_{light.name}")
                         light.data.energy = 0
-                self.__breakMessage()
+                # self.__breakMessage()
 
         return {'FINISHED'}
 
@@ -321,10 +335,10 @@ class RenderOperator(bpy.types.Operator):
             bpy.context.scene.render.filepath = os.path.join(imgDir, imgName)
             bpy.ops.render.render(write_still=True)
 
-    def __breakMessage(self):
-            doContinue = int(input("Do you want to continue to render with the other cameras? YES = 1 / NO = 0\n"))
-            if doContinue == 0:
-                raise Exception()
+    # def __breakMessage(self):
+    #         doContinue = int(input("Do you want to continue to render with the other cameras? YES = 1 / NO = 0\n"))
+    #         if doContinue == 0:
+    #             raise Exception()
 
 classes = [ScanRigPanel, CleanSceneOperator, SettingsOperator, SetupOperator, RenderPropertyGroup, RenderOperator]
 
