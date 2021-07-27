@@ -14,7 +14,15 @@ import os
 import bpy
 import math
 import mathutils
-import blender_icosahedron_creation
+# Dome Creation functions imports
+import scanRigAddon_icoCreation
+import scanRigAddon_uvCreation
+import scanRigAddon_sphereCreation
+# DepthMap functions imports
+#import Fonctions_depthMap
+# Render functions import
+import scanRigAddon_render
+
 #import OpenImageIO as oiio
 
 class ScanRigPanel(bpy.types.Panel):
@@ -27,23 +35,53 @@ class ScanRigPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         
-        row = layout.row()
+        pan_col1 = layout.column()
+        pan_col1.label(text="Scene Management")
+
+        row = pan_col1.row()
         row.operator('object.scanrig_settings')
-        row = layout.row()
+        row = pan_col1.row()
         row.operator('object.scanrig_clean')
-        row = layout.row()
+        row = pan_col1.row()
+        row.prop(context.scene.RenderPropertyGroup, "domeShape")   # Dome shape parameter
+        row = pan_col1.row()
         row.operator('object.scanrig_setup')
 
+        layout.separator()
+
         if context.scene.RenderPropertyGroup.renderReady:
-            row = layout.row()        
+
+            pan_col2 = layout.column()
+            pan_col2.label(text="Photometry Management")
+
+            row = pan_col2.row()        
             row.prop(context.scene.RenderPropertyGroup, "rotAngle")
-            row = layout.row()        
+            row = pan_col2.row()        
             row.prop(context.scene.RenderPropertyGroup, "stepDividerPhotometry")
-            row = layout.row()        
+            row = layout.row()  
+
+            layout.separator()
+
+            pan_col3 = layout.column()
+            pan_col3.label(text="Render Management")
+
+            row = pan_col3.row()
             row.prop(context.scene.RenderPropertyGroup, "renderMode")
-            row = layout.row()        
+            #row = layout.row()
+            #row.prop(context.scene.RenderPropertyGroup, "renderType")
+            row = pan_col3.row()
+            row.prop(context.scene.RenderPropertyGroup, "bool_albedo")
+            row = pan_col3.row()    
+            row.prop(context.scene.RenderPropertyGroup, "bool_depth")
+            row = pan_col3.row()      
+            row.prop(context.scene.RenderPropertyGroup, "bool_normal")
+            row = pan_col3.row()    
+            row.prop(context.scene.RenderPropertyGroup, "bool_id")
+            row = pan_col3.row()      
+            row.prop(context.scene.RenderPropertyGroup, "bool_basic")
+            row = pan_col3.row()
             row.prop(context.scene.RenderPropertyGroup, "exportFolder")
-            row = layout.row()
+            row = pan_col3.row()
             row.operator('object.scanrig_render')
         else:
             row = layout.row()
@@ -118,22 +156,22 @@ class SetupOperator(bpy.types.Operator):
     flashDistance: bpy.props.FloatProperty(name="Flash Distance", description="Distance (in meters) from the center of the world", default=1, min=0.1, max=2) # In meters
     ledDistance: bpy.props.FloatProperty(name="Led Distance", description="Distance (in meters) from the center of the world", default=1, min=0.1, max=2) # In meters
     ledAngle: bpy.props.FloatProperty(name="Led Angle", description="Angle (in degrees) around the center of the world", default=37.5, min=0, max=45) # In degrees
+    
     nbCamera: bpy.props.IntProperty(name="Number of Cameras", description="Number of cameras on one slice", default=3, min=1, max=25, step=1)
     startAngle: bpy.props.FloatProperty(name="Starting Angle", description="Angle of start for the column of cameras", default=-30, min=-80, max=80)
     stopAngle: bpy.props.FloatProperty(name="Stopping Angle", description="Stopping angle for the column of cameras", default=30, min=-80, max=80)
 
-    # - Distance dômes (valeur d'origine à 1)
-    domeDistance: bpy.props.FloatProperty(name="Dome Distance", description="Distance (in meters) from the center of the world", default=1, min=0, max=3) # In meters
+    # - Icosahedron
+    nbSubdiv: bpy.props.IntProperty(name="Number of Subdivisions", description="Number of dome shape's subdivisions", default=1, min=1, max=3, step=1)
 
-    # - Forme/Pattern dôme
-    domeShape: bpy.props.EnumProperty(name='Camera Dome Shape', description='Choose the shape of the camera dome', 
-                                        items={
-                                            ('S', 'Sphere', 'Place the cameras along the wall of a sphere'),
-                                            ('I', 'Icosahedron', 'Place the cameras along the 12 vertices of an Icosahedron')
-                                        }, default='S')
-    
+    # - UV Sphere
+    nbSegment: bpy.props.IntProperty(name="Number of segments", description="Number of sphere's rings", default=16, min=3, max=32, step=1)
+    nbRing: bpy.props.IntProperty(name="Number of rings", description="Number of sphere's rings", default=8, min=3, max=16, step=1)
+
+    # - Dome distance (original value at 1)
+    domeDistance: bpy.props.FloatProperty(name="Dome Distance", description="Distance (in meters) from the center of the world", default=1, min=0, max=10) # In meters
+
     def execute(self, context):
-        self.nbCam = self.nbCamera
         # Create our collection if needed
         if bpy.data.collections.get("ScanRigCollection") is None:
             ScanRigCollection = bpy.data.collections.new("ScanRigCollection")
@@ -149,97 +187,89 @@ class SetupOperator(bpy.types.Operator):
         cameras.empty_display_type = 'PLAIN_AXES'
         self.linkToScanRigCollection(cameras)
 
-        if self.domeShape == "I" :
-            # Settings of the icosahedron
-            #name = 'Icosphere'
-            #scale = 1
-            #subdiv = 0
+        domeShape = context.scene.RenderPropertyGroup.domeShape
+
+        if domeShape == "I" :
             # Create icosahedron
-            blender_icosahedron_creation.create()
+            nbCameras = scanRigAddon_icoCreation.create(context, self, cameras)
+            context.scene.RenderPropertyGroup.nbCam = nbCameras 
 
-            #mesh = bpy.data.meshes.new(name)
-            #mesh.from_pydata(verts, [], faces)
+        elif domeShape == "U" :
+            # Create icosahedron
+            nbCameras = scanRigAddon_uvCreation.create(context, self, cameras)
+            context.scene.RenderPropertyGroup.nbCam = nbCameras 
 
-            for i in range(self.nbCamera):
-                camName = f"Camera_{i}"
-                current_cam = context.scene.objects[camName]
-                current_cam.parent = cameras
+        elif domeShape == "S" :
+            # Create slice within sphere
+            scanRigAddon_sphereCreation.create(context, self, cameras)
+            context.scene.RenderPropertyGroup.nbCam = self.nbCamera
 
-        else :
-            # Computing the angle between cams
-            deltaAngle = (self.stopAngle - self.startAngle)/(self.nbCamera -1)
-
-            #---------- Create cam ----------#
-            cam = self.__createCam("Camera", 56)
-
-            for i in range(self.nbCamera):
-                camName = f"Camera_{i}"
-                camAngle = self.startAngle + i*deltaAngle
-                current_cam = self.__createCameraObj(context, camName, cam, (self.camDistance * self.domeDistance, 0, 0), (90, 0, 90))
-                current_cam.parent = cameras
-                cameras.rotation_euler[1] = math.radians(camAngle)
-                current_cam.select_set(True)
-                context.view_layer.objects.active  = current_cam # (could be improved)
-                bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
-
-            cameras.rotation_euler[1] = math.radians(0)
-            for i in range(self.nbCamera):
-                camName = f"Camera_{i}"
-                current_cam = context.scene.objects[camName]
-                current_cam.parent = cameras
-            
-            #---------- Create flash Light ----------#
-            flashLight = self.__createFlashLight("FlashLight")
-            FlashFront = self.__createLightObj(context, "FlashFront", flashLight, (0, -self.flashDistance * self.domeDistance, 0))
-            FlashBack = self.__createLightObj(context, "FlashBack", flashLight, (0, self.flashDistance * self.domeDistance, 0))
-            FlashLeft = self.__createLightObj(context, "FlashLeft", flashLight, (self.flashDistance * self.domeDistance, 0, 0))
-            FlashRight = self.__createLightObj(context, "FlashRight", flashLight, (-self.flashDistance * self.domeDistance, 0, 0))
-            FlashTop = self.__createLightObj(context, "FlashTop", flashLight, (0, 0, self.flashDistance * self.domeDistance))
-            FlashBottom = self.__createLightObj(context, "FlashBottom", flashLight, (0, 0, -self.flashDistance * self.domeDistance))
-
-            #---------- Create Flash Light Collection ----------#
-            flashLights = bpy.data.objects.new('FlashLights', None) # None for empty object
-            flashLights.location = (0,0,0)
-            flashLights.empty_display_type = 'PLAIN_AXES'
-
-            self.linkToScanRigCollection(flashLights)
-            # Relinking
-            FlashFront.parent = FlashBack.parent = FlashLeft.parent = FlashRight.parent = FlashTop.parent = FlashBottom.parent = flashLights
-
-            #---------- Create Led light ----------#
-            ledlight = self.__createLedLight("Ledlight")
-            LedFront = self.__createLightObj(context, "LedFront", ledlight, (0, -self.ledDistance * self.domeDistance, 0), (90, 0, 0))
-            LedBack = self.__createLightObj(context, "LedBack", ledlight, (0, self.ledDistance * self.domeDistance, 0), (-90, 0, 0))
-            LedLeft = self.__createLightObj(context, "LedLeft", ledlight, (self.ledDistance * self.domeDistance, 0, 0), (0, 90, 0))
-            LedRight = self.__createLightObj(context, "LedRight", ledlight, (-self.ledDistance * self.domeDistance, 0, 0), (0, -90, 0))
-            LedTop = self.__createLightObj(context, "LedTop", ledlight, (0, 0, self.ledDistance * self.domeDistance), (0, 0, 0))
-            LedBottom = self.__createLightObj(context, "LedBottom", ledlight, (0, 0, -self.ledDistance * self.domeDistance), (180, 0, 0))
-
-            #---------- Rotate Led light by 37.5 degrees ----------#
-            ledLights = bpy.data.objects.new('LedLights', None) # None for empty object
-            ledLights.location = (0,0,0)
-            ledLights.empty_display_type = 'PLAIN_AXES'
-
-            self.linkToScanRigCollection(ledLights)
-            # Relinking
-            LedFront.parent = LedBack.parent = LedLeft.parent = LedRight.parent = LedTop.parent = LedBottom.parent = ledLights
-            ledLights.rotation_euler[2] = math.radians(self.ledAngle)
-
-        context.scene.RenderPropertyGroup.nbCam = self.nbCamera
         context.scene.RenderPropertyGroup.renderReady = True # Set rendering Ready
 
         return {'FINISHED'}
 
+    def draw(self, context):
+        layout = self.layout
+        
+        if context.object is not None:
+
+            domeShape = context.scene.RenderPropertyGroup.domeShape
+
+            col1 = layout.column()
+            col1.label(text="Setup Management")
+
+            row = col1.row()
+            row.prop(self, "camDistance")
+            row = col1.row()
+            row.prop(self, "flashDistance")
+            row = col1.row()
+            row.prop(self, "ledDistance")
+            row = col1.row()
+            row.prop(self, "ledAngle")
+
+            if domeShape == "S" :
+                col2 = layout.column()
+                col2.label(text="Slice Camera Management")
+
+                row = col2.row()
+                row.prop(self, "nbCamera")
+                row = col2.row()
+                row.prop(self, "startAngle")
+                row = col2.row()
+                row.prop(self, "stopAngle")
+
+            if domeShape == "I" :
+                col2 = layout.column()
+                col2.label(text="Subdivision Management")
+
+                row = col2.row()
+                row.prop(self, "nbSubdiv")
+
+            if domeShape == "U" :
+                col2 = layout.column()
+                col2.label(text="Segments and Rings Management")
+
+                row = col2.row()
+                row.prop(self, "nbSegment")
+                row = col2.row()
+                row.prop(self, "nbRing")
+
+            col3 = layout.column()
+            col3.label(text="Dome Management")
+
+            row = col3.row()
+            row.prop(self, "domeDistance")
+
     def linkToScanRigCollection(self, obj):
         bpy.data.collections['ScanRigCollection'].objects.link(obj) # Link to our collection
 
-    def __createCam(self, name, fov):
+    def createCam(self, name, fov):
         cam = bpy.data.cameras.new(name)
         cam.lens_unit = 'FOV'
         cam.angle = math.radians(fov)
         return cam
 
-    def __createCameraObj(self, context, name, cam, loc = (0.0, 0.0, 0.0), rot = (0.0, 0.0, 0.0)):
+    def createCameraObj(self, context, name, cam, loc = (0.0, 0.0, 0.0), rot = (0.0, 0.0, 0.0)):
         radiansRot = tuple([math.radians(a) for a in rot]) # Convert angles to radians
         obj = bpy.data.objects.new(name, cam)
         obj.location = loc
@@ -255,13 +285,13 @@ class SetupOperator(bpy.types.Operator):
 
         return obj
 
-    def __createLight(self, name, type, radius) :
+    def createLight(self, name, type, radius) :
         light = bpy.data.lights.new(name, type)
         light.shadow_soft_size = radius * 0.25
 
         return light
 
-    def __createLightObj(self, context, name, light, loc = (0.0, 0.0, 0.0), rot = (0.0, 0.0, 0.0)) :
+    def createLightObj(self, context, name, light, loc = (0.0, 0.0, 0.0), rot = (0.0, 0.0, 0.0)) :
         radiansRot = tuple([math.radians(a) for a in rot]) # Convert angles to radians
 
         obj = bpy.data.objects.new(name, light) # Set object settings
@@ -271,11 +301,11 @@ class SetupOperator(bpy.types.Operator):
         self.linkToScanRigCollection(obj)
         return obj
 
-    def __createFlashLight(self, name) :
-        return self.__createLight(name, 'POINT', 4)
+    def createFlashLight(self, name) :
+        return self.createLight(name, 'POINT', 4)
 
-    def __createLedLight(self, name) :
-        return self.__createLight(name, 'AREA', 3)
+    def createLedLight(self, name) :
+        return self.createLight(name, 'AREA', 3)
 
 #---------- Propriétés de la scène ----------#
 class RenderPropertyGroup(bpy.types.PropertyGroup):
@@ -290,8 +320,38 @@ class RenderPropertyGroup(bpy.types.PropertyGroup):
     rotAngle: bpy.props.IntProperty(name="Rotation Angle", description="Angle (in degrees) separating the take of two consecutive pictures", default=15, min=15, max=180, step=15) # In degrees
     stepDividerPhotometry: bpy.props.IntProperty(name="Photometry Step Divider", description="If 1, photometry will be done on each rotation step. If 2, it will be done one step out of 2, etc", default=3, min=1, max=12, step=1)
     nbCam: bpy.props.IntProperty()
-    exportFolder: bpy.props.StringProperty(name="Export Folder", description="RElative export folder", default="img")
+    exportFolder: bpy.props.StringProperty(name="Export Folder", description="Relative export folder", default="img")
+    """renderType: bpy.props.EnumProperty(name='Render type', description='Choose render type',
+                                        items={
+                                            ('A', 'Albedo', 'Render albedo map'),
+                                            ('D', 'Depth', 'Render depth map'),
+                                            ('N', 'Normal', 'Render normal map'),
+                                            ('I', 'Id', 'Render id map'),
+                                            ('B', 'Basic', 'Basic render')
+                                        }, default='B')"""
+    bool_albedo: bpy.props.BoolProperty(name="Albedo",
+                                        description="Render albedo map",
+                                        default = True)
+    bool_depth: bpy.props.BoolProperty(name="Depth",
+                                        description="Render depth map",
+                                        default = True)
+    bool_normal: bpy.props.BoolProperty(name="Normal",
+                                        description="Render normal map",
+                                        default = True)
+    bool_id: bpy.props.BoolProperty(name="Id",
+                                        description="Render id map",
+                                        default = True)
+    bool_basic: bpy.props.BoolProperty(name="Basic",
+                                        description="Basic render",
+                                        default = True)
 
+    # - Forme/Pattern dôme
+    domeShape: bpy.props.EnumProperty(name='Camera Dome Shape', description='Choose the shape of the camera dome', 
+                                        items={
+                                            ('S', 'Sphere', 'Place the cameras along the wall of a sphere'),
+                                            ('I', 'Icosahedron', 'Place the cameras along the vertices of an Icosahedron'),
+                                            ('U', 'UV Sphere', 'Place the cameras along the vertices of an UV Sphere')
+                                        }, default='S')
 
 class RenderOperator(bpy.types.Operator):
     bl_idname = "object.scanrig_render"
@@ -318,16 +378,17 @@ class RenderOperator(bpy.types.Operator):
         origin = bpy.context.scene.objects['Cameras']
         
         camerasObjs = [context.scene.objects[f'Camera_{nCam}'] for nCam in range(context.scene.RenderPropertyGroup.nbCam)]
-        if self.domeShape == "S" :
-            flashLightsObjs = [context.scene.objects['FlashFront'], context.scene.objects['FlashBack'], context.scene.objects['FlashLeft'], context.scene.objects['FlashRight'], context.scene.objects['FlashTop'], context.scene.objects['FlashBottom']]
-            ledLightsObjs = [context.scene.objects['LedFront'], context.scene.objects['LedBack'], context.scene.objects['LedLeft'], context.scene.objects['LedRight'], context.scene.objects['LedTop'], context.scene.objects['LedBottom']]
+        flashLightsObjs = [context.scene.objects['FlashFront'], context.scene.objects['FlashBack'], context.scene.objects['FlashLeft'], context.scene.objects['FlashRight'], context.scene.objects['FlashTop'], context.scene.objects['FlashBottom']]
+        ledLightsObjs = [context.scene.objects['LedFront'], context.scene.objects['LedBack'], context.scene.objects['LedLeft'], context.scene.objects['LedRight'], context.scene.objects['LedTop'], context.scene.objects['LedBottom']]
 
         print("---------- Rendering start ----------")
 
         #----------- PRE-RENDER -----------#
         origin.rotation_euler[2] = 0
 
-        if self.domeShape == "S" :
+        domeShape = context.scene.RenderPropertyGroup.domeShape
+
+        if domeShape == "S" :
             # Get render settings
             rotAngle = context.scene.RenderPropertyGroup.rotAngle
             renderMode = context.scene.RenderPropertyGroup.renderMode
@@ -349,7 +410,10 @@ class RenderOperator(bpy.types.Operator):
 
                     for step in range(0, int(360/rotAngle)):
                         origin.rotation_euler[2] = math.radians(step * rotAngle) # Rotate the origin on each step of the process
-                        self.__startRender(imgDir, f"{cam.name}_{int(math.degrees(origin.rotation_euler[2]))}_ambiant")
+                        
+                        #self.__startRender(imgDir, f"{cam.name}_{int(math.degrees(origin.rotation_euler[2]))}_ambiant")
+                        scanRigAddon_render.render(context, imgDir, f"{cam.name}_{int(math.degrees(origin.rotation_euler[2]))}_ambiant")
+                   
                     # self.__breakMessage()
 
                     for light in ledLightsObjs:
@@ -362,7 +426,10 @@ class RenderOperator(bpy.types.Operator):
                         origin.rotation_euler[2] = math.radians(step * rotAngle * stepDividerPhotometry) # Rotate the origin on each step of the process
                         for light in flashLightsObjs:
                             light.data.energy = 100
-                            self.__startRender(imgDir, f"{cam.name}_{int(math.degrees(origin.rotation_euler[2]))}_{light.name}")
+
+                            #self.__startRender(imgDir, f"{cam.name}_{int(math.degrees(origin.rotation_euler[2]))}_{light.name}")
+                            scanRigAddon_render.render(context, imgDir, f"{cam.name}_{int(math.degrees(origin.rotation_euler[2]))}_{light.name}")
+                            
                             light.data.energy = 0
                     # self.__breakMessage()
 
@@ -372,7 +439,10 @@ class RenderOperator(bpy.types.Operator):
 
             for cam in camerasObjs:
                 context.scene.camera = cam
-                self.__startRender(imgDir, f"{cam.name}")
+
+                #self.__startRender(imgDir, f"{cam.name}")
+                scanRigAddon_render.render(context, imgDir, f"{cam.name}")
+
                 # self.__breakMessage()
 
         return {'FINISHED'}
