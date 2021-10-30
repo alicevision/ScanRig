@@ -18,12 +18,14 @@ import mathutils
 import scanRigAddon_icoCreation
 import scanRigAddon_uvCreation
 import scanRigAddon_sphereCreation
-# DepthMap functions imports
-#import Fonctions_depthMap
 # Render functions import
 import scanRigAddon_render
 
-#import OpenImageIO as oiio
+from OpenImageIO import ImageInput, ImageOutput
+from OpenImageIO import ImageBuf, ImageSpec, ImageBufAlgo
+
+# For OpenGL Calibration Poses documentation files
+import json
 
 class ScanRigPanel(bpy.types.Panel):
     bl_idname = 'SCANRIG_PT_ScanRig'
