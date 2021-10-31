@@ -2,6 +2,9 @@ import bpy
 import math
 import mathutils
 
+"""
+UV sphere scanrig setup functions
+"""
 
 # Define useful functions
 def strVector3( v3 ):
@@ -17,17 +20,17 @@ def look_at(obj_camera, point):
     # assume we're using euler rotation
     obj_camera.rotation_euler = rot_quat.to_euler()
 
-
-# Creating cameras collection
-#cameras = bpy.data.objects.new('Cameras', None) # None for empty object
-#cameras.location = (0,0,0)
-#cameras.empty_display_type = 'PLAIN_AXES'
-#
-#camera_data = bpy.data.cameras.new(name='Camera')
-#camera_object = bpy.data.objects.new('Camera', camera_data)
-#bpy.context.scene.collection.objects.link(camera_object)
-
 def create(context, objet, cameras):
+    """ Creates a scanrig UV sphere setup.
+
+    Args:
+        context : the scene context
+        objet : self
+        cameras : camera collection
+
+    Returns:
+        int : number of cameras created
+    """
 
     # Create a new uv sphere
     bpy.ops.mesh.primitive_uv_sphere_add(segments=objet.nbSegment, ring_count=objet.nbRing, radius=objet.domeDistance, calc_uvs=True, enter_editmode=False, align='WORLD', location=(0.0, 0.0, 0.0), rotation=(0.0, 0.0, 0.0), scale=(1.0, 1.0, 1.0))
@@ -37,9 +40,6 @@ def create(context, objet, cameras):
     # Change name
     uv.name = "uv_sphere"
     #print("Done creating " + uv.name + " at position " + strVector3(uv.location))
-    
-    # Change its location
-    #uv.location = (0.0, 5.0, 0.0)
 
     # Get number of vertices
     nbCameras = len(uv.data.vertices)
@@ -53,16 +53,6 @@ def create(context, objet, cameras):
 
         co_final = uv.matrix_world @ v.co
 
-        # now we can view the location by applying it to an object
-        #obj_empty = bpy.data.objects.new("Test", None)
-        #bpy.context.collection.objects.link(obj_empty)
-        
-        # Create the camera
-        # camName = f"Camera_{i}"
-        # current_cam = bpy.data.cameras.new(camName )
-        # # Create the camera object
-        # current_cam_obj = bpy.data.objects.new(camName, current_cam)
-        
         camName = f"Camera_{i}"
         current_cam = objet.createCameraObj(context, camName, cam, (objet.camDistance * objet.domeDistance, 0, 0), (90, 0, 90))
         current_cam.parent = cameras
@@ -70,7 +60,6 @@ def create(context, objet, cameras):
         context.view_layer.objects.active  = current_cam # (could be improved)
         bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
 
-        #obj_empty.location = co_final
         current_cam.location = co_final
         bpy.context.view_layer.update()
         look_at(current_cam, uv.matrix_world.to_translation())

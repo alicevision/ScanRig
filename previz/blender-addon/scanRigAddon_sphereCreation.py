@@ -2,7 +2,18 @@ import bpy
 import math
 import mathutils
 
+"""
+Sphere scanrig setup functions
+"""
+
 def create(context, objet, cameras):
+    """ Create a scanrig sphere setup.
+
+    Args:
+        context : the scene context
+        objet : self
+        cameras : camera collection
+    """
 
     # Computing the angle between cams
     deltaAngle = (objet.stopAngle - objet.startAngle)/(objet.nbCamera -1)
@@ -62,5 +73,3 @@ def create(context, objet, cameras):
     # Relinking
     LedFront.parent = LedBack.parent = LedLeft.parent = LedRight.parent = LedTop.parent = LedBottom.parent = ledLights
     ledLights.rotation_euler[2] = math.radians(objet.ledAngle)
-
-    

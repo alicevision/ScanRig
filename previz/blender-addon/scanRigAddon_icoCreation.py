@@ -2,6 +2,9 @@ import bpy
 import math
 import mathutils
 
+"""
+Icosahedron scanrig setup functions
+"""
 
 # Define useful functions
 def strVector3( v3 ):
@@ -17,17 +20,17 @@ def look_at(obj_camera, point):
     # assume we're using euler rotation
     obj_camera.rotation_euler = rot_quat.to_euler()
 
-
-# Creating cameras collection
-#cameras = bpy.data.objects.new('Cameras', None) # None for empty object
-#cameras.location = (0,0,0)
-#cameras.empty_display_type = 'PLAIN_AXES'
-#
-#camera_data = bpy.data.cameras.new(name='Camera')
-#camera_object = bpy.data.objects.new('Camera', camera_data)
-#bpy.context.scene.collection.objects.link(camera_object)
-
 def create(context, objet, cameras):
+    """ Creates a scanrig icosahedron setup.
+
+    Args:
+        context : the scene context
+        objet : self
+        cameras : camera collection
+
+    Returns:
+        int : number of cameras created
+    """
 
     # Create a new icosahedron
     bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=objet.nbSubdiv, radius=objet.domeDistance, calc_uvs=True, enter_editmode=False, align='WORLD', location=(0.0, 0.0, 0.0), rotation=(0.0, 0.0, 0.0), scale=(1.0, 1.0, 1.0))
@@ -37,9 +40,6 @@ def create(context, objet, cameras):
     # Change name
     ico.name = "ico_sphere"
     #print("Done creating " + ico.name + " at position " + strVector3(ico.location))
-    
-    # Change its location
-    #ico.location = (0.0, 5.0, 0.0)
 
     # Get number of vertices
     nbCameras = len(ico.data.vertices)
@@ -52,16 +52,6 @@ def create(context, objet, cameras):
         v = ico.data.vertices[i]
 
         co_final = ico.matrix_world @ v.co
-
-        # now we can view the location by applying it to an object
-        #obj_empty = bpy.data.objects.new("Test", None)
-        #bpy.context.collection.objects.link(obj_empty)
-        
-        # Create the camera
-        # camName = f"Camera_{i}"
-        # current_cam = bpy.data.cameras.new(camName )
-        # # Create the camera object
-        # current_cam_obj = bpy.data.objects.new(camName, current_cam)
         
         camName = f"Camera_{i}"
         current_cam = objet.createCameraObj(context, camName, cam, (objet.camDistance * objet.domeDistance, 0, 0), (90, 0, 90))

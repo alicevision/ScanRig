@@ -21,11 +21,11 @@ import scanRigAddon_sphereCreation
 # Render functions import
 import scanRigAddon_render
 
-from OpenImageIO import ImageInput, ImageOutput
-from OpenImageIO import ImageBuf, ImageSpec, ImageBufAlgo
+#from OpenImageIO import ImageInput, ImageOutput
+#from OpenImageIO import ImageBuf, ImageSpec, ImageBufAlgo
 
 # For OpenGL Calibration Poses documentation files
-import json
+#import json
 
 class ScanRigPanel(bpy.types.Panel):
     bl_idname = 'SCANRIG_PT_ScanRig'
@@ -39,7 +39,6 @@ class ScanRigPanel(bpy.types.Panel):
         
         pan_col1 = layout.column()
         pan_col1.label(text="Scene Management")
-
         row = pan_col1.row()
         row.operator('object.scanrig_settings')
         row = pan_col1.row()
@@ -55,7 +54,6 @@ class ScanRigPanel(bpy.types.Panel):
 
             pan_col2 = layout.column()
             pan_col2.label(text="Photometry Management")
-
             row = pan_col2.row()        
             row.prop(context.scene.RenderPropertyGroup, "rotAngle")
             row = pan_col2.row()        
@@ -66,11 +64,8 @@ class ScanRigPanel(bpy.types.Panel):
 
             pan_col3 = layout.column()
             pan_col3.label(text="Render Management")
-
             row = pan_col3.row()
             row.prop(context.scene.RenderPropertyGroup, "renderMode")
-            #row = layout.row()
-            #row.prop(context.scene.RenderPropertyGroup, "renderType")
             row = pan_col3.row()
             row.prop(context.scene.RenderPropertyGroup, "bool_albedo")
             row = pan_col3.row()    
@@ -89,7 +84,7 @@ class ScanRigPanel(bpy.types.Panel):
             row = layout.row()
             row.label(text = "Render not ready")
 
-#---------- Effacer la scène ----------#
+#---------- Clear scene ----------#
 class CleanSceneOperator(bpy.types.Operator):
     bl_idname = "object.scanrig_clean"
     bl_label = "Clean The Scene"
@@ -112,7 +107,7 @@ class CleanSceneOperator(bpy.types.Operator):
 
         return {'FINISHED'}
 
-#---------- Paramètres du projet ----------#
+#---------- Project settings ----------#
 class SettingsOperator(bpy.types.Operator):
     bl_idname = "object.scanrig_settings"
     bl_label = "Set Project Settings"
@@ -134,7 +129,6 @@ class SettingsOperator(bpy.types.Operator):
         cle.caustics_reflective = False
         cle.caustics_refractive = False
 
-
         rdr.resolution_x = 4208
         rdr.resolution_y = 3120
 
@@ -147,7 +141,7 @@ class SettingsOperator(bpy.types.Operator):
 
         return {'FINISHED'}
 
-#---------- Paramètres de mise en place du modèle ScanRig ----------#
+#---------- Settings for setting up the ScanRig model ----------#
 class SetupOperator(bpy.types.Operator):
     bl_idname = "object.scanrig_setup"
     bl_label = "Setup The Scene"
@@ -197,7 +191,7 @@ class SetupOperator(bpy.types.Operator):
             context.scene.RenderPropertyGroup.nbCam = nbCameras 
 
         elif domeShape == "U" :
-            # Create icosahedron
+            # Create UV sphere
             nbCameras = scanRigAddon_uvCreation.create(context, self, cameras)
             context.scene.RenderPropertyGroup.nbCam = nbCameras 
 
@@ -309,7 +303,7 @@ class SetupOperator(bpy.types.Operator):
     def createLedLight(self, name) :
         return self.createLight(name, 'AREA', 3)
 
-#---------- Propriétés de la scène ----------#
+#---------- Scene Properties ----------#
 class RenderPropertyGroup(bpy.types.PropertyGroup):
 
     renderReady: bpy.props.BoolProperty(name="Toggle Option")
@@ -323,14 +317,8 @@ class RenderPropertyGroup(bpy.types.PropertyGroup):
     stepDividerPhotometry: bpy.props.IntProperty(name="Photometry Step Divider", description="If 1, photometry will be done on each rotation step. If 2, it will be done one step out of 2, etc", default=3, min=1, max=12, step=1)
     nbCam: bpy.props.IntProperty()
     exportFolder: bpy.props.StringProperty(name="Export Folder", description="Relative export folder", default="img")
-    """renderType: bpy.props.EnumProperty(name='Render type', description='Choose render type',
-                                        items={
-                                            ('A', 'Albedo', 'Render albedo map'),
-                                            ('D', 'Depth', 'Render depth map'),
-                                            ('N', 'Normal', 'Render normal map'),
-                                            ('I', 'Id', 'Render id map'),
-                                            ('B', 'Basic', 'Basic render')
-                                        }, default='B')"""
+    
+    # Render map type management
     bool_albedo: bpy.props.BoolProperty(name="Albedo",
                                         description="Render albedo map",
                                         default = True)
@@ -347,7 +335,7 @@ class RenderPropertyGroup(bpy.types.PropertyGroup):
                                         description="Basic render",
                                         default = True)
 
-    # - Forme/Pattern dôme
+    # Dome shape management
     domeShape: bpy.props.EnumProperty(name='Camera Dome Shape', description='Choose the shape of the camera dome', 
                                         items={
                                             ('S', 'Sphere', 'Place the cameras along the wall of a sphere'),
@@ -413,7 +401,6 @@ class RenderOperator(bpy.types.Operator):
                     for step in range(0, int(360/rotAngle)):
                         origin.rotation_euler[2] = math.radians(step * rotAngle) # Rotate the origin on each step of the process
                         
-                        #self.__startRender(imgDir, f"{cam.name}_{int(math.degrees(origin.rotation_euler[2]))}_ambiant")
                         scanRigAddon_render.render(context, imgDir, f"{cam.name}_{int(math.degrees(origin.rotation_euler[2]))}_ambiant")
                    
                     # self.__breakMessage()
@@ -429,29 +416,24 @@ class RenderOperator(bpy.types.Operator):
                         for light in flashLightsObjs:
                             light.data.energy = 100
 
-                            #self.__startRender(imgDir, f"{cam.name}_{int(math.degrees(origin.rotation_euler[2]))}_{light.name}")
                             scanRigAddon_render.render(context, imgDir, f"{cam.name}_{int(math.degrees(origin.rotation_euler[2]))}_{light.name}")
                             
                             light.data.energy = 0
                     # self.__breakMessage()
 
         else :
-            # Get render settings
-            #renderMode = context.scene.RenderPropertyGroup.renderMode
-
             for cam in camerasObjs:
                 context.scene.camera = cam
 
-                #self.__startRender(imgDir, f"{cam.name}")
                 scanRigAddon_render.render(context, imgDir, f"{cam.name}")
 
                 # self.__breakMessage()
 
         return {'FINISHED'}
 
-    def __startRender(self, imgDir, imgName):
-            bpy.context.scene.render.filepath = os.path.join(imgDir, imgName)
-            bpy.ops.render.render(write_still=True)
+    #def __startRender(self, imgDir, imgName):
+    #        bpy.context.scene.render.filepath = os.path.join(imgDir, imgName)
+    #        bpy.ops.render.render(write_still=True)
 
     # def __breakMessage(self):
     #         doContinue = int(input("Do you want to continue to render with the other cameras? YES = 1 / NO = 0\n"))

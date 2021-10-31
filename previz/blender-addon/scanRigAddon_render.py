@@ -2,7 +2,19 @@ import sys, os, math, re
 import bpy
 from glob import glob
 
+"""
+Render functions
+"""
+
 def render(context, imgDir, imgName):
+    """ Render the scene.
+
+    Args:
+        context : the scene context
+        imgDir (str): the image save directory
+        imgName (str): the image name
+    """
+
     # Set up rendering
     scene = context.scene
     render = context.scene.render
