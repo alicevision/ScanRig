@@ -16,9 +16,10 @@
 
 ## How to install
 
+- Compress the *scanRigAddon* folder in .zip format
 - Open Blender and go to *Edit/Preferences*.
 - Go into the *Add-ons* tab and press the *Install...* button.
-- Go into the directory containing the file *scanRig_addon.zip*.
+- Go into the directory containing the archive *scanRig_addon.zip*.
 - Select the file and press *Install Add-on from File...*.
 - You should see a new line inside the Add-ons viewer with *Generic: ScanRig Addon* as a title. You can read the description by pressing the little arrow and you must check the box to enable the add-on.
 - Then you can click on the little hamburger menu on the bottom left and choose *Save Preferences*.
