@@ -12,7 +12,7 @@
 ## Prerequisites
 
 - You must have a version of Blender 2.8+.
-- You must have the file *scanRigAddon.py* and its related files (which name begin by "*scanRigAddon_*") somewhere on your hard drive.
+- You must have the archive *scanRigAddon.zip* somewhere on your hard drive.
 
 ## How to install
 
