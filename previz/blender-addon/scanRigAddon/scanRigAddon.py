@@ -106,7 +106,8 @@ class SettingsOperator(bpy.types.Operator):
     bl_description = "Set the project settings corresponding to the FSCAM_CU135 cameras"
     bl_options = {'REGISTER', 'UNDO'}
 
-    tileSize: bpy.props.IntProperty(name="Tiles Size", description="Size of the rendering tiles", default=256, min=64, max=1024, step=32)
+    if (bpy.app.version < (3, 0, 0) ):
+        tileSize: bpy.props.IntProperty(name="Tiles Size", description="Size of the rendering tiles", default=256, min=64, max=1024, step=32)
     renderSamplesNumber: bpy.props.IntProperty(name="Samples", description="Number of samples for rendering", default=128, min=16, max=1024, step=16)
 
     def execute(self, context):
@@ -124,8 +125,9 @@ class SettingsOperator(bpy.types.Operator):
         rdr.resolution_x = 4208
         rdr.resolution_y = 3120
 
-        rdr.tile_x = self.tileSize
-        rdr.tile_y = self.tileSize
+        if ( bpy.app.version < (3, 0, 0) ):
+            rdr.tile_x = self.tileSize
+            rdr.tile_y = self.tileSize
 
         # World settings
         context.scene.world.use_nodes = False
