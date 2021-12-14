@@ -4,7 +4,13 @@ import bpy
 import sys
 import math
 import mathutils
-from scanRigAddon import *
+
+# Dome Creation functions imports
+from scanRigAddon import scanRigAddon_icoCreation
+from scanRigAddon import scanRigAddon_uvCreation
+from scanRigAddon import scanRigAddon_sphereCreation
+# Render functions import
+from scanRigAddon import scanRigAddon_render
 
 #from OpenImageIO import ImageInput, ImageOutput
 #from OpenImageIO import ImageBuf, ImageSpec, ImageBufAlgo
