@@ -201,8 +201,6 @@ class SetupOperator(bpy.types.Operator):
             col1.label(text="Setup Management")
 
             row = col1.row()
-            row.prop(self, "camDistance")
-            row = col1.row()
             row.prop(self, "flashDistance")
             row = col1.row()
             row.prop(self, "ledDistance")
@@ -210,11 +208,14 @@ class SetupOperator(bpy.types.Operator):
             row.prop(self, "ledAngle")
 
             if domeShape == "S" :
+                
                 col2 = layout.column()
                 col2.label(text="Slice Camera Management")
 
                 row = col2.row()
                 row.prop(self, "nbCamera")
+                row = col2.row()
+                row.prop(self, "camDistance")
                 row = col2.row()
                 row.prop(self, "startAngle")
                 row = col2.row()
