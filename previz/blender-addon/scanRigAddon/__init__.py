@@ -1,7 +1,7 @@
 import sys
 import importlib
 
-#---------- Informations concernant le plugin ----------#
+#---------- Plugins Information ----------#
 bl_info = {
     "name" : "ScanRig Addon", 
     "author" : "Julien Haudegond & Enguerrand De Smet",\

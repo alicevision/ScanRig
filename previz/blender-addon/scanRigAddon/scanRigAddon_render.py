@@ -6,6 +6,7 @@ from glob import glob
 Render functions
 """
 
+
 def render(context, imgDir, imgName):
     """ Render the scene.
 
@@ -21,9 +22,10 @@ def render(context, imgDir, imgName):
     renderProp = context.scene.RenderPropertyGroup
 
     scene.use_nodes = True
-    scene.view_layers["View Layer"].use_pass_normal = True
-    scene.view_layers["View Layer"].use_pass_diffuse_color = True
-    scene.view_layers["View Layer"].use_pass_object_index = True
+    if bpy.app.version < (3, 0, 0):
+        scene.view_layers["View Layer"].use_pass_normal = True
+        scene.view_layers["View Layer"].use_pass_diffuse_color = True
+        scene.view_layers["View Layer"].use_pass_object_index = True
 
     nodes = context.scene.node_tree.nodes
     links = context.scene.node_tree.links
@@ -61,7 +63,6 @@ def render(context, imgDir, imgName):
 
             links.new(render_layers.outputs['Depth'], map.inputs[0])
             links.new(map.outputs[0], depth_file_output.inputs[0])
-
 
     if renderProp.bool_normal:
         # Create normal output nodes
@@ -116,11 +117,10 @@ def render(context, imgDir, imgName):
             divide_node = nodes.new(type='CompositorNodeMath')
             divide_node.operation = 'DIVIDE'
             divide_node.use_clamp = False
-            divide_node.inputs[1].default_value = 2**int(color_depth)
+            divide_node.inputs[1].default_value = 2 ** int(color_depth)
 
             links.new(render_layers.outputs['IndexOB'], divide_node.inputs[0])
             links.new(divide_node.outputs[0], id_file_output.inputs[0])
-
 
     # Get and define the respective render file paths
     fp = os.path.join(imgDir, imgName)
@@ -140,4 +140,4 @@ def render(context, imgDir, imgName):
     bpy.ops.render.render(write_still=True)  # render still
 
     # For debugging the workflow
-    #bpy.ops.wm.save_as_mainfile(filepath='debug.blend')
+    # bpy.ops.wm.save_as_mainfile(filepath='debug.blend')
