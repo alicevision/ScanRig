@@ -36,23 +36,27 @@ class ScanRigPanel(bpy.types.Panel):
 
         layout.separator()
 
+        domeShape = context.scene.RenderPropertyGroup.domeShape
+
         if context.scene.RenderPropertyGroup.renderReady:
 
-            pan_col2 = layout.column()
-            pan_col2.label(text="Photometry Management")
-            row = pan_col2.row()
-            row.prop(context.scene.RenderPropertyGroup, "rotAngle")
-            row = pan_col2.row()
-            row.prop(context.scene.RenderPropertyGroup,
-                     "stepDividerPhotometry")
-            row = layout.row()
+            if domeShape == "S":
+                pan_col2 = layout.column()
+                pan_col2.label(text="Photometry Management")
+                row = pan_col2.row()
+                row.prop(context.scene.RenderPropertyGroup, "rotAngle")
+                row = pan_col2.row()
+                row.prop(context.scene.RenderPropertyGroup,
+                         "stepDividerPhotometry")
+                row = layout.row()
 
             layout.separator()
 
             pan_col3 = layout.column()
             pan_col3.label(text="Render Management")
-            row = pan_col3.row()
-            row.prop(context.scene.RenderPropertyGroup, "renderMode")
+            if domeShape == "S":
+                row = pan_col3.row()
+                row.prop(context.scene.RenderPropertyGroup, "renderMode")
             row = pan_col3.row()
             row.prop(context.scene.RenderPropertyGroup, "bool_albedo")
             row = pan_col3.row()
@@ -225,13 +229,14 @@ class SetupOperator(bpy.types.Operator):
             col1.label(text="Setup Management")
 
             row = col1.row()
-            row.prop(self, "flashDistance")
-            row = col1.row()
             row.prop(self, "ledDistance")
             row = col1.row()
             row.prop(self, "ledAngle")
 
             if domeShape == "S":
+                row = col1.row()
+                row.prop(self, "flashDistance")
+
                 col2 = layout.column()
                 col2.label(text="Slice Camera Management")
 
@@ -355,8 +360,8 @@ class RenderPropertyGroup(bpy.types.PropertyGroup):
                                     description="Render id map",
                                     default=True)
     bool_beauty: bpy.props.BoolProperty(name="Beauty",
-                                       description="Beauty render",
-                                       default=True)
+                                        description="Beauty render",
+                                        default=True)
 
     # Dome shape management
     domeShape: bpy.props.EnumProperty(name='Camera Dome Shape', description='Choose the shape of the camera dome',
@@ -391,25 +396,27 @@ class RenderOperator(bpy.types.Operator):
         # Create the img folder if it does not exist
         os.makedirs(imgDir, exist_ok=True)
 
+        # Get the dome shape
+        domeShape = context.scene.RenderPropertyGroup.domeShape
+
         # ----------- GET OBJECTS -----------#
 
         origin = bpy.context.scene.objects['Cameras']
 
         camerasObjs = [context.scene.objects[f'Camera_{nCam}'] for nCam in
                        range(context.scene.RenderPropertyGroup.nbCam)]
-        flashLightsObjs = [context.scene.objects['FlashFront'], context.scene.objects['FlashBack'],
-                           context.scene.objects['FlashLeft'], context.scene.objects['FlashRight'],
-                           context.scene.objects['FlashTop'], context.scene.objects['FlashBottom']]
         ledLightsObjs = [context.scene.objects['LedFront'], context.scene.objects['LedBack'],
                          context.scene.objects['LedLeft'], context.scene.objects['LedRight'],
                          context.scene.objects['LedTop'], context.scene.objects['LedBottom']]
+        if domeShape == 'S':
+            flashLightsObjs = [context.scene.objects['FlashFront'], context.scene.objects['FlashBack'],
+                               context.scene.objects['FlashLeft'], context.scene.objects['FlashRight'],
+                               context.scene.objects['FlashTop'], context.scene.objects['FlashBottom']]
 
         print("---------- Rendering start ----------")
 
         # ----------- PRE-RENDER -----------#
         origin.rotation_euler[2] = 0
-
-        domeShape = context.scene.RenderPropertyGroup.domeShape
 
         if domeShape == "S":
             # Get render settings
@@ -438,8 +445,6 @@ class RenderOperator(bpy.types.Operator):
                         scanRigAddon_render.render(context, imgDir,
                                                    f"{cam.name}_{int(math.degrees(origin.rotation_euler[2]))}_ambiant")
 
-                    # self.__breakMessage()
-
                     for light in ledLightsObjs:
                         light.data.energy = 0
 
@@ -456,15 +461,18 @@ class RenderOperator(bpy.types.Operator):
                                                        f"{cam.name}_{int(math.degrees(origin.rotation_euler[2]))}_{light.name}")
 
                             light.data.energy = 0
-                    # self.__breakMessage()
 
         else:
+            for light in ledLightsObjs:
+                light.data.energy = 15
+
             for cam in camerasObjs:
                 context.scene.camera = cam
 
                 scanRigAddon_render.render(context, imgDir, f"{cam.name}")
 
-                # self.__breakMessage()
+            for light in ledLightsObjs:
+                light.data.energy = 0
 
         return {'FINISHED'}
 

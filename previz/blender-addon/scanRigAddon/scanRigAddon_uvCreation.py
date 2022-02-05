@@ -82,30 +82,6 @@ def create(context, objet, cameras):
     # Delete all selected objects
     bpy.ops.object.delete()
 
-    #---------- Create flash Light ----------#
-    FlashFront = objet.createLightObj(context, "FlashFront", objet.createFlashLight(
-        "FlashFront"), (0, -objet.flashDistance * objet.domeDistance, 0))
-    FlashBack = objet.createLightObj(context, "FlashBack", objet.createFlashLight(
-        "FlashBack"), (0, objet.flashDistance * objet.domeDistance, 0))
-    FlashLeft = objet.createLightObj(context, "FlashLeft", objet.createFlashLight(
-        "FlashLeft"), (objet.flashDistance * objet.domeDistance, 0, 0))
-    FlashRight = objet.createLightObj(context, "FlashRight", objet.createFlashLight(
-        "FlashRight"), (-objet.flashDistance * objet.domeDistance, 0, 0))
-    FlashTop = objet.createLightObj(context, "FlashTop", objet.createFlashLight(
-        "FlashTop"), (0, 0, objet.flashDistance * objet.domeDistance))
-    FlashBottom = objet.createLightObj(context, "FlashBottom", objet.createFlashLight(
-        "FlashBottom"), (0, 0, -objet.flashDistance * objet.domeDistance))
-
-    #---------- Create Flash Light Collection ----------#
-    flashLights = bpy.data.objects.new(
-        'FlashLights', None)  # None for empty object
-    flashLights.location = (0, 0, 0)
-    flashLights.empty_display_type = 'PLAIN_AXES'
-
-    objet.linkToScanRigCollection(flashLights)
-    # Relinking
-    FlashFront.parent = FlashBack.parent = FlashLeft.parent = FlashRight.parent = FlashTop.parent = FlashBottom.parent = flashLights
-
     #---------- Create Led light ----------#
     LedFront = objet.createLightObj(context, "LedFront", objet.createLedLight(
         "LedFront"), (0, -objet.ledDistance * objet.domeDistance, 0), (90, 0, 0))
