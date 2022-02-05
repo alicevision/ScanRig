@@ -29,7 +29,8 @@ class ScanRigPanel(bpy.types.Panel):
         row = pan_col1.row()
         row.operator('object.scanrig_clean')
         row = pan_col1.row()
-        row.prop(context.scene.RenderPropertyGroup, "domeShape")  # Dome shape parameter
+        row.prop(context.scene.RenderPropertyGroup,
+                 "domeShape")  # Dome shape parameter
         row = pan_col1.row()
         row.operator('object.scanrig_setup')
 
@@ -42,7 +43,8 @@ class ScanRigPanel(bpy.types.Panel):
             row = pan_col2.row()
             row.prop(context.scene.RenderPropertyGroup, "rotAngle")
             row = pan_col2.row()
-            row.prop(context.scene.RenderPropertyGroup, "stepDividerPhotometry")
+            row.prop(context.scene.RenderPropertyGroup,
+                     "stepDividerPhotometry")
             row = layout.row()
 
             layout.separator()
@@ -60,7 +62,7 @@ class ScanRigPanel(bpy.types.Panel):
             row = pan_col3.row()
             row.prop(context.scene.RenderPropertyGroup, "bool_id")
             row = pan_col3.row()
-            row.prop(context.scene.RenderPropertyGroup, "bool_basic")
+            row.prop(context.scene.RenderPropertyGroup, "bool_beauty")
             row = pan_col3.row()
             row.prop(context.scene.RenderPropertyGroup, "exportFolder")
             row = pan_col3.row()
@@ -185,7 +187,8 @@ class SetupOperator(bpy.types.Operator):
             bpy.data.objects.remove(o, do_unlink=True)
 
         # Creating cameras collection
-        cameras = bpy.data.objects.new('Cameras', None)  # None for empty object
+        cameras = bpy.data.objects.new(
+            'Cameras', None)  # None for empty object
         cameras.location = (0, 0, 0)
         cameras.empty_display_type = 'PLAIN_AXES'
         self.linkToScanRigCollection(cameras)
@@ -203,7 +206,7 @@ class SetupOperator(bpy.types.Operator):
             context.scene.RenderPropertyGroup.nbCam = nbCameras
 
         elif domeShape == "S":
-            # Create slice within sphere
+            # Create arc within a sphere
             scanRigAddon_sphereCreation.create(context, self, cameras)
             context.scene.RenderPropertyGroup.nbCam = self.nbCamera
 
@@ -264,7 +267,8 @@ class SetupOperator(bpy.types.Operator):
             row.prop(self, "domeDistance")
 
     def linkToScanRigCollection(self, obj):
-        bpy.data.collections['ScanRigCollection'].objects.link(obj)  # Link to our collection
+        bpy.data.collections['ScanRigCollection'].objects.link(
+            obj)  # Link to our collection
 
     def createCam(self, name, fov):
         cam = bpy.data.cameras.new(name)
@@ -273,15 +277,18 @@ class SetupOperator(bpy.types.Operator):
         return cam
 
     def createCameraObj(self, context, name, cam, loc=(0.0, 0.0, 0.0), rot=(0.0, 0.0, 0.0)):
-        radiansRot = tuple([math.radians(a) for a in rot])  # Convert angles to radians
+        radiansRot = tuple([math.radians(a)
+                           for a in rot])  # Convert angles to radians
         obj = bpy.data.objects.new(name, cam)
         obj.location = loc
         obj.rotation_euler = radiansRot
-        obj.scale = (0.2, 0.2, 0.2)  # Nothing changes but it is easier to read in the 3D Viewer like this
+        # Nothing changes but it is easier to read in the 3D Viewer like this
+        obj.scale = (0.2, 0.2, 0.2)
 
         self.linkToScanRigCollection(obj)
 
-        active = context.view_layer.objects.active  # Move origin (could be improved)
+        # Move origin (could be improved)
+        active = context.view_layer.objects.active
         context.view_layer.objects.active = obj
         bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN', center='MEDIAN')
         context.view_layer.objects.active = active
@@ -295,7 +302,8 @@ class SetupOperator(bpy.types.Operator):
         return light
 
     def createLightObj(self, context, name, light, loc=(0.0, 0.0, 0.0), rot=(0.0, 0.0, 0.0)):
-        radiansRot = tuple([math.radians(a) for a in rot])  # Convert angles to radians
+        radiansRot = tuple([math.radians(a)
+                           for a in rot])  # Convert angles to radians
 
         obj = bpy.data.objects.new(name, light)  # Set object settings
         obj.location = loc
@@ -316,9 +324,12 @@ class RenderPropertyGroup(bpy.types.PropertyGroup):
     renderReady: bpy.props.BoolProperty(name="Toggle Option")
     renderMode: bpy.props.EnumProperty(name='Render mode', description='Choose render mode',
                                        items={
-                                           ('A', 'Ambiant', 'Render with ambiant lights only'),
-                                           ('P', 'Photometry', 'Render with Photometry lights only'),
-                                           ('AP', 'Ambiant & Photometry', 'Render full light setup')
+                                           ('A', 'Ambiant',
+                                            'Render with ambiant lights only'),
+                                           ('P', 'Photometry',
+                                            'Render with Photometry lights only'),
+                                           ('AP', 'Ambiant & Photometry',
+                                            'Render full light setup')
                                        }, default='A')
     rotAngle: bpy.props.IntProperty(name="Rotation Angle",
                                     description="Angle (in degrees) separating the take of two consecutive pictures",
@@ -327,7 +338,8 @@ class RenderPropertyGroup(bpy.types.PropertyGroup):
                                                  description="If 1, photometry will be done on each rotation step. If 2, it will be done one step out of 2, etc",
                                                  default=3, min=1, max=12, step=1)
     nbCam: bpy.props.IntProperty()
-    exportFolder: bpy.props.StringProperty(name="Export Folder", description="Relative export folder", default="img")
+    exportFolder: bpy.props.StringProperty(
+        name="Export Folder", description="Relative export folder", default="img")
 
     # Render map type management
     bool_albedo: bpy.props.BoolProperty(name="Albedo",
@@ -342,17 +354,19 @@ class RenderPropertyGroup(bpy.types.PropertyGroup):
     bool_id: bpy.props.BoolProperty(name="Id",
                                     description="Render id map",
                                     default=True)
-    bool_basic: bpy.props.BoolProperty(name="Basic",
-                                       description="Basic render",
+    bool_beauty: bpy.props.BoolProperty(name="Beauty",
+                                       description="Beauty render",
                                        default=True)
 
     # Dome shape management
     domeShape: bpy.props.EnumProperty(name='Camera Dome Shape', description='Choose the shape of the camera dome',
                                       items={
-                                          ('S', 'Sphere', 'Place the cameras along the wall of a sphere'),
-                                          (
-                                          'I', 'Icosahedron', 'Place the cameras along the vertices of an Icosahedron'),
-                                          ('U', 'UV Sphere', 'Place the cameras along the vertices of an UV Sphere')
+                                          ('S', 'Spinning Arc',
+                                           'Place the cameras along an arc of a sphere'),
+                                          ('I', 'Icosahedron',
+                                           'Place the cameras along the vertices of an Icosahedron'),
+                                          ('U', 'UV Sphere',
+                                           'Place the cameras along the vertices of an UV Sphere')
                                       }, default='S')
 
 
@@ -371,7 +385,8 @@ class RenderOperator(bpy.types.Operator):
         # Get the img folder path
         filePath = bpy.data.filepath
         curDir = os.path.dirname(filePath)
-        imgDir = os.path.join(curDir, context.scene.RenderPropertyGroup.exportFolder)
+        imgDir = os.path.join(
+            curDir, context.scene.RenderPropertyGroup.exportFolder)
 
         # Create the img folder if it does not exist
         os.makedirs(imgDir, exist_ok=True)
@@ -459,13 +474,15 @@ class RenderOperator(bpy.types.Operator):
     #             raise Exception()
 
 
-classes = [ScanRigPanel, CleanSceneOperator, SettingsOperator, SetupOperator, RenderPropertyGroup, RenderOperator]
+classes = [ScanRigPanel, CleanSceneOperator, SettingsOperator,
+           SetupOperator, RenderPropertyGroup, RenderOperator]
 
 
 def register():
     for c in classes:
         bpy.utils.register_class(c)
-    bpy.types.Scene.RenderPropertyGroup = bpy.props.PointerProperty(type=RenderPropertyGroup)
+    bpy.types.Scene.RenderPropertyGroup = bpy.props.PointerProperty(
+        type=RenderPropertyGroup)
 
 
 def unregister():

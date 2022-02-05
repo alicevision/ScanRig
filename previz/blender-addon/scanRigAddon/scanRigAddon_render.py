@@ -1,4 +1,7 @@
-import sys, os, math, re
+import sys
+import os
+import math
+import re
 import bpy
 from glob import glob
 
@@ -49,7 +52,8 @@ def render(context, imgDir, imgName):
         depth_file_output.format.file_format = format
         depth_file_output.format.color_depth = color_depth
         if format == 'OPEN_EXR':
-            links.new(render_layers.outputs['Depth'], depth_file_output.inputs[0])
+            links.new(render_layers.outputs['Depth'],
+                      depth_file_output.inputs[0])
         else:
             depth_file_output.format.color_mode = "BW"
 
@@ -88,7 +92,8 @@ def render(context, imgDir, imgName):
     if renderProp.bool_albedo:
         # Create albedo output nodes
         alpha_albedo = nodes.new(type="CompositorNodeSetAlpha")
-        links.new(render_layers.outputs['DiffCol'], alpha_albedo.inputs['Image'])
+        links.new(render_layers.outputs['DiffCol'],
+                  alpha_albedo.inputs['Image'])
         links.new(render_layers.outputs['Alpha'], alpha_albedo.inputs['Alpha'])
 
         albedo_file_output = nodes.new(type="CompositorNodeOutputFile")
@@ -110,7 +115,8 @@ def render(context, imgDir, imgName):
         id_file_output.format.color_depth = color_depth
 
         if format == 'OPEN_EXR':
-            links.new(render_layers.outputs['IndexOB'], id_file_output.inputs[0])
+            links.new(
+                render_layers.outputs['IndexOB'], id_file_output.inputs[0])
         else:
             id_file_output.format.color_mode = 'BW'
 
@@ -126,7 +132,7 @@ def render(context, imgDir, imgName):
     fp = os.path.join(imgDir, imgName)
     render_file_path = fp
 
-    if renderProp.bool_basic:
+    if renderProp.bool_beauty:
         scene.render.filepath = render_file_path
     if renderProp.bool_depth:
         depth_file_output.file_slots[0].path = render_file_path + "_depth"
