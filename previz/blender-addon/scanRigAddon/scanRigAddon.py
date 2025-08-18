@@ -329,11 +329,11 @@ class RenderPropertyGroup(bpy.types.PropertyGroup):
     renderReady: bpy.props.BoolProperty(name="Toggle Option")
     renderMode: bpy.props.EnumProperty(name='Render mode', description='Choose render mode',
                                        items={
-                                           ('A', 'Ambiant',
-                                            'Render with ambiant lights only'),
+                                           ('A', 'Ambient',
+                                            'Render with ambient lights only'),
                                            ('P', 'Photometry',
                                             'Render with Photometry lights only'),
-                                           ('AP', 'Ambiant & Photometry',
+                                           ('AP', 'Ambient & Photometry',
                                             'Render full light setup')
                                        }, default='A')
     rotAngle: bpy.props.IntProperty(name="Rotation Angle",
@@ -433,7 +433,7 @@ class RenderOperator(bpy.types.Operator):
             for cam in camerasObjs:
                 context.scene.camera = cam
 
-                # ----------- AMBIANT RENDER -----------#
+                # ----------- AMBIENT RENDER -----------#
                 if renderMode == 'A' or renderMode == 'AP':
                     for light in ledLightsObjs:
                         light.data.energy = 15
