@@ -42,7 +42,7 @@ There are several buttons you can play with.
           - **Rotation Angle:** Angle (in degrees) separating the take of two consecutive pictures.
           - **Photometry Step Divider:** If 1, photometry will be done on each rotation step. If 2, it will be done one step out of 2, etc.
         - The ***Render Management*** options:
-          - **Render mode:** Here, you can choose if you want to render only with Ambiant lights, only with Flash lights (photometry) or with both.
+          - **Render mode:** Here, you can choose if you want to render only with Ambient lights, only with Flash lights (photometry) or with both.
           - Several tick boxes corresponding to the different types of image maps you want to render (*Albedo*, *Depth*, *Normal*, *Id* or *Basic* maps).
           - **Start Render:** Start the rendering process. Please, make sure to open the console (on Windows, you can do it inside *Window/Toggle System Console* - on Linux/OSX, it is better to launch Blender directly with the terminal). When a camera will have completed its task, you will have to tell if you want to continue the process or not (with the console).
 
@@ -52,11 +52,11 @@ There are several buttons you can play with.
 
 - Rotation Angle = 15
 - Photometry Step Divider = 3
-- Render mode = Ambiant & Photometry
+- Render mode = Ambient & Photometry
 - Tickboxes: Depth & Basic
 
 Result:
 
-- Cameras will take 24 ambiant lights pictures (one on each **15**° of the revolution).
+- Cameras will take 24 ambient lights pictures (one on each **15**° of the revolution).
 - Cameras will take 6x8 photometry lights pictures (six (X, -X, Y, -Y, Z, -Z) on each **3**x**15**° of the revolution).
 - Cameras will each time take a picture of the **Depth** map and a picture of the **Basic** map.
